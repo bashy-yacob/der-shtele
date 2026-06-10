@@ -1,0 +1,248 @@
+// ============================================================
+// Prisma Schema — דער שטעלע
+// DB: PostgreSQL
+// שלב א: candidates, jobs (public)
+// שלב ב: employers, job_presentations, call_logs
+// שלב ג: placements, commissions, reminders
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------------------------------------------
+// Enums — מקביל ל-src/types/index.ts
+// ----------------------------------------------------------------
+
+enum Gender {
+  men
+  women
+  mixed
+}
+
+enum JobField {
+  logistics
+  admin
+  sales
+  education
+  tech
+  finance
+  healthcare
+  other
+}
+
+enum Region {
+  bnei_brak
+  jerusalem
+  elad
+  modiin_ilit
+  beitar_ilit
+  other
+}
+
+enum JobStatus {
+  active
+  paused
+  closed
+  filled
+}
+
+enum CandidateStatus {
+  new
+  in_progress
+  presented
+  hired
+  not_suitable
+}
+
+enum PlacementStatus {
+  pending
+  confirmed
+  guarantee
+  completed
+  cancelled
+}
+
+enum CommissionStatus {
+  pending
+  invoiced
+  paid
+  partial_refund
+}
+
+// ----------------------------------------------------------------
+// שלב ב — מעסיקים (פנימי לחלוטין)
+// ----------------------------------------------------------------
+
+model Employer {
+  id             String   @id @default(cuid())
+  companyName    String
+  businessNumber String?  // ח.פ
+  address        String?
+  contactName    String
+  contactPhone   String
+  contactEmail   String
+  notes          String?  // אמינות, העדפות
+
+  jobs           Job[]
+  placements     Placement[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("employers")
+}
+
+// ----------------------------------------------------------------
+// שלב א+ב — משרות
+// ----------------------------------------------------------------
+
+model Job {
+  id                    String    @id @default(cuid())
+  employerId            String
+  employer              Employer  @relation(fields: [employerId], references: [id])
+
+  title                 String
+  descriptionPublic     String    // מה שעולה לאתר — אנונימי
+  descriptionInternal   String    // דרישות מלאות — פנימי בלבד
+
+  field                 JobField
+  region                Region
+  gender                Gender
+  scope                 String    // 'מלאה' | 'חלקית' | 'גמיש'
+
+  rabbinicalApproval    Boolean   @default(false)
+  rabbinicalApprovalBy  String?
+
+  status                JobStatus @default(active)
+  openedAt              DateTime  @default(now())
+  closedAt              DateTime?
+
+  presentations         JobPresentation[]
+  placements            Placement[]
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("jobs")
+}
+
+// ----------------------------------------------------------------
+// שלב א+ב — מועמדים
+// ----------------------------------------------------------------
+
+model Candidate {
+  id           String          @id @default(cuid())
+  fullName     String
+  phone        String
+  email        String
+  city         String          @default("")
+  gender       Gender
+  field        JobField
+  region       Region
+
+  cvUrl        String?         // Supabase Storage URL
+  cvUploadedAt DateTime?
+
+  status       CandidateStatus @default(new)
+  notes        String?         // הערות פנימיות
+
+  callLogs     CallLog[]
+  presentations JobPresentation[]
+  placements   Placement[]
+  reminders    Reminder[]
+
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@map("candidates")
+}
+
+// ----------------------------------------------------------------
+// שלב ב — היסטוריית שיחות
+// ----------------------------------------------------------------
+
+model CallLog {
+  id          String    @id @default(cuid())
+  candidateId String
+  candidate   Candidate @relation(fields: [candidateId], references: [id])
+
+  staffName   String    // מי מהצוות
+  calledAt    DateTime  @default(now())
+  summary     String
+  followUpAt  DateTime? // תזכורת לשיחה חוזרת
+
+  @@map("call_logs")
+}
+
+// ----------------------------------------------------------------
+// שלב ב — הצגת מועמד למשרה
+// ----------------------------------------------------------------
+
+model JobPresentation {
+  id          String          @id @default(cuid())
+  jobId       String
+  job         Job             @relation(fields: [jobId], references: [id])
+  candidateId String
+  candidate   Candidate       @relation(fields: [candidateId], references: [id])
+
+  presentedAt DateTime        @default(now())
+  status      CandidateStatus @default(presented) // סטטוס ביחס למשרה הספציפית
+  notes       String?
+
+  @@unique([jobId, candidateId]) // מועמד לא יוצג פעמיים לאותה משרה
+  @@map("job_presentations")
+}
+
+// ----------------------------------------------------------------
+// שלב ג — גיוס מוצלח
+// ----------------------------------------------------------------
+
+model Placement {
+  id               String          @id @default(cuid())
+  jobId            String
+  job              Job             @relation(fields: [jobId], references: [id])
+  candidateId      String
+  candidate        Candidate       @relation(fields: [candidateId], references: [id])
+  employerId       String
+  employer         Employer        @relation(fields: [employerId], references: [id])
+
+  placedAt         DateTime        @default(now())
+  guaranteeEndsAt  DateTime        // placedAt + 3 חודשים — מחושב ב-statusMachine
+  status           PlacementStatus @default(pending)
+
+  commissionAmount Float?          // בשקלים
+  commissionStatus CommissionStatus @default(pending)
+
+  notes            String?
+
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@map("placements")
+}
+
+// ----------------------------------------------------------------
+// שלב ג — תזכורות לצוות
+// ----------------------------------------------------------------
+
+model Reminder {
+  id          String    @id @default(cuid())
+  candidateId String?
+  candidate   Candidate? @relation(fields: [candidateId], references: [id])
+  jobId       String?   // אפשר לקשר לתזכורת גם ללא מועמד ספציפי
+
+  message     String
+  remindAt    DateTime
+  done        Boolean   @default(false)
+  createdBy   String    // שם נציג
+
+  createdAt   DateTime  @default(now())
+
+  @@map("reminders")
+}
