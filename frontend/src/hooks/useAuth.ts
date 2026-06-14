@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+// מוריד סלאש מיותר בסוף הכתובת כדי שלא ייווצר `//api/...`
+const API = (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000').replace(/\/+$/, '');
 const TOKEN_KEY = 'ds_token';
 
 export interface AuthUser {

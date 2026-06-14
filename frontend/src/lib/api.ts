@@ -4,10 +4,12 @@
 
 import type { PublicJob, Gender, JobField, Region } from '@/types';
 
-const BASE_URL =
+// מוריד סלאש מיותר בסוף הכתובת כדי שלא ייווצר `//api/...`
+const BASE_URL = (
   process.env.BACKEND_API_URL ??
   process.env.NEXT_PUBLIC_API_URL ??
-  'http://localhost:4000';
+  'http://localhost:4000'
+).replace(/\/+$/, '');
 
 /** עוטף את ApiResponse<T> של ה-backend ומחזיר את ה-data. */
 async function unwrap<T>(res: Response): Promise<T> {

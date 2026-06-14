@@ -22,18 +22,29 @@ export class EmailService {
   private readonly transporter: nodemailer.Transporter;
   private readonly from: string;
   private readonly teamEmail: string;
+  private readonly enabled: boolean;
 
   constructor(private readonly config: ConfigService) {
     this.from = this.config.get<string>('SMTP_USER', 'no-reply@dershtele.co.il');
     this.teamEmail = this.config.get<string>('TEAM_EMAIL', this.from);
+
+    const pass = this.config.get<string>('SMTP_PASS', '');
+    // SMTP נחשב "מוגדר" רק כשיש סיסמה. בלי זה לא מנסים להתחבר כלל — אחרת כל
+    // שליחה נתקעת בהמתנה ל-timeout מול Gmail. fail-soft, כמו שהאיפיון מבטיח.
+    this.enabled = Boolean(pass);
+
     this.transporter = nodemailer.createTransport({
       host: this.config.get<string>('SMTP_HOST', 'smtp.gmail.com'),
       port: this.config.get<number>('SMTP_PORT', 587),
       secure: false,
       auth: {
         user: this.from,
-        pass: this.config.get<string>('SMTP_PASS', ''),
+        pass,
       },
+      // רשת ביטחון: גם אם מוגדר אך השרת לא מגיב — להיכשל מהר ולא לתקוע את הבקשה.
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 15_000,
     });
   }
 
@@ -45,6 +56,13 @@ export class EmailService {
         `שבת/חג — המייל אל ${msg.to} נדחה ל-${when.toISOString()} (TODO: תור תזמון)`,
       );
       // TODO שלב ב: לשמור בתור (DB/Bull) ולשלוח ב-when. כרגע מדלגים בבטחה.
+      return;
+    }
+
+    if (!this.enabled) {
+      this.logger.warn(
+        `SMTP לא מוגדר — מדלג על שליחת מייל אל ${msg.to} (רק log)`,
+      );
       return;
     }
 
