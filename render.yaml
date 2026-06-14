@@ -1,0 +1,53 @@
+# דער שטעלע — Render Blueprint (תוכנית פריסה חינמית לבק-אנד)
+# ----------------------------------------------------------------
+# מה זה עושה: Render קורא את הקובץ הזה אוטומטית ויוצר את שירות
+# ה-NestJS לפי ההגדרות כאן — בלי להזין build/start ידנית.
+#
+# איך להשתמש: ב-Render → New → Blueprint → חברי את הריפו.
+# Render ימצא את הקובץ, יבנה את השירות, ויבקש ממך רק את הערכים
+# הסודיים (sync: false) — את ממלאת אותם פעם אחת והכל מוגדר.
+#
+# ה-DB והאחסון נשארים ב-Supabase (free tier) — אין כאן DB חדש.
+
+services:
+  - type: web
+    name: der-shtele-backend
+    runtime: node
+    plan: free
+    region: frankfurt          # הקרוב ביותר לישראל מבין אזורי ה-free
+    rootDir: backend           # ה-NestJS יושב בתיקיית backend/
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npm run start:prod
+    # אם יש מיגרציות שעוד לא רצו על ה-DB, החליפי את buildCommand ל:
+    #   npm install && npx prisma generate && npx prisma migrate deploy && npm run build
+    autoDeploy: true           # כל push ל-main מפעיל פריסה מחדש
+    envVars:
+      # --- ערכים קבועים (לא סודיים) ---
+      - key: NODE_ENV
+        value: production
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      # --- סודות: Render יבקש אותם בהקמה (אל תכתבי אותם בקוד) ---
+      - key: DATABASE_URL              # מחרוזת החיבור של Supabase (pooler, פורט 6543)
+        sync: false
+      - key: FRONTEND_ORIGIN           # כתובת ה-Vercel המלאה, למשל https://der-shtele.vercel.app
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_RESUME_BUCKET    # אפשר: resumes
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      # --- מיילים: כרגע כבוי. השאירי ריק בינתיים, תמלאי כשיוגדר SMTP ---
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: TEAM_EMAIL
+        sync: false

@@ -1,84 +1,69 @@
 # דער שטעלע — Der Shtele
 
 סוכנות השמה דיגיטלית לציבור החרדי בישראל.
+**מודל:** כל קשר בין מועמד למעסיק עובר דרך הצוות. מעסיקים אנונימיים לחלוטין באתר הציבורי.
 
-## טכנולוגיות
+## ארכיטקטורה — Monorepo
 
-- **Next.js 14** (App Router)
-- **TypeScript**
-- **Tailwind CSS**
-- **React Hook Form + Zod** (ולידציה)
+```
+der-shtele/
+├── frontend/   # Next.js 14 (App Router) — האתר הציבורי + אזורים אישיים
+├── backend/    # NestJS — לוגיקה עסקית, DB (Prisma/PostgreSQL), מיילים, אחסון
+├── tasks/      # מסמכי שלבים (phase-a/b/c)
+└── docs/       # מפרט
+```
+
+ה-frontend לא ניגש ל-DB ישירות — כל הנתונים עוברים דרך ה-API של ה-backend
+(`frontend/src/lib/api.ts`). זה שומר על הפרדת מידע ציבורי/פנימי.
+
+## ערמת טכנולוגיה
+
+| שכבה      | טכנולוגיה                                   |
+|-----------|---------------------------------------------|
+| Frontend  | Next.js 14, TypeScript, Tailwind CSS, RTL   |
+| ולידציה   | Zod + React Hook Form                        |
+| Backend   | NestJS, TypeScript                           |
+| DB        | PostgreSQL + Prisma                          |
+| אחסון     | Supabase Storage (bucket פרטי לקו"ח)         |
+| מייל      | Nodemailer / Resend (+ בדיקת שבת)            |
+| Auth      | JWT + roles (שלב ב)                          |
 
 ## התחלה מהירה
 
 ```bash
+# התקנה (workspaces — מתקין frontend + backend יחד)
 npm install
-npm run dev
+
+# הגדרת משתני סביבה
+cp .env.example backend/.env
+cp .env.example frontend/.env.local
+# מלאו ערכים אמיתיים בכל קובץ
+
+# יצירת ה-Prisma client + הרצת מיגרציות
+npm run prisma:generate
+npm run prisma:migrate
+
+# הרצה (frontend על 3000, backend על 4000)
+npm run dev:frontend
+npm run dev:backend
 ```
 
-האתר יעלה בכתובת: http://localhost:3000
+## סקריפטים בשורש
 
-## מבנה הפרויקט
+| סקריפט                   | פעולה                              |
+|--------------------------|------------------------------------|
+| `npm run dev:frontend`   | מריץ את ה-Next.js (port 3000)       |
+| `npm run dev:backend`    | מריץ את ה-NestJS (port 4000)        |
+| `npm run build`          | בונה את שני ה-workspaces            |
+| `npm run prisma:migrate` | מיגרציה ל-DB (backend)             |
+| `npm run prisma:seed`    | זריעת נתוני דמה (backend)          |
 
-```
-src/
-├── app/                    # App Router
-│   ├── page.tsx            # דף בית
-│   ├── jobs/               # לוח משרות + דף משרה
-│   ├── contact/            # טופס הגשת מועמדות
-│   ├── about/              # דף אודות
-│   └── api/                # API Routes
-│       ├── candidates/     # POST — קבלת פנייה
-│       └── jobs/           # GET — רשימת משרות
-├── components/
-│   ├── layout/             # Header, Footer
-│   ├── jobs/               # JobCard
-│   └── forms/              # (לשימוש עתידי)
-├── lib/
-│   ├── constants.ts        # תוויות, פרטי קשר, שם אתר
-│   ├── mockData.ts         # נתוני דמה לפיתוח
-│   └── validations.ts      # Zod schemas
-├── types/
-│   └── index.ts            # טיפוסי TypeScript משותפים
-└── styles/
-    └── globals.css         # סגנונות גלובליים + RTL
-```
+## כללים קריטיים
 
-## שלבי פיתוח
+- כל טקסט ציבורי **בעברית בלבד**, `dir="rtl"`, פונט Heebo.
+- **אסור** תמונות אנשים, פרסומות, באנרים צבעוניים.
+- שם המעסיק **לעולם לא** מופיע בקומפוננטות/תגובות API ציבוריות.
+- אין שליחת מיילים/התראות אוטומטיות בשבת וחג (`backend/src/common/shabbat`).
+- קורות חיים — bucket פרטי, גישה רק דרך signed URLs.
 
-### ✅ שלב א — אתר ציבורי (נוכחי)
-- [x] לוח משרות אנונימי עם פילטרים
-- [x] דף משרה בודד
-- [x] טופס הגשת מועמדות + ולידציה
-- [x] דף אודות + צור קשר
-- [x] RTL + עברית + עיצוב שמרני
-- [ ] חיבור מייל אמיתי (Nodemailer/Resend)
-- [ ] העלאת קבצים (Supabase Storage)
-
-### 🔲 שלב ב — CRM פנימי
-- [ ] ניהול מועמדים
-- [ ] ניהול משרות (פנימי + ציבורי)
-- [ ] ניהול מעסיקים
-- [ ] מערכת סטטוסים
-
-### 🔲 שלב ג — שדרוגים
-- [ ] לוח בקרה עם סטטיסטיקות
-- [ ] מערכת תזכורות
-- [ ] ניהול עמלות
-
-## משתני סביבה
-
-```env
-# .env.local
-TEAM_EMAIL=your@email.com
-SMTP_HOST=smtp.example.com
-SMTP_PORT=587
-SMTP_USER=
-SMTP_PASS=
-```
-
-## פריסה (Vercel)
-
-```bash
-vercel deploy
-```
+ראו `.github/copilot-instructions.md` להנחיות מלאות.

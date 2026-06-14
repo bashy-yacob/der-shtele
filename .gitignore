@@ -7,11 +7,22 @@ node_modules/
 .next/
 out/
 dist/
+build/
 
 # env
 .env
 .env.local
 .env.*.local
+backend/.env
+frontend/.env
+frontend/.env.local
+
+# prisma
+backend/prisma/*.db
+
+# uploads (local dev fallback — production uses Supabase Storage)
+frontend/public/uploads/
+backend/uploads/
 
 # misc
 .DS_Store
@@ -19,6 +30,10 @@ dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.tsbuildinfo
 
 # vercel
 .vercel
+
+# editor
+.idea/
