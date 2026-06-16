@@ -1,4 +1,4 @@
-import type { JobField, Region, Gender } from '@/types';
+import type { JobField, Region } from '@/types';
 
 // ---- תרגום תחומים לעברית ----
 export const FIELD_LABELS: Record<JobField, string> = {
@@ -20,13 +20,6 @@ export const REGION_LABELS: Record<Region, string> = {
   modiin_ilit: 'מודיעין עילית',
   beitar_ilit: 'ביתר עילית',
   other:       'אחר',
-};
-
-// ---- תרגום מגדר לעברית ----
-export const GENDER_LABELS: Record<Gender, string> = {
-  men:    'לגברים',
-  women:  'לנשים',
-  mixed:  'מעורב',
 };
 
 // ---- שם האתר ----
@@ -106,7 +99,6 @@ export const SITE_CONTENT = {
     filters: {
       field: 'תחום עיסוק',
       region: 'אזור',
-      gender: 'מגדר',
       scope: 'כמות',
     },
     empty: 'לא נמצא משרות מתאימות לחיפוש זה.',

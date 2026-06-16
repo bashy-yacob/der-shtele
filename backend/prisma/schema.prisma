@@ -20,12 +20,6 @@ datasource db {
 // Enums — מקביל ל-src/types/index.ts
 // ----------------------------------------------------------------
 
-enum Gender {
-  men
-  women
-  mixed
-}
-
 enum JobField {
   logistics
   admin
@@ -158,11 +152,7 @@ model Job {
 
   field                 JobField
   region                Region
-  gender                Gender
   scope                 String    // 'מלאה' | 'חלקית' | 'גמיש'
-
-  rabbinicalApproval    Boolean   @default(false)
-  rabbinicalApprovalBy  String?
 
   status                JobStatus @default(active)
   openedAt              DateTime  @default(now())
@@ -187,7 +177,6 @@ model Candidate {
   phone        String
   email        String
   city         String          @default("")
-  gender       Gender
   field        JobField
   region       Region
 

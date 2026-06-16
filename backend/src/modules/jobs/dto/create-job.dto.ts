@@ -1,11 +1,5 @@
-import {
-  IsBoolean,
-  IsEnum,
-  IsOptional,
-  IsString,
-  MinLength,
-} from 'class-validator';
-import { Gender, JobField, Region } from '@prisma/client';
+import { IsEnum, IsString, MinLength } from 'class-validator';
+import { JobField, Region } from '@prisma/client';
 
 export class CreateJobDto {
   @IsString()
@@ -28,17 +22,6 @@ export class CreateJobDto {
   @IsEnum(Region)
   region!: Region;
 
-  @IsEnum(Gender)
-  gender!: Gender;
-
   @IsString()
   scope!: string; // 'מלאה' | 'חלקית' | 'גמיש'
-
-  @IsOptional()
-  @IsBoolean()
-  rabbinicalApproval?: boolean;
-
-  @IsOptional()
-  @IsString()
-  rabbinicalApprovalBy?: string;
 }

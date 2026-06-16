@@ -7,6 +7,7 @@ import { AuthUser } from '../../common/decorators/current-user.decorator';
 export interface JwtPayload {
   sub: string;
   email: string;
+  fullName: string;
   role: string;
   candidateId: string | null;
 }
@@ -27,6 +28,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     return {
       userId: payload.sub,
       email: payload.email,
+      fullName: payload.fullName,
       role: payload.role,
       candidateId: payload.candidateId,
     };

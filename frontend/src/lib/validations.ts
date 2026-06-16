@@ -1,14 +1,22 @@
 import { z } from 'zod';
 
+/**
+ * טלפון נייד ישראלי — מקור אמת יחיד לכל הטפסים.
+ * מנרמל קלט (מסיר מקפים/רווחים שהמשתמש מקליד, כולל לפי ה-placeholder עם מקפים)
+ * ואז מאמת `05X` + 7 ספרות. הערך שעובר הלאה הוא 10 ספרות נקיות.
+ */
+export const phoneSchema = z
+  .string()
+  .transform((v) => v.replace(/\D/g, ''))
+  .pipe(z.string().regex(/^05\d{8}$/, 'מספר טלפון לא תקין'));
+
 export const candidateFormSchema = z.object({
   fullName: z
     .string()
     .min(2, 'נא להזין שם מלא')
     .max(100),
 
-  phone: z
-    .string()
-    .regex(/^0[5-9]\d{8}$/, 'מספר טלפון לא תקין'),
+  phone: phoneSchema,
 
   email: z
     .string()

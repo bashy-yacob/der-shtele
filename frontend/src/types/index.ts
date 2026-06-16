@@ -7,8 +7,6 @@
 // Enums משותפים
 // ----------------------------------------------------------------
 
-export type Gender = 'men' | 'women' | 'mixed';
-
 export type JobField =
   | 'logistics'
   | 'admin'
@@ -68,9 +66,7 @@ export interface PublicJob {
   description: string;         // תיאור אנונימי
   field: JobField;
   region: Region;
-  gender: Gender;
   scope: string;               // 'מלאה' | 'חלקית' | 'גמיש'
-  rabbinicalApproval: boolean;
   createdAt: string;           // ISO date string
 }
 
@@ -97,7 +93,6 @@ export interface Candidate {
   phone: string;
   email: string;
   city: string;
-  gender: Gender;
   field: JobField;
   region: Region;
   cvUrl: string | null;        // Supabase Storage URL
@@ -141,10 +136,7 @@ export interface InternalJob {
   descriptionInternal: string;   // דרישות מלאות, פנימי
   field: JobField;
   region: Region;
-  gender: Gender;
   scope: string;
-  rabbinicalApproval: boolean;
-  rabbinicalApprovalBy: string | null;
   status: JobStatus;
   openedAt: string;
   closedAt: string | null;

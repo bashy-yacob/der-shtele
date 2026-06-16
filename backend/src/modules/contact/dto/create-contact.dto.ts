@@ -1,4 +1,5 @@
 import { IsEnum, IsString, Matches, MinLength } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export enum InquiryType {
   candidate = 'candidate',
@@ -11,7 +12,11 @@ export class CreateContactDto {
   @MinLength(2, { message: 'שם חייב להיות לפחות 2 תווים' })
   name!: string;
 
-  @Matches(/^05[0-9]{8}$/, { message: 'מספר טלפון לא תקין' })
+  // מנרמל מקפים/רווחים לפני הוולידציה — תואם את ה-placeholder עם מקפים בטופס.
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.replace(/\D/g, '') : value,
+  )
+  @Matches(/^05\d{8}$/, { message: 'מספר טלפון לא תקין' })
   phone!: string;
 
   @IsEnum(InquiryType, { message: 'נא לבחור סוג פנייה' })

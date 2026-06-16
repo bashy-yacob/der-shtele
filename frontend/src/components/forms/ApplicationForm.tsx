@@ -5,10 +5,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { FIELD_LABELS, REGION_LABELS, SITE_CONTENT } from '@/lib/constants';
+import { phoneSchema } from '@/lib/validations';
 
 const applicationSchema = z.object({
   fullName: z.string().min(2, 'שם חייב להיות לפחות 2 תווים'),
-  phone: z.string().regex(/^05[0-9]{8}$/, 'מספר טלפון לא תקין'),
+  phone: phoneSchema,
   email: z.string().email('כתובת דואר אלקטרוני לא תקינה'),
   field: z.string().min(1, 'בחרו תחום'),
   region: z.string().min(1, 'בחרו אזור'),

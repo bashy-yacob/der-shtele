@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getPublicJob } from '@/lib/api';
-import { FIELD_LABELS, REGION_LABELS, GENDER_LABELS } from '@/lib/constants';
+import { FIELD_LABELS, REGION_LABELS } from '@/lib/constants';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import ApplicationForm from '@/components/forms/ApplicationForm';
@@ -40,11 +40,6 @@ export default async function JobPage({ params }: Props) {
                     {companyLabel} · {new Date(job.createdAt).toLocaleDateString('he-IL')} · פורסם
                   </p>
                 </div>
-                {job.rabbinicalApproval && (
-                  <div className="text-xs bg-green-50 text-green-700 border border-green-200 px-3 py-2 rounded-lg whitespace-nowrap font-medium">
-                    ✓ משרה זו עברה אישור רבני
-                  </div>
-                )}
               </div>
 
               {/* Tags */}
@@ -52,7 +47,6 @@ export default async function JobPage({ params }: Props) {
                 <Tag label="תחום" value={FIELD_LABELS[job.field]} />
                 <Tag label="אזור" value={REGION_LABELS[job.region]} />
                 <Tag label="היקף" value={job.scope} />
-                <Tag label="מגדר" value={GENDER_LABELS[job.gender]} />
               </div>
             </div>
 
@@ -72,7 +66,7 @@ export default async function JobPage({ params }: Props) {
               <ul className="list-disc list-inside text-neutral-700 space-y-2 text-sm">
                 <li>משכורת תחרותית</li>
                 <li>סביבת עבודה נעימה ותומכת</li>
-                <li>הזדמנויות for פיתוח מקצועי</li>
+                <li>הזדמנויות לפיתוח מקצועי</li>
               </ul>
             </div>
 

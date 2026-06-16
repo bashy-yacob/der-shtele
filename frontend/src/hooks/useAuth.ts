@@ -33,13 +33,14 @@ export function useAuth() {
     fetch(`${API}/api/auth/me`, {
       headers: { Authorization: `Bearer ${t}` },
     })
-      .then((r) => r.json())
+      // בודקים res.ok לפני json() — אחרת גוף שגיאה (HTML/401) זורק ונבלע בשקט.
+      .then((r) => (r.ok ? r.json() : null))
       .then((res) => {
         if (res?.success) {
           setUser({
             id: res.data.userId,
             email: res.data.email,
-            fullName: '',
+            fullName: res.data.fullName ?? '',
             role: res.data.role,
           });
         }

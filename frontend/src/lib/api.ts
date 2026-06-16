@@ -2,7 +2,7 @@
 // ה-frontend לא ניגש ל-DB ישירות — הכל עובר דרך כאן.
 // בצד שרת משתמשים ב-BACKEND_API_URL; בצד לקוח ב-NEXT_PUBLIC_API_URL.
 
-import type { PublicJob, Gender, JobField, Region } from '@/types';
+import type { PublicJob, JobField, Region } from '@/types';
 
 // מוריד סלאש מיותר בסוף הכתובת כדי שלא ייווצר `//api/...`
 const BASE_URL = (
@@ -29,10 +29,7 @@ interface RawPublicJob {
   descriptionPublic: string;
   field: JobField;
   region: Region;
-  gender: Gender;
   scope: string;
-  rabbinicalApproval: boolean;
-  rabbinicalApprovalBy?: string | null;
   openedAt: string;
 }
 
@@ -44,9 +41,7 @@ function toPublicJob(raw: RawPublicJob): PublicJob {
     description: raw.descriptionPublic,
     field: raw.field,
     region: raw.region,
-    gender: raw.gender,
     scope: raw.scope,
-    rabbinicalApproval: raw.rabbinicalApproval,
     createdAt: raw.openedAt,
   };
 }
@@ -54,7 +49,6 @@ function toPublicJob(raw: RawPublicJob): PublicJob {
 export interface JobsFilter {
   field?: JobField;
   region?: Region;
-  gender?: Gender;
 }
 
 /** לוח המשרות הציבורי. נכשל בעדינות — מחזיר [] אם ה-backend לא זמין. */
@@ -64,7 +58,6 @@ export async function getPublicJobs(
   const params = new URLSearchParams();
   if (filter.field) params.set('field', filter.field);
   if (filter.region) params.set('region', filter.region);
-  if (filter.gender) params.set('gender', filter.gender);
 
   try {
     const res = await fetch(`${BASE_URL}/api/jobs?${params.toString()}`, {

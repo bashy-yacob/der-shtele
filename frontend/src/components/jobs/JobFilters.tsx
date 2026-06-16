@@ -1,17 +1,16 @@
 import Link from 'next/link';
-import { FIELD_LABELS, REGION_LABELS, GENDER_LABELS } from '@/lib/constants';
+import { FIELD_LABELS, REGION_LABELS } from '@/lib/constants';
 
 interface JobFiltersProps {
-  current: { field?: string; region?: string; gender?: string };
+  current: { field?: string; region?: string };
 }
 
 /** טופס סינון משרות (GET — query params). */
 export function JobFilters({ current }: JobFiltersProps) {
   return (
-    <form className="grid grid-cols-1 md:grid-cols-4 gap-5 items-end">
+    <form className="grid grid-cols-1 md:grid-cols-3 gap-5 items-end">
       <Select name="field" label="תחום מקצועי" options={FIELD_LABELS} current={current.field} />
       <Select name="region" label="אזור מגורים" options={REGION_LABELS} current={current.region} />
-      <Select name="gender" label="התאמת משרה" options={GENDER_LABELS} current={current.gender} />
       <div className="flex gap-2">
         <button
           type="submit"

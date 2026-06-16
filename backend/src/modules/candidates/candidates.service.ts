@@ -23,7 +23,6 @@ export class CandidatesService {
         phone: dto.phone,
         email: dto.email,
         city: dto.city ?? '',
-        gender: dto.gender,
         field: dto.field,
         region: dto.region,
         notes: dto.notes,

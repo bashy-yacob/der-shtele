@@ -6,7 +6,8 @@ import {
   Matches,
   MinLength,
 } from 'class-validator';
-import { Gender, JobField, Region } from '@prisma/client';
+import { Transform } from 'class-transformer';
+import { JobField, Region } from '@prisma/client';
 
 /** טופס הגשת מועמדות מהאתר הציבורי */
 export class CreateCandidateDto {
@@ -14,7 +15,11 @@ export class CreateCandidateDto {
   @MinLength(2, { message: 'נא להזין שם מלא' })
   fullName!: string;
 
-  @Matches(/^0[5-9]\d{8}$/, { message: 'מספר טלפון לא תקין' })
+  // מנרמל מקפים/רווחים לפני הוולידציה (אותו כלל כמו בטפסים בפרונט).
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.replace(/\D/g, '') : value,
+  )
+  @Matches(/^05\d{8}$/, { message: 'מספר טלפון לא תקין' })
   phone!: string;
 
   @IsEmail({}, { message: 'כתובת אימייל לא תקינה' })
@@ -23,9 +28,6 @@ export class CreateCandidateDto {
   @IsOptional()
   @IsString()
   city?: string;
-
-  @IsEnum(Gender)
-  gender!: Gender;
 
   @IsEnum(JobField)
   field!: JobField;

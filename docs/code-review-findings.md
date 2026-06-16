@@ -72,14 +72,19 @@
 
 > סומן ע"י 3 סוכנים. הסרה רוחבית מתואמת DB → backend → frontend.
 
-- [ ] **V31-1 · DB: עמודות `gender` (NOT NULL) ב-Job+Candidate, `rabbinicalApproval`/`By` ב-Job** `CONFIRMED`
-  - מיקום: `backend/prisma/schema.prisma:161-165, 190` + seed כותב אותן `backend/prisma/seed.ts:56-59`. דורש migration.
-- [ ] **V31-2 · Backend: `PUBLIC_SELECT` מחזיר את כולן + `findPublic` מסנן לפי מגדר** `CONFIRMED`
-  - מיקום: `backend/src/modules/jobs/jobs.service.ts:10-34` + `QueryJobsDto`.
-- [ ] **V31-3 · Frontend: דרופדאון סינון מגדרי** `CONFIRMED` — `frontend/src/app/jobs/page.tsx:214`, `frontend/src/components/jobs/JobFilters.tsx:14`
-- [ ] **V31-4 · Frontend: תגית מגדר בכרטיס ובדף משרה** `CONFIRMED` — `frontend/src/components/jobs/JobCard.tsx:32`, `frontend/src/app/jobs/[id]/page.tsx:55`
-- [ ] **V31-5 · Frontend: באדג' "✓ אישור רבני"** `CONFIRMED` — `frontend/src/components/jobs/JobCard.tsx:20-24`, `frontend/src/app/jobs/[id]/page.tsx:43-47`
-- [ ] **V31-6 · `api.ts` (RawPublicJob/toPublicJob) + `mockData.ts` עדיין נושאים את השדות** `CONFIRMED` — `frontend/src/lib/api.ts:26-52`, `frontend/src/lib/mockData.ts`
+> ✅ **V31 בוצע במלואו (2026-06-16).** הוסר מגדר + אישור רבני מכל השכבות. `tsc` + `build` נקיים בשני הצדדים, אפס התייחסויות `gender`/`rabbinical` נותרו ב-src. ⚠️ ה-migration נוצר אך **טרם הוחל** על ה-DB — ראה רצף הפריסה למטה.
+
+- [x] **V31-1 · DB: עמודות `gender`/`rabbinicalApproval`/`By`** ✅ הוסרו מ-`schema.prisma`; migration `20260616120000_remove_gender_and_rabbinical` נוצר (DROP COLUMN ×4 + DROP TYPE "Gender"); seed נוקה.
+- [x] **V31-2 · Backend: `PUBLIC_SELECT` + `findPublic` filter** ✅ הוסרו; וגם `QueryJobsDto`, `CreateJobDto`, `CreateCandidateDto`, `candidates.service`.
+- [x] **V31-3 · Frontend: דרופדאון סינון מגדרי** ✅ הוסר מ-`jobs/page.tsx` (+ הוסר בלוק קוד מת מוער) ו-`JobFilters.tsx`.
+- [x] **V31-4 · Frontend: תגית מגדר** ✅ הוסרה מ-`JobCard.tsx` ו-`jobs/[id]/page.tsx`.
+- [x] **V31-5 · Frontend: באדג' "✓ אישור רבני"** ✅ הוסר משני המקומות.
+- [x] **V31-6 · `api.ts` + `mockData.ts`** ✅ `RawPublicJob`/`toPublicJob`/`JobsFilter`/`getPublicJobs` נוקו; `GENDER_LABELS` + `Gender` type הוסרו; `mockData.ts` **נמחק** (היה dead code).
+
+**רצף פריסה ל-V31 (חובה לפי הסדר — DB משותף עם prod):**
+1. push קוד (frontend+backend ללא gender) → Render+Vercel מפרסמים. הבאדג' נעלם מהאתר מיד; ה-API מפסיק להחזיר gender.
+2. **רק אחרי** שה-deploy הסתיים: `npx prisma migrate deploy` (או הרצת ה-SQL ב-Supabase) — מוחק את העמודות.
+3. בין 1 ל-2: קריאות עובדות; יצירת משרה/מועמד חדשים תיכשל זמנית (העמודה עדיין NOT NULL ב-DB) — לכן להחיל את ה-migration סמוך לפריסה.
 
 ---
 
@@ -105,18 +110,20 @@
 
 ## 🟡 טפסים וזרימת הגשה
 
-- [ ] **FRM-1 · באג הטלפון: regex דוחה placeholder עם מקפים** `CONFIRMED`
-  - מיקום: `frontend/src/app/contact/page.tsx:12` (וגם `:149` placeholder), `frontend/src/components/forms/ApplicationForm.tsx:11`, `backend/src/modules/contact/dto/create-contact.dto.ts:14`
-  - בעיה: `^05[0-9]{8}$` דוחה `050-0000000`. תיקון: לנרמל (להסיר תווים שאינם ספרות) לפני ולידציה.
-- [ ] **FRM-2 · 3 regex טלפון שונים + `validations.ts` לא מיובא** `CONFIRMED`
-  - מיקום: `frontend/src/lib/validations.ts:11` (`^0[5-9]\d{8}$`) מול inline בטפסים. תיקון: לאחד ל-`validations.ts` ולייבא.
-- [ ] **FRM-3 · טופס ההגשה אין בו העלאת קו"ח (שולח JSON)** `CONFIRMED`
-  - מיקום: `frontend/src/components/forms/ApplicationForm.tsx:9-16, 74-186`. תיקון: file input חובה (PDF/Word ≤5MB) + multipart.
-- [ ] **FRM-4 · דף apply לא חוסם לפי auth** `CONFIRMED` — `frontend/src/app/apply/[jobId]/page.tsx:13-37` · redirect ל-login. (קשור ל-SEC-4)
-- [ ] **FRM-5 · opt-out בהגדרות לא עובד (checkbox קשיח, אין handler)** `CONFIRMED`
-  - מיקום: `frontend/src/app/account/settings/page.tsx:8, 24-25` · בעיה חוקית (חוק הספאם). לטעון ערך אמיתי + לחבר `PATCH /api/auth/me`.
-- [ ] **FRM-6 · `useAuth` ללא בדיקת `res.ok`, `fullName` קשיח `''`** `CONFIRMED` — `frontend/src/hooks/useAuth.ts:36-42`
-- [ ] **FRM-7 · `MOCK_JOBS` עדיין מחובר כ-fallback ב-apply** `CONFIRMED` — `frontend/src/app/apply/[jobId]/page.tsx:4,17`
+- [x] **FRM-1 · באג הטלפון: regex דוחה placeholder עם מקפים** `CONFIRMED` ✅ תוקן
+  - תוקן: נוצר `phoneSchema` משותף ב-`frontend/src/lib/validations.ts` שמנרמל (מסיר תווים שאינם ספרות) ואז מאמת `^05\d{8}$`. מוחל בשני הטפסים. ה-DTOs בבק (`create-contact`, `create-candidate`) קיבלו `@Transform` שמנרמל לפני `@Matches`. נבדק עם 7 מקרים (כולל `050-0000000` → עובר).
+- [x] **FRM-2 · 3 regex טלפון שונים + `validations.ts` לא מיובא** `CONFIRMED` ✅ תוקן (לטלפון)
+  - תוקן: כל הטפסים מייבאים עכשיו את `phoneSchema` מ-`validations.ts` (regex אחד). שאר הסכמות עדיין inline בכל טופס — מיגרציה מלאה של *כל* הסכמות ל-`validations.ts` נותרה כניקוי אופציונלי קטן.
+- [~] **FRM-3 · טופס ההגשה אין בו העלאת קו"ח (שולח JSON)** `CONFIRMED` 🟡 חלקי — חוסם ה-gender הוסר
+  - ✅ ה-blocker נפתר ב-V31: `CreateCandidateDto` כבר לא מחייב `gender`, אז הגשת מועמדות (JSON) אמורה לעבוד עכשיו. ⏸️ נותר: להוסיף file input חובה (PDF/Word ≤5MB) + multipart לטופס, כדי שתישלח קו"ח אמיתית עם ההגשה.
+- [~] **FRM-4 · דף apply לא חוסם לפי auth** `CONFIRMED` ⏸️ נדחה — מצומד ל-SEC-4 + auth wiring
+  - מיקום: `frontend/src/app/apply/[jobId]/page.tsx`. חייב להתבצע יחד עם SEC-4 (הסרת `@Public`) והעברת קריאות auth דרך proxy server-side (חסם NetFree, ראה memory).
+- [~] **FRM-5 · opt-out בהגדרות לא עובד (checkbox קשיח, אין handler)** `CONFIRMED` ⏸️ נדחה — חסר endpoint בבק
+  - מיקום: `frontend/src/app/account/settings/page.tsx`. דורש קודם **`PATCH /api/auth/me`** בבק (לא קיים — יש רק `GET /me`) + auth מחובר. בעיה חוקית (חוק הספאם), אבל תלוי בעבודת auth.
+- [x] **FRM-6 · `useAuth` ללא בדיקת `res.ok`, `fullName` קשיח `''`** `CONFIRMED` ✅ תוקן
+  - תוקן: נוסף `res.ok` guard לפני `json()`; `fullName` נוסף ל-JWT payload (`jwt.strategy`+`auth.service`+`AuthUser`) כך ש-`/me` מחזיר אותו, וה-frontend ממפה `res.data.fullName`.
+- [x] **FRM-7 · `MOCK_JOBS` עדיין מחובר כ-fallback ב-apply** `CONFIRMED` ✅ תוקן
+  - תוקן: הוסר ה-import וה-fallback; דף apply מציג מצב "לא נמצא / נסו שוב" כשהמשרה לא נטענה, במקום טופס למשרה פיקטיבית.
 
 ---
 

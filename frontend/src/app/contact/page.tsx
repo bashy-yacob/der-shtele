@@ -5,11 +5,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { SITE_CONTENT, CONTACT_INFO } from '@/lib/constants';
+import { phoneSchema } from '@/lib/validations';
 
 // Validation schema for contact form
 const contactSchema = z.object({
   name: z.string().min(2, 'שם חייב להיות לפחות 2 תווים'),
-  phone: z.string().regex(/^05[0-9]{8}$/, 'מספר טלפון לא תקין'),
+  phone: phoneSchema,
   inquiry_type: z.enum(['candidate', 'employer', 'general']),
   message: z.string().min(10, 'ההודעה חייבת להיות לפחות 10 תווים'),
   resume: z.any()

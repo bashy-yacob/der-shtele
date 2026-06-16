@@ -13,10 +13,7 @@ const PUBLIC_SELECT = {
   descriptionPublic: true,
   field: true,
   region: true,
-  gender: true,
   scope: true,
-  rabbinicalApproval: true,
-  rabbinicalApprovalBy: true,
   openedAt: true,
 } satisfies Prisma.JobSelect;
 
@@ -31,7 +28,6 @@ export class JobsService {
         status: 'active',
         ...(query.field && { field: query.field }),
         ...(query.region && { region: query.region }),
-        ...(query.gender && { gender: query.gender }),
       },
       select: PUBLIC_SELECT,
       orderBy: { openedAt: 'desc' },

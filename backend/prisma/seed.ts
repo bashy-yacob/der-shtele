@@ -60,10 +60,7 @@ async function main() {
         descriptionInternal: 'דרישות מלאות: ניסיון SAP, ניהול 10 עובדים.',
         field: 'logistics',
         region: 'bnei_brak',
-        gender: 'men',
         scope: 'משרה מלאה',
-        rabbinicalApproval: true,
-        rabbinicalApprovalBy: 'הרב פלוני',
       },
       {
         employerId: employerB.id,
@@ -73,7 +70,6 @@ async function main() {
         descriptionInternal: 'דרישות: הקלדה מהירה, אופיס, אנגלית בסיסית.',
         field: 'admin',
         region: 'jerusalem',
-        gender: 'women',
         scope: 'משרה חלקית',
       },
     ],

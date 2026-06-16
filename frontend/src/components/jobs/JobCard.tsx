@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { PublicJob } from '@/types';
-import { FIELD_LABELS, REGION_LABELS, GENDER_LABELS } from '@/lib/constants';
+import { FIELD_LABELS, REGION_LABELS } from '@/lib/constants';
 
 interface JobCardProps {
   job: PublicJob;
@@ -17,11 +17,6 @@ export function JobCard({ job }: JobCardProps) {
           <h3 className="text-xl font-bold text-primary-600">{job.title}</h3>
           <p className="text-sm text-neutral-600 mt-1">{companyLabel}</p>
         </div>
-        {job.rabbinicalApproval && (
-          <span className="text-xs bg-green-50 text-green-700 border border-green-200 px-3 py-1 rounded-full whitespace-nowrap font-medium">
-            ✓ אישור רבני
-          </span>
-        )}
       </div>
 
       <p className="text-sm text-neutral-600 mb-4 line-clamp-2 leading-relaxed">{job.description}</p>
@@ -29,7 +24,6 @@ export function JobCard({ job }: JobCardProps) {
       <div className="flex flex-wrap gap-2 text-xs mb-6">
         <Tag>{FIELD_LABELS[job.field]}</Tag>
         <Tag>{REGION_LABELS[job.region]}</Tag>
-        <Tag>{GENDER_LABELS[job.gender]}</Tag>
         <Tag>{job.scope}</Tag>
       </div>
 
