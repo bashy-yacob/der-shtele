@@ -1,8 +1,25 @@
-import type { Metadata } from 'next';
-import '@/styles/globals.css';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
-import { SITE_NAME, SITE_TAGLINE } from '@/lib/constants';
+import type { Metadata } from "next";
+import { Heebo, Frank_Ruhl_Libre } from "next/font/google";
+import "@/styles/globals.css";
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
+import { SITE_NAME, SITE_TAGLINE } from "@/lib/constants";
+
+// Heebo — גוף וממשק
+const heebo = Heebo({
+  subsets: ["hebrew", "latin"],
+  weight: ["300", "400", "500", "700"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
+// Frank Ruhl Libre — סריף עברי לכותרות
+const frankRuhl = Frank_Ruhl_Libre({
+  subsets: ["hebrew", "latin"],
+  weight: ["500", "700", "900"],
+  variable: "--font-display",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -19,8 +36,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="he" dir="rtl">
-      <body className="flex flex-col min-h-screen">
+    <html
+      lang="he"
+      dir="rtl"
+      className={`${heebo.variable} ${frankRuhl.variable}`}
+    >
+      <body className="flex flex-col min-h-screen font-sans">
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />

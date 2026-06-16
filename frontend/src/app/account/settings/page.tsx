@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { useAuth } from '@/hooks/useAuth';
+import { useEffect, useState } from "react";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function SettingsPage() {
   const { user, updateMarketing } = useAuth();
@@ -13,7 +13,7 @@ export default function SettingsPage() {
 
   // טוען את הערך האמיתי מהמשתמש כשהוא נטען (לא ערך קשיח).
   useEffect(() => {
-    if (typeof user?.optInMarketing === 'boolean') {
+    if (typeof user?.optInMarketing === "boolean") {
       setOptIn(user.optInMarketing);
     }
   }, [user?.optInMarketing]);
@@ -23,9 +23,9 @@ export default function SettingsPage() {
     setMessage(null);
     try {
       await updateMarketing(optIn);
-      setMessage('ההעדפה נשמרה בהצלחה.');
+      setMessage("ההעדפה נשמרה בהצלחה.");
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'שגיאה בשמירה.');
+      setMessage(err instanceof Error ? err.message : "שגיאה בשמירה.");
     } finally {
       setSaving(false);
     }
@@ -33,22 +33,24 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-neutral-900">הגדרות</h1>
+      <h1 className="font-display text-2xl text-ink-900">הגדרות</h1>
       <Card className="space-y-4">
-        <h2 className="font-bold text-neutral-800">העדפות עדכונים</h2>
-        <label className="flex items-start gap-2 text-sm text-neutral-700">
+        <h2 className="font-display text-lg text-ink-900">העדפות עדכונים</h2>
+        <label className="flex items-start gap-2 text-sm text-ink-700">
           <input
             type="checkbox"
             checked={optIn}
             onChange={(e) => setOptIn(e.target.checked)}
-            className="mt-1 accent-primary-600"
+            className="mt-1 accent-navy-600"
           />
-          <span>קבלת עדכונים על משרות רלוונטיות בדואר אלקטרוני (opt-out בכל עת).</span>
+          <span>
+            קבלת עדכונים על משרות רלוונטיות בדואר אלקטרוני (opt-out בכל עת).
+          </span>
         </label>
         <Button onClick={onSave} disabled={saving} className="w-full sm:w-auto">
-          {saving ? 'שומר...' : 'שמירת שינויים'}
+          {saving ? "שומר..." : "שמירת שינויים"}
         </Button>
-        {message && <p className="text-sm text-neutral-600">{message}</p>}
+        {message && <p className="text-sm text-ink-700">{message}</p>}
       </Card>
     </div>
   );

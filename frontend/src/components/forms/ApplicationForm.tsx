@@ -9,6 +9,7 @@ import { phoneSchema } from "@/lib/validations";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { Button, Card, Input } from "@/components/ui";
 
 const ALLOWED_CV_TYPES = [
   "application/pdf",
@@ -111,124 +112,92 @@ export default function ApplicationForm({
 
   // שער כניסה: הגשת מועמדות מחייבת התחברות (לפי האיפיון — אין הגשה אנונימית).
   if (loading) {
-    return (
-      <div className="bg-white border border-neutral-200 rounded-lg p-6 shadow-md text-center text-neutral-500">
-        טוען...
-      </div>
-    );
+    return <Card className="text-center text-ink-500">טוען...</Card>;
   }
 
   if (!user) {
     return (
-      <div className="bg-white border border-neutral-200 rounded-lg p-6 shadow-md">
-        <h2 className="text-xl font-bold mb-3">הגשת מועמדות</h2>
-        <p className="text-sm text-neutral-600 mb-4">
+      <Card>
+        <h2 className="font-display text-xl font-bold text-ink-900 mb-3">
+          הגשת מועמדות
+        </h2>
+        <p className="text-sm text-ink-700 mb-4">
           כדי לשלוח קורות חיים יש להתחבר או להירשם. ההרשמה מאפשרת לעקוב אחר
           ההגשות שלך.
         </p>
         <Link
           href={`/login?redirect=${encodeURIComponent(pathname)}`}
-          className="inline-block w-full text-center bg-primary-600 text-white font-bold py-3 rounded-lg hover:bg-primary-700 transition-colors text-sm"
+          className="block"
         >
-          התחברות / הרשמה
+          <Button className="w-full">התחברות / הרשמה</Button>
         </Link>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="bg-white border border-neutral-200 rounded-lg p-6 shadow-md">
-      <h2 className="text-xl font-bold mb-6">הגשת מועמדות</h2>
+    <Card className="rounded-2xl">
+      <h2 className="font-display text-xl font-bold text-ink-900 mb-6">
+        הגשת מועמדות
+      </h2>
 
       {submitted && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-          <p className="text-green-700 font-medium text-sm">
+        <div className="bg-olive-50 border border-olive-300 rounded-xl p-4 mb-6">
+          <p className="text-olive-700 font-medium text-sm">
             {SITE_CONTENT.messages.success.candidate}
           </p>
         </div>
       )}
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
           <p className="text-red-700 font-medium text-sm">{error}</p>
         </div>
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {/* Full Name */}
-        <div>
-          <label
-            htmlFor="fullName"
-            className="block text-sm font-medium text-neutral-700 mb-1"
-          >
-            שם מלא *
-          </label>
-          <input
-            {...register("fullName")}
-            type="text"
-            id="fullName"
-            placeholder="שמך"
-            className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-600 focus:border-transparent"
-          />
-          {errors.fullName && (
-            <p className="text-red-600 text-xs mt-1">
-              {errors.fullName.message}
-            </p>
-          )}
-        </div>
+        <Input
+          {...register("fullName")}
+          type="text"
+          id="fullName"
+          label="שם מלא *"
+          placeholder="שמך"
+          error={errors.fullName?.message}
+        />
 
         {/* Phone */}
-        <div>
-          <label
-            htmlFor="phone"
-            className="block text-sm font-medium text-neutral-700 mb-1"
-          >
-            טלפון *
-          </label>
-          <input
-            {...register("phone")}
-            type="tel"
-            id="phone"
-            placeholder="050-0000000"
-            className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-600 focus:border-transparent"
-          />
-          {errors.phone && (
-            <p className="text-red-600 text-xs mt-1">{errors.phone.message}</p>
-          )}
-        </div>
+        <Input
+          {...register("phone")}
+          type="tel"
+          id="phone"
+          label="טלפון *"
+          placeholder="050-0000000"
+          error={errors.phone?.message}
+        />
 
         {/* Email */}
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-neutral-700 mb-1"
-          >
-            דואר אלקטרוני *
-          </label>
-          <input
-            {...register("email")}
-            type="email"
-            id="email"
-            placeholder="example@mail.com"
-            className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-600 focus:border-transparent"
-          />
-          {errors.email && (
-            <p className="text-red-600 text-xs mt-1">{errors.email.message}</p>
-          )}
-        </div>
+        <Input
+          {...register("email")}
+          type="email"
+          id="email"
+          label="דואר אלקטרוני *"
+          placeholder="example@mail.com"
+          error={errors.email?.message}
+        />
 
         {/* Field */}
         <div>
           <label
             htmlFor="field"
-            className="block text-sm font-medium text-neutral-700 mb-1"
+            className="block text-sm font-semibold text-ink-700 mb-1.5"
           >
             תחום מבוקש *
           </label>
           <select
             {...register("field")}
             id="field"
-            className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-600 focus:border-transparent"
+            className="w-full px-4 py-2.5 border border-sand-300 rounded-xl text-sm bg-white text-ink-900 focus:ring-2 focus:ring-navy-600/30 focus:border-navy-600 focus:outline-none transition-all"
           >
             <option value="">בחרו...</option>
             {Object.entries(FIELD_LABELS).map(([val, label]) => (
@@ -246,14 +215,14 @@ export default function ApplicationForm({
         <div>
           <label
             htmlFor="region"
-            className="block text-sm font-medium text-neutral-700 mb-1"
+            className="block text-sm font-semibold text-ink-700 mb-1.5"
           >
             אזור מועדף *
           </label>
           <select
             {...register("region")}
             id="region"
-            className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-600 focus:border-transparent"
+            className="w-full px-4 py-2.5 border border-sand-300 rounded-xl text-sm bg-white text-ink-900 focus:ring-2 focus:ring-navy-600/30 focus:border-navy-600 focus:outline-none transition-all"
           >
             <option value="">בחרו...</option>
             {Object.entries(REGION_LABELS).map(([val, label]) => (
@@ -271,7 +240,7 @@ export default function ApplicationForm({
         <div>
           <label
             htmlFor="notes"
-            className="block text-sm font-medium text-neutral-700 mb-1"
+            className="block text-sm font-semibold text-ink-700 mb-1.5"
           >
             הערות (אופציונלי)
           </label>
@@ -280,15 +249,15 @@ export default function ApplicationForm({
             id="notes"
             rows={3}
             placeholder="כל מידע נוסף שרלוונטי..."
-            className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-600 focus:border-transparent resize-none"
+            className="w-full px-4 py-2.5 border border-sand-300 rounded-xl text-sm bg-white text-ink-900 placeholder:text-ink-400 focus:ring-2 focus:ring-navy-600/30 focus:border-navy-600 focus:outline-none transition-all resize-none"
           />
         </div>
 
         {/* Resume Upload */}
-        <div>
+        <div className="rounded-xl border border-olive-300 bg-olive-50 p-4">
           <label
             htmlFor="resume"
-            className="block text-sm font-medium text-neutral-700 mb-1"
+            className="block text-sm font-semibold text-olive-700 mb-1.5"
           >
             קורות חיים (PDF או Word) *
           </label>
@@ -297,7 +266,7 @@ export default function ApplicationForm({
             type="file"
             id="resume"
             accept=".pdf,.doc,.docx"
-            className="w-full text-sm text-neutral-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+            className="w-full text-sm text-ink-500 file:ml-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-olive-100 file:text-olive-700 hover:file:bg-olive-200 cursor-pointer"
           />
           {errors.resume && (
             <p className="text-red-600 text-xs mt-1">
@@ -307,18 +276,14 @@ export default function ApplicationForm({
         </div>
 
         {/* Submit */}
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full bg-primary-600 text-white font-bold py-3 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-        >
+        <Button type="submit" disabled={isSubmitting} className="w-full">
           {isSubmitting ? "שולח..." : "הגש מועמדות"}
-        </button>
+        </Button>
 
-        <p className="text-xs text-neutral-500 text-center">
+        <p className="text-xs text-ink-500 text-center">
           צוות שלנו יצור איתך קשר בהקדם
         </p>
       </form>
-    </div>
+    </Card>
   );
 }

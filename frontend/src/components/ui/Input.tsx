@@ -1,5 +1,5 @@
-import { cn } from '@/lib/utils';
-import { forwardRef, type InputHTMLAttributes } from 'react';
+import { cn } from "@/lib/utils";
+import { forwardRef, type InputHTMLAttributes } from "react";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -14,7 +14,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={id}
-            className="block text-sm font-semibold text-neutral-700 mb-1.5"
+            className="block text-sm font-semibold text-ink-700 mb-1.5"
           >
             {label}
           </label>
@@ -23,9 +23,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           id={id}
           className={cn(
-            'w-full px-4 py-2.5 border border-neutral-300 rounded-xl text-sm',
-            'focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 focus:outline-none transition-all',
-            error && 'border-red-400 focus:ring-red-200',
+            "w-full px-4 py-2.5 border border-sand-300 rounded-xl text-sm bg-white text-ink-900 placeholder:text-ink-400",
+            "focus:ring-2 focus:ring-navy-600/30 focus:border-navy-600 focus:outline-none transition-all",
+            error && "border-red-400 focus:ring-red-200 focus:border-red-400",
             className,
           )}
           {...props}
@@ -36,4 +36,4 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
   },
 );
 
-Input.displayName = 'Input';
+Input.displayName = "Input";

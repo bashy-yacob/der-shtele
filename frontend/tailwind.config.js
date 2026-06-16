@@ -1,33 +1,58 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
       colors: {
-        // צבעים שמרניים ומכובדים
-        primary: {
-          50:  '#f0f4ff',
-          100: '#dde6ff',
-          500: '#3b5bdb',
-          600: '#2f4ac0',
-          700: '#2340a8',
+        // ---- שפת עיצוב "חם אך מקצועי" ----
+        // navy — מותג/ראשי (אמון): כפתורים ראשיים, wordmark, פוטר
+        navy: {
+          50: "#EEF1F6",
+          100: "#D6DEE9",
+          500: "#2E4D7B",
+          600: "#1F3A5F", // ראשי
+          700: "#182E4B",
+          800: "#122238",
+          900: "#0C1726",
         },
-        neutral: {
-          50:  '#fafafa',
-          100: '#f4f4f5',
-          200: '#e4e4e7',
-          700: '#3f3f46',
-          800: '#27272a',
-          900: '#18181b',
+        // olive — אקסנט (פרנסה/צמיחה): CTA משני, הדגשות, תגיות
+        olive: {
+          50: "#F3F4EC",
+          100: "#E3E6D2",
+          300: "#ADB67F",
+          500: "#74803F", // אקסנט
+          600: "#5C6732",
+          700: "#474F28",
+        },
+        // sand — נייטרלים חמים: רקעים, גבולות, dividers
+        sand: {
+          50: "#FCFAF4", // רקע בהיר
+          100: "#F7F2E7", // רקע דף
+          200: "#EFE7D5", // גבולות
+          300: "#E0D4BB",
+          400: "#C9B894",
+        },
+        // ink — טקסט (פחם חמים, לא שחור טהור)
+        ink: {
+          400: "#ADA593",
+          500: "#8C8475", // muted
+          700: "#4A4439", // גוף
+          900: "#211E18", // כותרות
         },
       },
       fontFamily: {
-        // פונט נקי שתומך היטב בעברית
-        sans: ['Heebo', 'Arial', 'sans-serif'],
+        // Frank Ruhl Libre — סריף עברי לכותרות גדולות
+        display: ["var(--font-display)", "Frank Ruhl Libre", "serif"],
+        // Heebo — גוף וממשק
+        sans: ["var(--font-sans)", "Heebo", "Arial", "sans-serif"],
+      },
+      boxShadow: {
+        // צל רך חמים (חום-אפרפר, נמוך)
+        soft: "0 1px 2px rgba(33, 30, 24, 0.04), 0 6px 20px -8px rgba(33, 30, 24, 0.12)",
       },
     },
   },

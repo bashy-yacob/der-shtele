@@ -1,9 +1,9 @@
-import { notFound } from 'next/navigation';
-import { getPublicJob } from '@/lib/api';
-import { FIELD_LABELS, REGION_LABELS } from '@/lib/constants';
-import type { Metadata } from 'next';
-import Link from 'next/link';
-import ApplicationForm from '@/components/forms/ApplicationForm';
+import { notFound } from "next/navigation";
+import { getPublicJob } from "@/lib/api";
+import { FIELD_LABELS, REGION_LABELS } from "@/lib/constants";
+import type { Metadata } from "next";
+import Link from "next/link";
+import ApplicationForm from "@/components/forms/ApplicationForm";
 
 interface Props {
   params: { id: string };
@@ -11,7 +11,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const job = await getPublicJob(params.id);
-  return { title: job?.title ?? 'משרה' };
+  return { title: job?.title ?? "משרה" };
 }
 
 export default async function JobPage({ params }: Props) {
@@ -22,9 +22,12 @@ export default async function JobPage({ params }: Props) {
   const companyLabel = `ארגון ב${REGION_LABELS[job.region]}`;
 
   return (
-    <main>
+    <main className="bg-sand-100 min-h-screen">
       <div className="max-w-4xl mx-auto px-4 py-16">
-        <Link href="/jobs" className="text-primary-600 font-medium mb-8 inline-block hover:underline">
+        <Link
+          href="/jobs"
+          className="text-navy-600 font-medium mb-8 inline-block hover:underline"
+        >
           ← חזרה לכל המשרות
         </Link>
 
@@ -35,9 +38,13 @@ export default async function JobPage({ params }: Props) {
             <div className="mb-8">
               <div className="flex justify-between items-start gap-4 mb-4">
                 <div>
-                  <h1 className="text-4xl font-bold text-primary-600 mb-2">{job.title}</h1>
-                  <p className="text-neutral-600 font-medium">
-                    {companyLabel} · {new Date(job.createdAt).toLocaleDateString('he-IL')} · פורסם
+                  <h1 className="font-display text-4xl font-bold text-ink-900 mb-2">
+                    {job.title}
+                  </h1>
+                  <p className="text-ink-500 font-medium">
+                    {companyLabel} ·{" "}
+                    {new Date(job.createdAt).toLocaleDateString("he-IL")} ·
+                    פורסם
                   </p>
                 </div>
               </div>
@@ -51,19 +58,25 @@ export default async function JobPage({ params }: Props) {
             </div>
 
             {/* Description */}
-            <div className="bg-white border border-neutral-200 rounded-lg p-8">
-              <h2 className="text-2xl font-bold mb-4">אודות המשרה</h2>
-              <p className="text-neutral-700 leading-relaxed">{job.description}</p>
+            <div className="bg-white border border-sand-200 rounded-2xl shadow-soft p-8">
+              <h2 className="font-display text-2xl font-bold text-ink-900 mb-4">
+                אודות המשרה
+              </h2>
+              <p className="text-ink-700 leading-relaxed">{job.description}</p>
 
-              <h3 className="text-lg font-bold mt-8 mb-3">דרישות</h3>
-              <ul className="list-disc list-inside text-neutral-700 space-y-2 text-sm">
+              <h3 className="font-display text-lg font-bold text-ink-900 mt-8 mb-3">
+                דרישות
+              </h3>
+              <ul className="list-disc list-inside text-ink-700 space-y-2 text-sm">
                 <li>ניסיון קודם בתחום הרלוונטי</li>
                 <li>יכולות תקשורת טובות</li>
                 <li>זמינות למשרה בהיקף הנדרש</li>
               </ul>
 
-              <h3 className="text-lg font-bold mt-8 mb-3">מה אנחנו מציעים</h3>
-              <ul className="list-disc list-inside text-neutral-700 space-y-2 text-sm">
+              <h3 className="font-display text-lg font-bold text-ink-900 mt-8 mb-3">
+                מה אנחנו מציעים
+              </h3>
+              <ul className="list-disc list-inside text-ink-700 space-y-2 text-sm">
                 <li>משכורת תחרותית</li>
                 <li>סביבת עבודה נעימה ותומכת</li>
                 <li>הזדמנויות לפיתוח מקצועי</li>
@@ -71,9 +84,11 @@ export default async function JobPage({ params }: Props) {
             </div>
 
             {/* Privacy Note */}
-            <div className="bg-primary-50 border border-primary-200 rounded-lg p-4 mt-8">
-              <p className="text-sm text-primary-900">
-                <span className="font-bold">פרטי המעסיק:</span> פרטי המעסיק חסויים לחלוטין במסך הציבורי. פרטים אלו יועברו אליך רק לאחר שיחה עם הצוות שלנו והסכמת המעסיק.
+            <div className="bg-olive-50 border border-olive-100 rounded-xl p-4 mt-8">
+              <p className="text-sm text-olive-700">
+                <span className="font-bold">פרטי המעסיק:</span> פרטי המעסיק
+                חסויים לחלוטין במסך הציבורי. פרטים אלו יועברו אליך רק לאחר שיחה
+                עם הצוות שלנו והסכמת המעסיק.
               </p>
             </div>
           </section>
@@ -92,8 +107,8 @@ export default async function JobPage({ params }: Props) {
 
 function Tag({ label, value }: { label: string; value: string }) {
   return (
-    <span className="bg-neutral-100 text-neutral-700 px-3 py-2 rounded-md text-sm font-medium">
-      <span className="text-neutral-500 text-xs">{label}:</span> {value}
+    <span className="bg-sand-50 text-ink-700 border border-sand-200 px-3 py-2 rounded-xl text-sm font-medium">
+      <span className="text-ink-500 text-xs">{label}:</span> {value}
     </span>
   );
 }

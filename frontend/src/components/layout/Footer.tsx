@@ -1,22 +1,60 @@
-import { SITE_NAME, CONTACT_INFO } from '@/lib/constants';
+import Link from "next/link";
+import { SITE_NAME, CONTACT_INFO } from "@/lib/constants";
+
+const NAV_LINKS = [
+  { href: "/jobs", label: "לוח משרות" },
+  { href: "/about", label: "אודות" },
+  { href: "/contact", label: "צור קשר" },
+  { href: "/register", label: "הרשמה" },
+];
 
 export function Footer() {
   return (
-    <footer className="bg-neutral-800 text-neutral-300 text-sm">
-      <div className="max-w-5xl mx-auto px-4 py-8 flex flex-col md:flex-row justify-between gap-4">
+    <footer className="bg-navy-800 text-sand-200 text-sm" dir="rtl">
+      <div className="max-w-5xl mx-auto px-4 py-12 grid grid-cols-1 sm:grid-cols-3 gap-8">
+        {/* לוגו + תיאור */}
         <div>
-          <p className="font-semibold text-white mb-1">{SITE_NAME}</p>
-          <p>השמה מקצועית לציבור החרדי</p>
+          <p className="flex items-center gap-1 font-display text-xl font-bold text-white mb-2">
+            <span>{SITE_NAME}</span>
+            <span className="w-1.5 h-1.5 bg-olive-500 rounded-full shrink-0 mb-1" />
+          </p>
+          <p className="text-sand-300 leading-relaxed">
+            סוכנות השמה מקצועית לציבור החרדי בישראל. כל קשר עובר דרך הצוות.
+          </p>
         </div>
 
-        <div className="space-y-1">
-          <p>טל׳: {CONTACT_INFO.phone}</p>
-          <p>מייל: {CONTACT_INFO.email}</p>
-          <p>שעות: {CONTACT_INFO.hours}</p>
+        {/* ניווט */}
+        <div>
+          <p className="font-semibold text-white mb-3">ניווט</p>
+          <ul className="space-y-2">
+            {NAV_LINKS.map((link) => (
+              <li key={link.href}>
+                <Link
+                  href={link.href}
+                  className="text-sand-300 hover:text-olive-300 transition-colors"
+                >
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
 
-        <div className="text-neutral-500 self-end">
-          <p>© {new Date().getFullYear()} {SITE_NAME}. כל הזכויות שמורות.</p>
+        {/* יצירת קשר */}
+        <div>
+          <p className="font-semibold text-white mb-3">יצירת קשר</p>
+          <ul className="space-y-2 text-sand-300">
+            <li>טל׳: {CONTACT_INFO.phone}</li>
+            <li>מייל: {CONTACT_INFO.email}</li>
+            <li>{CONTACT_INFO.hours}</li>
+            <li className="text-olive-300">{CONTACT_INFO.note}</li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="border-t border-navy-700">
+        <div className="max-w-5xl mx-auto px-4 py-5 text-sand-400 text-xs">
+          © {new Date().getFullYear()} {SITE_NAME}. כל הזכויות שמורות.
         </div>
       </div>
     </footer>

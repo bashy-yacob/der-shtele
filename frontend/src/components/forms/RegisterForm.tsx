@@ -1,21 +1,21 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
-import { Input } from '@/components/ui/Input';
-import { Button } from '@/components/ui/Button';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
 
 const registerSchema = z.object({
-  fullName: z.string().min(2, 'נא להזין שם מלא'),
-  email: z.string().email('כתובת אימייל לא תקינה'),
-  password: z.string().min(8, 'הסיסמה חייבת להכיל לפחות 8 תווים'),
+  fullName: z.string().min(2, "נא להזין שם מלא"),
+  email: z.string().email("כתובת אימייל לא תקינה"),
+  password: z.string().min(8, "הסיסמה חייבת להכיל לפחות 8 תווים"),
   // opt-in חובה — חייב להיות מסומן
   optInMarketing: z.literal(true, {
-    errorMap: () => ({ message: 'יש לאשר קבלת עדכונים כדי להירשם' }),
+    errorMap: () => ({ message: "יש לאשר קבלת עדכונים כדי להירשם" }),
   }),
 });
 
@@ -35,9 +35,9 @@ export function RegisterForm() {
     try {
       setError(null);
       await registerUser(data);
-      router.push('/account');
+      router.push("/account");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'שגיאה בהרשמה');
+      setError(err instanceof Error ? err.message : "שגיאה בהרשמה");
     }
   };
 
@@ -52,31 +52,31 @@ export function RegisterForm() {
       <Input
         id="fullName"
         label="שם מלא"
-        {...register('fullName')}
+        {...register("fullName")}
         error={errors.fullName?.message}
       />
       <Input
         id="email"
         type="email"
         label="דואר אלקטרוני"
-        {...register('email')}
+        {...register("email")}
         error={errors.email?.message}
       />
       <Input
         id="password"
         type="password"
         label="סיסמה"
-        {...register('password')}
+        {...register("password")}
         error={errors.password?.message}
       />
 
       {/* opt-in חובה */}
-      <div>
-        <label className="flex items-start gap-2 text-sm text-neutral-700">
+      <div className="rounded-xl border border-sand-200 bg-sand-50 p-3">
+        <label className="flex items-start gap-2 text-sm text-ink-700">
           <input
             type="checkbox"
-            {...register('optInMarketing')}
-            className="mt-1 accent-primary-600"
+            {...register("optInMarketing")}
+            className="mt-1 h-4 w-4 accent-navy-600"
           />
           <span>
             אני מאשר/ת קבלת עדכונים על משרות רלוונטיות בדואר אלקטרוני (חובה).
@@ -90,7 +90,7 @@ export function RegisterForm() {
       </div>
 
       <Button type="submit" disabled={isSubmitting} className="w-full">
-        {isSubmitting ? 'נרשם...' : 'הרשמה'}
+        {isSubmitting ? "נרשם..." : "הרשמה"}
       </Button>
     </form>
   );

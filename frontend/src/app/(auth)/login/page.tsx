@@ -35,9 +35,14 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="max-w-md mx-auto px-4 py-16" dir="rtl">
-      <Card>
-        <h1 className="text-2xl font-bold text-neutral-900 mb-6">התחברות</h1>
+    <main
+      className="flex min-h-[70vh] items-center justify-center px-4 py-16"
+      dir="rtl"
+    >
+      <Card className="w-full max-w-md p-8">
+        <h1 className="font-display text-3xl font-bold text-ink-900 mb-6">
+          התחברות
+        </h1>
         <form onSubmit={onSubmit} className="space-y-5">
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
@@ -64,11 +69,11 @@ export default function LoginPage() {
             {loading ? "מתחבר..." : "התחברות"}
           </Button>
         </form>
-        <p className="text-sm text-neutral-600 text-center mt-6">
+        <p className="text-sm text-ink-700 text-center mt-6">
           אין חשבון?{" "}
           <Link
             href="/register"
-            className="text-primary-600 font-semibold hover:underline"
+            className="text-navy-600 font-semibold hover:underline"
           >
             הרשמה
           </Link>
