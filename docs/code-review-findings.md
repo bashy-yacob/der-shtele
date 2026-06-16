@@ -118,8 +118,12 @@
   - תוקן: נוסף שדה קו"ח חובה (PDF/Word ≤5MB, ולידציית Zod) ל-`ApplicationForm`. ההגשה דו-שלבית: מעלה את הקובץ ל-proxy חדש `frontend/src/app/api/candidates/resume/route.ts` → מקבל `path` → שולח את ההגשה עם `cvPath`. (ה-blocker של `gender` כבר הוסר ב-V31.)
 - [~] **FRM-4 · דף apply לא חוסם לפי auth** `CONFIRMED` ⏸️ נדחה — מצומד ל-SEC-4 + auth wiring
   - מיקום: `frontend/src/app/apply/[jobId]/page.tsx`. חייב להתבצע יחד עם SEC-4 (הסרת `@Public`) והעברת קריאות auth דרך proxy server-side (חסם NetFree, ראה memory).
-- [~] **FRM-5 · opt-out בהגדרות לא עובד (checkbox קשיח, אין handler)** `CONFIRMED` ⏸️ נדחה — חסר endpoint בבק
-  - מיקום: `frontend/src/app/account/settings/page.tsx`. דורש קודם **`PATCH /api/auth/me`** בבק (לא קיים — יש רק `GET /me`) + auth מחובר. בעיה חוקית (חוק הספאם), אבל תלוי בעבודת auth.
+- [x] **FRM-5 · opt-out בהגדרות לא עובד (checkbox קשיח, אין handler)** `CONFIRMED` ✅ תוקן
+  - תוקן: נוסף `PATCH /api/auth/me` בבק (+ `GET /me` מחזיר עכשיו `optInMarketing` עדכני מה-DB); עמוד ההגדרות טוען את הערך האמיתי ושומר דרך `updateMarketing` ב-`useAuth`. opt-in חדש חותם `optInAt` (חוק הספאם).
+
+### 🔧 תיקון NetFree (auth proxy) — לא ממוספר אך קריטי
+- [x] **קריאות auth דרך proxy server-side** ✅ נפרס ואומת חי
+  - היה: `useAuth` קרא לבק ישירות מהדפדפן (`NEXT_PUBLIC_API_URL`) → נחסם ע"י NetFree. עכשיו: proxy routes `/api/auth/{login,register,me}` (same-origin) + `useAuth` קורא דרכם. אומת על ה-prod (login proxy מחזיר את שגיאת ה-auth מהבק).
 - [x] **FRM-6 · `useAuth` ללא בדיקת `res.ok`, `fullName` קשיח `''`** `CONFIRMED` ✅ תוקן
   - תוקן: נוסף `res.ok` guard לפני `json()`; `fullName` נוסף ל-JWT payload (`jwt.strategy`+`auth.service`+`AuthUser`) כך ש-`/me` מחזיר אותו, וה-frontend ממפה `res.data.fullName`.
 - [x] **FRM-7 · `MOCK_JOBS` עדיין מחובר כ-fallback ב-apply** `CONFIRMED` ✅ תוקן

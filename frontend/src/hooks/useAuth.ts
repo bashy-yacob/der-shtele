@@ -11,6 +11,7 @@ export interface AuthUser {
   email: string;
   fullName: string;
   role: string;
+  optInMarketing?: boolean;
 }
 
 /** ניהול התחברות בצד הלקוח — token ב-localStorage. */
@@ -43,6 +44,7 @@ export function useAuth() {
             email: res.data.email,
             fullName: res.data.fullName ?? "",
             role: res.data.role,
+            optInMarketing: res.data.optInMarketing,
           });
         }
       })
@@ -85,5 +87,23 @@ export function useAuth() {
     setUser(null);
   };
 
-  return { user, loading, login, register, logout };
+  /** עדכון העדפת דיוור (opt-in/opt-out) דרך proxy. */
+  const updateMarketing = async (optInMarketing: boolean) => {
+    const t = token();
+    if (!t) throw new Error("לא מחובר");
+    const res = await fetch("/api/auth/me", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${t}`,
+      },
+      body: JSON.stringify({ optInMarketing }),
+    }).then((r) => (r.ok ? r.json() : null));
+    if (!res?.success) throw new Error(res?.error ?? "שגיאה בשמירת ההעדפה");
+    setUser((u) =>
+      u ? { ...u, optInMarketing: res.data.optInMarketing } : u,
+    );
+  };
+
+  return { user, loading, login, register, logout, updateMarketing };
 }
