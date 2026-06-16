@@ -1,0 +1,22 @@
+{
+  "shape": "package",
+  "projectId": "4c4490d8-7a36-4be8-bf41-4e58f085a9e1",
+  "pkg": "@der-shtele/frontend",
+  "globalName": "DerShtele",
+  "entry": "frontend/.ds-sync-build/entry.tsx",
+  "srcDir": "src",
+  "tsconfig": "tsconfig.json",
+  "componentSrcMap": {
+    "Button": "src/components/ui/Button.tsx",
+    "Card": "src/components/ui/Card.tsx",
+    "Input": "src/components/ui/Input.tsx"
+  },
+  "cssEntry": ".ds-sync-build/compiled.css",
+  "runtimeFontPrefixes": ["Heebo"],
+  "readmeHeader": ".design-sync/conventions.md",
+  "dtsPropsFor": {
+    "Button": "/** Visual variant. @default 'primary' */\nvariant?: 'primary' | 'outline';\n/** Button label / content. */\nchildren?: React.ReactNode;\n/** Extra Tailwind classes (merged via tailwind-merge). */\nclassName?: string;\ntype?: 'button' | 'submit' | 'reset';\ndisabled?: boolean;\nonClick?: React.MouseEventHandler<HTMLButtonElement>;\n/** Plus any standard <button> HTML attribute (aria-*, name, form, …). */\n[key: string]: unknown;",
+    "Card": "/** Card content. */\nchildren?: React.ReactNode;\n/** Extra Tailwind classes (merged via tailwind-merge). */\nclassName?: string;\n/** Plus any standard <div> HTML attribute (id, role, aria-*, onClick, …). */\n[key: string]: unknown;",
+    "Input": "/** Field label rendered above the input (associated via htmlFor/id). */\nlabel?: string;\n/** Error message shown below the field; also applies error styling. */\nerror?: string;\n/** Input id — links the label to the field. */\nid?: string;\nplaceholder?: string;\ntype?: string;\nvalue?: string;\ndefaultValue?: string;\ndisabled?: boolean;\nonChange?: React.ChangeEventHandler<HTMLInputElement>;\n/** Extra Tailwind classes (merged via tailwind-merge). */\nclassName?: string;\n/** Plus any standard <input> HTML attribute (name, required, autoComplete, …). */\n[key: string]: unknown;"
+  }
+}
