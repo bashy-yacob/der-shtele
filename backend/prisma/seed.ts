@@ -8,6 +8,13 @@ const prisma = new PrismaClient();
 
 async function main() {
   // ---- משתמש מנהל ----
+  // הסיסמה מגיעה מ-env (לא קשיחה בקוד). חובה להגדיר SEED_ADMIN_PASSWORD לפני הרצה.
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD;
+  if (!adminPassword || adminPassword.length < 8) {
+    throw new Error(
+      'SEED_ADMIN_PASSWORD חסר או קצר מ-8 תווים — הגדר משתנה סביבה חזק לפני הרצת seed.',
+    );
+  }
   const adminEmail = 'admin@dershtele.co.il';
   await prisma.user.upsert({
     where: { email: adminEmail },
@@ -15,7 +22,7 @@ async function main() {
     create: {
       email: adminEmail,
       fullName: 'מנהל מערכת',
-      passwordHash: await bcrypt.hash('admin1234', 10),
+      passwordHash: await bcrypt.hash(adminPassword, 10),
       role: 'admin',
       optInMarketing: true,
       optInAt: new Date(),
@@ -73,7 +80,7 @@ async function main() {
   });
 
   // eslint-disable-next-line no-console
-  console.log('✅ Seed הושלם — admin@dershtele.co.il / admin1234');
+  console.log(`✅ Seed הושלם — admin: ${adminEmail} (הסיסמה מ-SEED_ADMIN_PASSWORD)`);
 }
 
 main()

@@ -14,6 +14,7 @@ import { Public } from '../../common/decorators/public.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { StorageService } from '../../common/storage/storage.service';
+import { resumeUploadOptions } from '../../common/storage/resume-upload.options';
 
 @Controller('contact')
 export class ContactController {
@@ -25,7 +26,7 @@ export class ContactController {
   /** טופס צור קשר — multipart עם קו"ח אופציונלי. */
   @Public()
   @Post()
-  @UseInterceptors(FileInterceptor('resume'))
+  @UseInterceptors(FileInterceptor('resume', resumeUploadOptions))
   async create(
     @Body() dto: CreateContactDto,
     @UploadedFile() file?: Express.Multer.File,

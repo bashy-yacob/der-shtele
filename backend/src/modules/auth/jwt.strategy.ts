@@ -17,7 +17,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: config.get<string>('JWT_SECRET', 'dev-secret-change-me'),
+      // ללא ברירת מחדל — נכשל באתחול אם JWT_SECRET חסר, כדי שלא ירוץ עם סוד ציבורי ידוע.
+      secretOrKey: config.getOrThrow<string>('JWT_SECRET'),
     });
   }
 

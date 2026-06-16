@@ -5,6 +5,7 @@ import { StorageService } from '../../common/storage/storage.service';
 import { CreateCandidateDto } from './dto/create-candidate.dto';
 import { UpdateCandidateDto } from './dto/update-candidate.dto';
 import { assertCandidateTransition } from '../../common/status-machine/status-machine';
+import { escapeHtml } from '../../common/util/escape-html';
 
 @Injectable()
 export class CandidatesService {
@@ -40,7 +41,7 @@ export class CandidatesService {
 
     await this.email.notifyTeam(
       'מועמד חדש',
-      `<div dir="rtl">מועמד חדש: <b>${dto.fullName}</b> (${dto.phone}, ${dto.email})</div>`,
+      `<div dir="rtl">מועמד חדש: <b>${escapeHtml(dto.fullName)}</b> (${escapeHtml(dto.phone)}, ${escapeHtml(dto.email)})</div>`,
     );
     await this.email.sendCandidateConfirmation(dto.email, dto.fullName);
 

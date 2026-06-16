@@ -1,0 +1,163 @@
+# סקירת קוד מלאה — ממצאים ורשימת תיקונים
+
+> נוצר ב-2026-06-15 מתוך סקירת קוד על כל הפרויקט (6 סוכני סקירה מקבילים + אימות ידני).
+> סטטוס: `CONFIRMED` = אומת עם trigger ברור · `PLAUSIBLE` = מנגנון אמיתי, trigger לא ודאי.
+> סמן `[x]` כשממצא תוקן. אל תיגע בלוגיקת עמלות / schema / Shabbat ללא אישור מפורש (ראה CLAUDE.md).
+
+---
+
+## 🔴 אבטחה — עדיפות עליונה
+
+- [x] **SEC-1 · סוד JWT עם fallback קשיח** `CONFIRMED` ✅ תוקן
+  - מיקום: `backend/src/modules/auth/jwt.strategy.ts:20` + `backend/src/modules/auth/auth.module.ts:16`
+  - תוקן: שני המקומות עברו ל-`config.getOrThrow('JWT_SECRET')` — נכשל באתחול אם הסוד חסר.
+  - ⚠️ פעולה נדרשת: לוודא ש-`JWT_SECRET` מוגדר ב-`.env` (dev) וב-Render (prod), אחרת השרת לא יעלה.
+
+- [x] **SEC-2 · סיסמת אדמין חלשה וקשיחה ב-seed על DB משותף חי** `CONFIRMED` ✅ תוקן
+  - מיקום: `backend/prisma/seed.ts`
+  - תוקן: הסיסמה נקראת מ-`SEED_ADMIN_PASSWORD` (חובה, ≥8 תווים), ה-plaintext הוסר מה-log.
+  - ⚠️ פעולה נדרשת: האדמין הקיים ב-DB עדיין עם `admin1234` (upsert לא דורס) — להחליף ידנית. ולהגדיר `SEED_ADMIN_PASSWORD` לפני seed הבא.
+
+- [x] **SEC-3 · דליפת הודעות שגיאה פנימיות ללקוח** `CONFIRMED` ✅ תוקן
+  - מיקום: `backend/src/common/filters/http-exception.filter.ts:37-42`
+  - תוקן: שגיאות לא-HTTP מתועדות רק בלוג השרת; ללקוח חוזר `'שגיאת שרת'` גנרי.
+
+- [~] **SEC-4 · גולש אנונימי יכול לשלוח מועמדות/קו"ח + XSS במייל לצוות** `CONFIRMED` 🟡 חלקי
+  - מיקום: `backend/src/modules/candidates/candidates.controller.ts:40` (`@Public()`) + `candidates.service.ts:43` + `contact.service.ts:28`
+  - ✅ תוקן: XSS — נוסף `escapeHtml` (`backend/src/common/util/escape-html.ts`) ומוחל על כל קלט משתמש בגוף המיילים לצוות (מועמד + צור-קשר).
+  - ⏸️ נדחה: הסרת `@Public()` — תשבור את זרימת ה-apply עד שה-frontend חוסם לפי auth ומצרף טוקן (FRM-4). לבצע יחד עם FRM-4.
+
+- [x] **SEC-5 · העלאת קבצים: אין תקרת גודל ב-multer + MIME מזויף + שגיאות 500** `CONFIRMED` ✅ תוקן
+  - מיקום: `backend/src/modules/{contact,candidates}/*.controller.ts`, `backend/src/common/storage/storage.service.ts`
+  - תוקן: נוצר `resume-upload.options.ts` (limits.fileSize=5MB + fileFilter לפי MIME) ומוחל על שני ה-`FileInterceptor`; ולידציה בשרת עברה ל-`BadRequestException` (400); סיומת הקובץ עוברת sanitize.
+  - הערה: בדיקת magic-bytes (תוכן אמיתי מול MIME) נותרה כשיפור עתידי (דורש ספרייה כמו `file-type`).
+
+### אבטחה — רמה בינונית
+- [ ] **SEC-6 · טוקן ב-`localStorage` חשוף ל-XSS** — `frontend/src/hooks/useAuth.ts:22` · שקול cookie HttpOnly. `PLAUSIBLE`
+- [ ] **SEC-7 · user-enumeration ע"י תזמון ב-login** — `backend/src/modules/auth/auth.service.ts:44` · להריץ bcrypt dummy גם כשאין משתמש. `CONFIRMED`
+- [ ] **SEC-8 · `RolesGuard` לא גלובלי** — `backend/src/app.module.ts:36` · היום מכוסה ידנית בכל controller, אבל כדאי `APP_GUARD` כדי שאי אפשר לשכוח. `PLAUSIBLE`
+- [ ] **SEC-9 · CORS עם origin יחיד + fallback ל-localhost** — `backend/src/main.ts:13` · לחייב env בפרוד / allowlist. `PLAUSIBLE`
+- [ ] **SEC-10 · bcrypt 10 סבבים + bcryptjs** — `backend/src/modules/auth/auth.service.ts:28` · לשקול 12 / native bcrypt / argon2. `PLAUSIBLE`
+
+---
+
+## 🟠 חוק עסקי קריטי — לוגיקת העמלות (⚠️ דורש אישור מפורש לפני שינוי)
+
+> כל כלל "העמלה הופכת `due` רק אחרי 3 חודשי ערבות, לעולם לא ביום הגיוס" אינו ממומש בפועל. סומן ע"י 3 סוכנים עצמאית.
+
+- [ ] **COM-1 · ה-enum חסר `not_due`/`due`** `CONFIRMED`
+  - מיקום: `backend/prisma/schema.prisma:72-77` (וגם `frontend/src/types/index.ts:54-58`)
+  - בעיה: ה-enum הוא `pending/invoiced/paid/partial_refund` — אי אפשר לייצג את המצב במודל. דורש migration.
+
+- [ ] **COM-2 · `isCommissionDue()` מסמן due ביום הגיוס** `CONFIRMED`
+  - מיקום: `backend/src/common/commission/commission.ts:28-37`
+  - בעיה: מחזיר true ברגע `confirmed`, בלי לבדוק `guaranteeEndsAt`.
+  - תיקון: לקבע על `isGuaranteeOver(guaranteeEndsAt)` (או `status === 'completed'`).
+
+- [ ] **COM-3 · `deriveCommissionStatus()` אף פעם לא מקדם ל-due** `PLAUSIBLE`
+  - מיקום: `backend/src/common/commission/commission.ts:44-54`
+  - בעיה: מחזיר `current` לכל מעבר שאינו ביטול; המעבר ל-due לא קיים בשום מקום.
+
+- [ ] **COM-4 · `updateStatus` כותב כל סטטוס ללא שומר מעברים** `CONFIRMED`
+  - מיקום: `backend/src/modules/commissions/commissions.service.ts:44-54`
+  - בעיה: אדמין יכול לסמן `paid` באמצע הערבות. תיקון: `assertCommissionTransition` + חסימת `paid` כל עוד `!isGuaranteeOver`.
+
+- [ ] **COM-5 · חישוב 3 החודשים עלול לגלוש** `PLAUSIBLE`
+  - מיקום: `backend/src/common/commission/commission.ts:10-14`
+  - בעיה: `setMonth(+3)` על 30/11 → 02/03 (off-by-1-2 ימים). תיקון: clamp לסוף חודש / ספריית תאריכים.
+
+---
+
+## 🟠 אי-התאמה לאיפיון v3.1 — מגדר + אישור רבני (⚠️ schema → אישור)
+
+> סומן ע"י 3 סוכנים. הסרה רוחבית מתואמת DB → backend → frontend.
+
+- [ ] **V31-1 · DB: עמודות `gender` (NOT NULL) ב-Job+Candidate, `rabbinicalApproval`/`By` ב-Job** `CONFIRMED`
+  - מיקום: `backend/prisma/schema.prisma:161-165, 190` + seed כותב אותן `backend/prisma/seed.ts:56-59`. דורש migration.
+- [ ] **V31-2 · Backend: `PUBLIC_SELECT` מחזיר את כולן + `findPublic` מסנן לפי מגדר** `CONFIRMED`
+  - מיקום: `backend/src/modules/jobs/jobs.service.ts:10-34` + `QueryJobsDto`.
+- [ ] **V31-3 · Frontend: דרופדאון סינון מגדרי** `CONFIRMED` — `frontend/src/app/jobs/page.tsx:214`, `frontend/src/components/jobs/JobFilters.tsx:14`
+- [ ] **V31-4 · Frontend: תגית מגדר בכרטיס ובדף משרה** `CONFIRMED` — `frontend/src/components/jobs/JobCard.tsx:32`, `frontend/src/app/jobs/[id]/page.tsx:55`
+- [ ] **V31-5 · Frontend: באדג' "✓ אישור רבני"** `CONFIRMED` — `frontend/src/components/jobs/JobCard.tsx:20-24`, `frontend/src/app/jobs/[id]/page.tsx:43-47`
+- [ ] **V31-6 · `api.ts` (RawPublicJob/toPublicJob) + `mockData.ts` עדיין נושאים את השדות** `CONFIRMED` — `frontend/src/lib/api.ts:26-52`, `frontend/src/lib/mockData.ts`
+
+---
+
+## 🟡 זרימת אישור משרות
+
+- [ ] **JOB-1 · כל משרה עולה לאתר מיד — אין שלב אישור צוות** `CONFIRMED`
+  - מיקום: `backend/src/modules/jobs/jobs.service.ts:69-71` + `backend/prisma/schema.prisma:167`
+  - בעיה: `JobStatus` = `active/paused/closed/filled`, ברירת מחדל `active`, create לא קובע סטטוס.
+  - תיקון: מצב `pending`/`draft`, הציבורי מסנן רק `approved`, מעבר state-machine `pending → active`. דורש schema.
+
+---
+
+## 🟡 שבת/חג (⚠️ Shabbat detection קריטי עסקית — אישור)
+
+- [ ] **SHB-1 · זיהוי שבת מבוסס טבלת שעות קשיחה, מתעלם מחגים, סחף DST** `CONFIRMED`
+  - מיקום: `backend/src/common/shabbat/shabbat.ts:13-42`
+  - בעיה: מיילים יכולים להישלח ביו"ט שחל באמצע השבוע או סמוך לכניסת שבת. תיקון: לחבר Hebcal API (מתוכנן ב-TODO).
+- [ ] **SHB-2 · `nextAllowedSendTime` עלול להחזיר זמן בתוך שבת** `PLAUSIBLE` — `backend/src/common/shabbat/shabbat.ts:55-59`
+- [ ] **SHB-3 · תזכורות ללא שומר שבת** `CONFIRMED` — `backend/src/modules/reminders/reminders.service.ts:26-36` · לנתב דרך `nextAllowedSendTime`/`EmailService.send`.
+- [ ] **SHB-4 · מייל נדחה ב-send() מושמט ולא נשמר בתור** `CONFIRMED` — `backend/src/modules/email/email.service.ts:52-60` · לתור (DB/Bull).
+
+---
+
+## 🟡 טפסים וזרימת הגשה
+
+- [ ] **FRM-1 · באג הטלפון: regex דוחה placeholder עם מקפים** `CONFIRMED`
+  - מיקום: `frontend/src/app/contact/page.tsx:12` (וגם `:149` placeholder), `frontend/src/components/forms/ApplicationForm.tsx:11`, `backend/src/modules/contact/dto/create-contact.dto.ts:14`
+  - בעיה: `^05[0-9]{8}$` דוחה `050-0000000`. תיקון: לנרמל (להסיר תווים שאינם ספרות) לפני ולידציה.
+- [ ] **FRM-2 · 3 regex טלפון שונים + `validations.ts` לא מיובא** `CONFIRMED`
+  - מיקום: `frontend/src/lib/validations.ts:11` (`^0[5-9]\d{8}$`) מול inline בטפסים. תיקון: לאחד ל-`validations.ts` ולייבא.
+- [ ] **FRM-3 · טופס ההגשה אין בו העלאת קו"ח (שולח JSON)** `CONFIRMED`
+  - מיקום: `frontend/src/components/forms/ApplicationForm.tsx:9-16, 74-186`. תיקון: file input חובה (PDF/Word ≤5MB) + multipart.
+- [ ] **FRM-4 · דף apply לא חוסם לפי auth** `CONFIRMED` — `frontend/src/app/apply/[jobId]/page.tsx:13-37` · redirect ל-login. (קשור ל-SEC-4)
+- [ ] **FRM-5 · opt-out בהגדרות לא עובד (checkbox קשיח, אין handler)** `CONFIRMED`
+  - מיקום: `frontend/src/app/account/settings/page.tsx:8, 24-25` · בעיה חוקית (חוק הספאם). לטעון ערך אמיתי + לחבר `PATCH /api/auth/me`.
+- [ ] **FRM-6 · `useAuth` ללא בדיקת `res.ok`, `fullName` קשיח `''`** `CONFIRMED` — `frontend/src/hooks/useAuth.ts:36-42`
+- [ ] **FRM-7 · `MOCK_JOBS` עדיין מחובר כ-fallback ב-apply** `CONFIRMED` — `frontend/src/app/apply/[jobId]/page.tsx:4,17`
+
+---
+
+## 🟢 הקשחת מודל נתונים (⚠️ schema — אישור)
+
+- [ ] **DAT-1 · `cvUrl` שומר URL ולא path** `CONFIRMED` — `backend/prisma/schema.prisma:194` · לשנות ל-`cvPath` כמו `Contact.resumePath`.
+- [ ] **DAT-2 · אין `@unique` על `Candidate.email`; אין אינדקסים על `field`/`region`/`status`** `CONFIRMED` — `backend/prisma/schema.prisma:188, 159-167`
+- [ ] **DAT-3 · `reminders.jobId` FK תלוי-אוויר בלי relation/constraint** `CONFIRMED` — `backend/prisma/schema.prisma:284`
+- [ ] **DAT-4 · `opt_in_at` רק על `User` ו-nullable; ל-`Candidate` אין שדה הסכמה** `CONFIRMED` — `backend/prisma/schema.prisma:98, 184-210`
+- [ ] **DAT-5 · כל ה-FK `RESTRICT` כברירת מחדל שקטה** `CONFIRMED` — להחליט מפורשות Cascade/Restrict לכל relation.
+
+---
+
+## 🟢 שונות (correctness)
+
+- [ ] **MSC-1 · `applications.update` ללא שומר state-machine** `CONFIRMED` — `backend/src/modules/applications/applications.service.ts:50-53`
+- [ ] **MSC-2 · בליעה שקטה של `jobId` שגוי בהגשת מועמד** `PLAUSIBLE` — `backend/src/modules/candidates/candidates.service.ts:35-39`
+- [ ] **MSC-3 · over-posting של `employerId` דרך `...dto`** `PLAUSIBLE` (ממותן ע"י ValidationPipe) — `backend/src/modules/jobs/jobs.service.ts:78-87`
+- [ ] **MSC-4 · אין pagination ב-findPublic/findAll** `CONFIRMED` — `backend/src/modules/jobs/jobs.service.ts:28-39` ועוד.
+- [ ] **MSC-5 · מחיקת תזכורת ללא בדיקת בעלות** `PLAUSIBLE` — `backend/src/modules/reminders/reminders.controller.ts:44-47`
+- [ ] **MSC-6 · `contactEmail` ללא `@IsEmail`** `PLAUSIBLE` — `backend/src/modules/employers/dto/create-employer.dto.ts:22`, `backend/src/modules/contact/dto/create-contact.dto.ts`
+- [ ] **MSC-7 · טופס צור-קשר אוסף שם/טלפון בלי opt-in/opt_in_at** `PLAUSIBLE` — חוק הספאם.
+- [ ] **MSC-8 · `applications.findAll` מחזיר `phone` של מועמד** `PLAUSIBLE` — `backend/src/modules/applications/applications.service.ts:16-24` · מסוכן אם ייעשה בו שימוש חוזר ל-portal מעסיקים. להסיר `phone` מה-select.
+- [ ] **MSC-9 · מחרוזת לא מתורגמת "הזדמנויות for פיתוח מקצועי"** — `frontend/src/app/jobs/[id]/page.tsx:75`
+
+---
+
+## ✅ מה שנבדק ותקין (לא לבזבז זמן)
+- RTL מלא ונכון (`frontend/src/app/layout.tsx:22`), לוגיקת start/end ולא left/right.
+- **אין תמונות אנשים** בשום מקום (אפס `<img>`/`next/image`/`bg-[url]`).
+- אין `dangerouslySetInnerHTML` בשום מקום.
+- צ'קבוקס opt-in בהרשמה — חובה ותקין (`frontend/src/components/forms/RegisterForm.tsx:17`).
+- `PUBLIC_SELECT` לא מדליף פרטי חברה/מעסיק (`descriptionInternal`/`employer` מוחרגים).
+- `ValidationPipe` עם `whitelist + forbidNonWhitelisted + transform`.
+- אין drift בין `schema.prisma` למיגרציות (אי-ההתאמה היא schema-מול-spec בלבד).
+
+---
+
+## סדר עדיפויות מומלץ
+1. **SEC-1, SEC-3** — תיקון נקי בלי schema ובלי לוגיקה עסקית. להתחיל כאן.
+2. שאר **אבטחה** (SEC-2, SEC-4, SEC-5).
+3. **COM-1..5** (לוגיקת העמלות) — דורש אישור.
+4. **V31-1..6** (הסרת מגדר/רבני) — ניקוי רוחבי, דורש אישור schema.
+5. השאר לפי קצב.

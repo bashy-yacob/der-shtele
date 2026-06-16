@@ -35,8 +35,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
           : String(message ?? error);
       }
     } else if (exception instanceof Error) {
+      // מתעדים את הפרטים בצד שרת בלבד; ללקוח מחזירים 'שגיאת שרת' גנרי
+      // כדי לא לחשוף מבנה DB / מחרוזות חיבור / פנימיות.
       this.logger.error(exception.message, exception.stack);
-      error = exception.message;
     }
 
     response.status(status).json({ success: false, error });

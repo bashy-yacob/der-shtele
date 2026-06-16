@@ -17,6 +17,7 @@ import { Public } from '../../common/decorators/public.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { StorageService } from '../../common/storage/storage.service';
+import { resumeUploadOptions } from '../../common/storage/resume-upload.options';
 
 @Controller('candidates')
 export class CandidatesController {
@@ -30,7 +31,7 @@ export class CandidatesController {
   /** העלאת קו"ח (multipart) — מחזיר נתיב לשליחה ב-create. */
   @Public()
   @Post('resume')
-  @UseInterceptors(FileInterceptor('resume'))
+  @UseInterceptors(FileInterceptor('resume', resumeUploadOptions))
   async uploadResume(@UploadedFile() file: Express.Multer.File) {
     const path = await this.storage.uploadResume(file);
     return { path };

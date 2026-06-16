@@ -1,8 +1,17 @@
-import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { promises as fs } from 'fs';
 import { join } from 'path';
+import {
+  RESUME_ALLOWED_TYPES,
+  RESUME_MAX_SIZE,
+} from './resume-upload.options';
 
 /**
  * StorageService — אחסון קורות חיים.
@@ -51,14 +60,6 @@ export class StorageService {
     return this._client;
   }
 
-  private readonly allowedTypes = [
-    'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  ];
-
-  private readonly maxSize = 5 * 1024 * 1024; // 5MB
-
   /** מאמת ומעלה קובץ קו"ח, מחזיר את הנתיב לשמירה במסד. */
   async uploadResume(file: {
     buffer: Buffer;
@@ -66,18 +67,23 @@ export class StorageService {
     mimetype: string;
     size: number;
   }): Promise<string> {
-    if (!this.allowedTypes.includes(file.mimetype)) {
-      throw new InternalServerErrorException(
+    // רשת ביטחון נוספת ל-fileFilter/limits של multer — קלט שגוי = 400, לא 500.
+    if (!RESUME_ALLOWED_TYPES.includes(file.mimetype)) {
+      throw new BadRequestException(
         'קובץ קורות חיים חייב להיות בפורמט PDF או Word.',
       );
     }
-    if (file.size > this.maxSize) {
-      throw new InternalServerErrorException(
+    if (file.size > RESUME_MAX_SIZE) {
+      throw new BadRequestException(
         'קובץ קורות חיים גדול מדי. גודל מירבי הוא 5MB.',
       );
     }
 
-    const ext = file.originalname.split('.').pop();
+    // לא סומכים על originalname — מנקים את הסיומת לאותיות/ספרות בלבד.
+    const ext = (file.originalname.split('.').pop() ?? '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '')
+      .slice(0, 5);
     const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
     if (this.useSupabase) {

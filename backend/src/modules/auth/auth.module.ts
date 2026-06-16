@@ -13,7 +13,8 @@ import { JwtStrategy } from './jwt.strategy';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        secret: config.get<string>('JWT_SECRET', 'dev-secret-change-me'),
+        // ללא ברירת מחדל — נכשל באתחול אם JWT_SECRET חסר (אותו סוד כמו ב-JwtStrategy).
+        secret: config.getOrThrow<string>('JWT_SECRET'),
         signOptions: {
           expiresIn: config.get<string>('JWT_EXPIRES_IN', '7d'),
         },
