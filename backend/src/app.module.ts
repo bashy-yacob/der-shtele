@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 
+import { AppController } from './app.controller';
 import { PrismaModule } from './prisma/prisma.module';
 import { StorageModule } from './common/storage/storage.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
@@ -33,6 +34,7 @@ import { EmailModule } from './modules/email/email.module';
     RemindersModule,
     ContactModule,
   ],
+  controllers: [AppController],
   providers: [
     // הגנת JWT גלובלית — כל route מוגן אלא אם סומן ב-@Public()
     { provide: APP_GUARD, useClass: JwtAuthGuard },

@@ -28,7 +28,8 @@ async function bootstrap() {
   app.useGlobalInterceptors(new TransformInterceptor());
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  app.setGlobalPrefix('api');
+  // כל ה-API תחת /api, אך השורש ובדיקת הבריאות נשארים מחוץ ל-prefix
+  app.setGlobalPrefix('api', { exclude: ['/', 'health'] });
 
   const port = config.get<number>('PORT', 4000);
   await app.listen(port);
