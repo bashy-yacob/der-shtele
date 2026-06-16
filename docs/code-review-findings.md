@@ -114,8 +114,8 @@
   - תוקן: נוצר `phoneSchema` משותף ב-`frontend/src/lib/validations.ts` שמנרמל (מסיר תווים שאינם ספרות) ואז מאמת `^05\d{8}$`. מוחל בשני הטפסים. ה-DTOs בבק (`create-contact`, `create-candidate`) קיבלו `@Transform` שמנרמל לפני `@Matches`. נבדק עם 7 מקרים (כולל `050-0000000` → עובר).
 - [x] **FRM-2 · 3 regex טלפון שונים + `validations.ts` לא מיובא** `CONFIRMED` ✅ תוקן (לטלפון)
   - תוקן: כל הטפסים מייבאים עכשיו את `phoneSchema` מ-`validations.ts` (regex אחד). שאר הסכמות עדיין inline בכל טופס — מיגרציה מלאה של *כל* הסכמות ל-`validations.ts` נותרה כניקוי אופציונלי קטן.
-- [~] **FRM-3 · טופס ההגשה אין בו העלאת קו"ח (שולח JSON)** `CONFIRMED` 🟡 חלקי — חוסם ה-gender הוסר
-  - ✅ ה-blocker נפתר ב-V31: `CreateCandidateDto` כבר לא מחייב `gender`, אז הגשת מועמדות (JSON) אמורה לעבוד עכשיו. ⏸️ נותר: להוסיף file input חובה (PDF/Word ≤5MB) + multipart לטופס, כדי שתישלח קו"ח אמיתית עם ההגשה.
+- [x] **FRM-3 · טופס ההגשה אין בו העלאת קו"ח (שולח JSON)** `CONFIRMED` ✅ תוקן
+  - תוקן: נוסף שדה קו"ח חובה (PDF/Word ≤5MB, ולידציית Zod) ל-`ApplicationForm`. ההגשה דו-שלבית: מעלה את הקובץ ל-proxy חדש `frontend/src/app/api/candidates/resume/route.ts` → מקבל `path` → שולח את ההגשה עם `cvPath`. (ה-blocker של `gender` כבר הוסר ב-V31.)
 - [~] **FRM-4 · דף apply לא חוסם לפי auth** `CONFIRMED` ⏸️ נדחה — מצומד ל-SEC-4 + auth wiring
   - מיקום: `frontend/src/app/apply/[jobId]/page.tsx`. חייב להתבצע יחד עם SEC-4 (הסרת `@Public`) והעברת קריאות auth דרך proxy server-side (חסם NetFree, ראה memory).
 - [~] **FRM-5 · opt-out בהגדרות לא עובד (checkbox קשיח, אין handler)** `CONFIRMED` ⏸️ נדחה — חסר endpoint בבק
