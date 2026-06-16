@@ -16,7 +16,7 @@
 - **אבטחה (הוקשח 2026-06-16):** `JWT_SECRET` **חובה** — אין fallback, השרת לא יעלה בלעדיו. שגיאות פנימיות לא דולפות ללקוח; קלט משתמש עובר `escapeHtml` במיילים לצוות; העלאת קו"ח עם `limit`+`fileFilter`.
 - **אחסון קו"ח:** bucket `resumes` ב-Supabase פעיל. ⚠️ קיים fallback מקומי **dev-only** ב-`StorageService` (`backend/uploads/`, resumePath עם קידומת `local/`) — סותר את הכלל "אין אחסון מקומי" למטה; להחליט אם להשאיר ל-dev או להסיר.
 - **תאימות v3.1:** ✅ סינון מגדרי ו-`rabbinicalApproval` **הוסרו לחלוטין** מכל השכבות (frontend, backend, schema, seed) כולל migration שהוחל על ה-DB (2026-06-16).
-- **Pending:** SMTP לא מוגדר (מיילים fail-soft, רק log); auth/login + אזור אדמין עוד לא מחוברים בפרונט (`useAuth` קורא לבק ישירות מהדפדפן — ייחסם ע"י NetFree; להעביר דרך proxy server-side); טופס הגשת מועמדות עדיין בלי שדה העלאת קו"ח; opt-out בהגדרות לא פעיל (דורש `PATCH /api/auth/me`). מעקב ממצאי סקירת קוד מלא: `docs/code-review-findings.md`.
+- **Pending:** SMTP לא מוגדר (מיילים fail-soft, רק log); auth/login + אזור אדמין עוד לא מחוברים בפרונט (`useAuth` קורא לבק ישירות מהדפדפן — ייחסם ע"י NetFree; להעביר דרך proxy server-side); הגשת מועמדות פתוחה לאנונימי (SEC-4: להסיר `@Public` בתיאום עם חסימת auth בפרונט); opt-out בהגדרות לא פעיל (דורש `PATCH /api/auth/me`). מעקב ממצאי סקירת קוד מלא: `docs/code-review-findings.md`.
 
 ## סטאק טכנולוגי
 

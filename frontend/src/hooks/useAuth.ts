@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from "react";
 
-// מוריד סלאש מיותר בסוף הכתובת כדי שלא ייווצר `//api/...`
-const API = (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000').replace(/\/+$/, '');
-const TOKEN_KEY = 'ds_token';
+// קוראים דרך proxy routes יחסיים (same-origin) ולא ישירות לבק — כך ההתחברות
+// לא נחסמת ע"י NetFree אצל משתמשים חרדים.
+const TOKEN_KEY = "ds_token";
 
 export interface AuthUser {
   id: string;
@@ -19,7 +19,8 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   const token = useCallback(
-    () => (typeof window === 'undefined' ? null : localStorage.getItem(TOKEN_KEY)),
+    () =>
+      typeof window === "undefined" ? null : localStorage.getItem(TOKEN_KEY),
     [],
   );
 
@@ -30,7 +31,7 @@ export function useAuth() {
       setLoading(false);
       return;
     }
-    fetch(`${API}/api/auth/me`, {
+    fetch("/api/auth/me", {
       headers: { Authorization: `Bearer ${t}` },
     })
       // בודקים res.ok לפני json() — אחרת גוף שגיאה (HTML/401) זורק ונבלע בשקט.
@@ -40,7 +41,7 @@ export function useAuth() {
           setUser({
             id: res.data.userId,
             email: res.data.email,
-            fullName: res.data.fullName ?? '',
+            fullName: res.data.fullName ?? "",
             role: res.data.role,
           });
         }
@@ -55,12 +56,12 @@ export function useAuth() {
   };
 
   const login = async (email: string, password: string) => {
-    const res = await fetch(`${API}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     }).then((r) => r.json());
-    if (!res.success) throw new Error(res.error ?? 'שגיאה בהתחברות');
+    if (!res.success) throw new Error(res.error ?? "שגיאה בהתחברות");
     persist(res.data.accessToken, res.data.user);
   };
 
@@ -70,12 +71,12 @@ export function useAuth() {
     password: string;
     optInMarketing: boolean;
   }) => {
-    const res = await fetch(`${API}/api/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     }).then((r) => r.json());
-    if (!res.success) throw new Error(res.error ?? 'שגיאה בהרשמה');
+    if (!res.success) throw new Error(res.error ?? "שגיאה בהרשמה");
     persist(res.data.accessToken, res.data.user);
   };
 
