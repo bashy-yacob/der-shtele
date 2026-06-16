@@ -100,10 +100,16 @@ export function useAuth() {
       body: JSON.stringify({ optInMarketing }),
     }).then((r) => (r.ok ? r.json() : null));
     if (!res?.success) throw new Error(res?.error ?? "שגיאה בשמירת ההעדפה");
-    setUser((u) =>
-      u ? { ...u, optInMarketing: res.data.optInMarketing } : u,
-    );
+    setUser((u) => (u ? { ...u, optInMarketing: res.data.optInMarketing } : u));
   };
 
-  return { user, loading, login, register, logout, updateMarketing };
+  return {
+    user,
+    loading,
+    login,
+    register,
+    logout,
+    updateMarketing,
+    getToken: token,
+  };
 }

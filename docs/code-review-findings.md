@@ -22,10 +22,9 @@
   - מיקום: `backend/src/common/filters/http-exception.filter.ts:37-42`
   - תוקן: שגיאות לא-HTTP מתועדות רק בלוג השרת; ללקוח חוזר `'שגיאת שרת'` גנרי.
 
-- [~] **SEC-4 · גולש אנונימי יכול לשלוח מועמדות/קו"ח + XSS במייל לצוות** `CONFIRMED` 🟡 חלקי
-  - מיקום: `backend/src/modules/candidates/candidates.controller.ts:40` (`@Public()`) + `candidates.service.ts:43` + `contact.service.ts:28`
-  - ✅ תוקן: XSS — נוסף `escapeHtml` (`backend/src/common/util/escape-html.ts`) ומוחל על כל קלט משתמש בגוף המיילים לצוות (מועמד + צור-קשר).
-  - ⏸️ נדחה: הסרת `@Public()` — תשבור את זרימת ה-apply עד שה-frontend חוסם לפי auth ומצרף טוקן (FRM-4). לבצע יחד עם FRM-4.
+- [x] **SEC-4 · גולש אנונימי יכול לשלוח מועמדות/קו"ח + XSS במייל לצוות** `CONFIRMED` ✅ תוקן
+  - ✅ XSS: `escapeHtml` מוחל על כל קלט משתמש בגוף המיילים לצוות.
+  - ✅ `@Public()` הוסר מ-`POST /candidates` ו-`POST /candidates/resume` → מחייב התחברות. ה-proxies מעבירים את ה-Authorization, וטופס ההגשה מצרף את הטוקן (יחד עם FRM-4).
 
 - [x] **SEC-5 · העלאת קבצים: אין תקרת גודל ב-multer + MIME מזויף + שגיאות 500** `CONFIRMED` ✅ תוקן
   - מיקום: `backend/src/modules/{contact,candidates}/*.controller.ts`, `backend/src/common/storage/storage.service.ts`
@@ -116,8 +115,8 @@
   - תוקן: כל הטפסים מייבאים עכשיו את `phoneSchema` מ-`validations.ts` (regex אחד). שאר הסכמות עדיין inline בכל טופס — מיגרציה מלאה של *כל* הסכמות ל-`validations.ts` נותרה כניקוי אופציונלי קטן.
 - [x] **FRM-3 · טופס ההגשה אין בו העלאת קו"ח (שולח JSON)** `CONFIRMED` ✅ תוקן
   - תוקן: נוסף שדה קו"ח חובה (PDF/Word ≤5MB, ולידציית Zod) ל-`ApplicationForm`. ההגשה דו-שלבית: מעלה את הקובץ ל-proxy חדש `frontend/src/app/api/candidates/resume/route.ts` → מקבל `path` → שולח את ההגשה עם `cvPath`. (ה-blocker של `gender` כבר הוסר ב-V31.)
-- [~] **FRM-4 · דף apply לא חוסם לפי auth** `CONFIRMED` ⏸️ נדחה — מצומד ל-SEC-4 + auth wiring
-  - מיקום: `frontend/src/app/apply/[jobId]/page.tsx`. חייב להתבצע יחד עם SEC-4 (הסרת `@Public`) והעברת קריאות auth דרך proxy server-side (חסם NetFree, ראה memory).
+- [x] **FRM-4 · דף apply לא חוסם לפי auth** `CONFIRMED` ✅ תוקן
+  - `ApplicationForm` חוסם לפי auth: גולש לא-מחובר רואה הזמנה להתחבר/להירשם (Link ל-`/login?redirect=...`) במקום הטופס; מחובר → הטופס מצרף טוקן בשתי הקריאות. login מכבד `?redirect` (נתיב יחסי בטוח בלבד).
 - [x] **FRM-5 · opt-out בהגדרות לא עובד (checkbox קשיח, אין handler)** `CONFIRMED` ✅ תוקן
   - תוקן: נוסף `PATCH /api/auth/me` בבק (+ `GET /me` מחזיר עכשיו `optInMarketing` עדכני מה-DB); עמוד ההגדרות טוען את הערך האמיתי ושומר דרך `updateMarketing` ב-`useAuth`. opt-in חדש חותם `optInAt` (חוק הספאם).
 

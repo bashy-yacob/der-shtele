@@ -6,6 +6,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { FIELD_LABELS, REGION_LABELS, SITE_CONTENT } from "@/lib/constants";
 import { phoneSchema } from "@/lib/validations";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 const ALLOWED_CV_TYPES = [
   "application/pdf",
@@ -44,6 +47,8 @@ export default function ApplicationForm({
   jobId,
   jobTitle,
 }: ApplicationFormProps) {
+  const { user, loading, getToken } = useAuth();
+  const pathname = usePathname();
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const {
@@ -58,6 +63,7 @@ export default function ApplicationForm({
   const onSubmit = async (data: ApplicationFormData) => {
     try {
       setError(null);
+      const authHeader = `Bearer ${getToken() ?? ""}`;
 
       // שלב 1: העלאת קו"ח דרך ה-proxy → קבלת path לאחסון
       const fileList = data.resume as FileList;
@@ -65,6 +71,7 @@ export default function ApplicationForm({
       fd.append("resume", fileList[0]);
       const upRes = await fetch("/api/candidates/resume", {
         method: "POST",
+        headers: { Authorization: authHeader },
         body: fd,
       });
       if (!upRes.ok) throw new Error("שגיאה בהעלאת קורות החיים");
@@ -74,7 +81,10 @@ export default function ApplicationForm({
       // שלב 2: שליחת ההגשה עם הנתיב (בלי ה-FileList — ה-API דוחה שדות לא מוכרים)
       const response = await fetch("/api/candidates", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: authHeader,
+        },
         body: JSON.stringify({
           fullName: data.fullName,
           phone: data.phone,
@@ -98,6 +108,33 @@ export default function ApplicationForm({
       );
     }
   };
+
+  // שער כניסה: הגשת מועמדות מחייבת התחברות (לפי האיפיון — אין הגשה אנונימית).
+  if (loading) {
+    return (
+      <div className="bg-white border border-neutral-200 rounded-lg p-6 shadow-md text-center text-neutral-500">
+        טוען...
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="bg-white border border-neutral-200 rounded-lg p-6 shadow-md">
+        <h2 className="text-xl font-bold mb-3">הגשת מועמדות</h2>
+        <p className="text-sm text-neutral-600 mb-4">
+          כדי לשלוח קורות חיים יש להתחבר או להירשם. ההרשמה מאפשרת לעקוב אחר
+          ההגשות שלך.
+        </p>
+        <Link
+          href={`/login?redirect=${encodeURIComponent(pathname)}`}
+          className="inline-block w-full text-center bg-primary-600 text-white font-bold py-3 rounded-lg hover:bg-primary-700 transition-colors text-sm"
+        >
+          התחברות / הרשמה
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white border border-neutral-200 rounded-lg p-6 shadow-md">

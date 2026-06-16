@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
-import { Card } from '@/components/ui/Card';
-import { Input } from '@/components/ui/Input';
-import { Button } from '@/components/ui/Button';
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
+import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
 
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -22,9 +22,13 @@ export default function LoginPage() {
     setError(null);
     try {
       await login(email, password);
-      router.push('/account');
+      // יעד חזרה מ-?redirect (רק נתיב יחסי בטוח — מונע open redirect)
+      const raw = new URLSearchParams(window.location.search).get("redirect");
+      const target =
+        raw && raw.startsWith("/") && !raw.startsWith("//") ? raw : "/account";
+      router.push(target);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'שגיאה בהתחברות');
+      setError(err instanceof Error ? err.message : "שגיאה בהתחברות");
     } finally {
       setLoading(false);
     }
@@ -57,12 +61,15 @@ export default function LoginPage() {
             required
           />
           <Button type="submit" disabled={loading} className="w-full">
-            {loading ? 'מתחבר...' : 'התחברות'}
+            {loading ? "מתחבר..." : "התחברות"}
           </Button>
         </form>
         <p className="text-sm text-neutral-600 text-center mt-6">
-          אין חשבון?{' '}
-          <Link href="/register" className="text-primary-600 font-semibold hover:underline">
+          אין חשבון?{" "}
+          <Link
+            href="/register"
+            className="text-primary-600 font-semibold hover:underline"
+          >
             הרשמה
           </Link>
         </p>

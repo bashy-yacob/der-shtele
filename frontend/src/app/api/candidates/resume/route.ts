@@ -12,6 +12,7 @@ export async function POST(req: Request) {
     const formData = await req.formData();
     const res = await fetch(`${BACKEND}/api/candidates/resume`, {
       method: "POST",
+      headers: { Authorization: req.headers.get("authorization") ?? "" },
       body: formData,
     });
     const json = await res.json();
