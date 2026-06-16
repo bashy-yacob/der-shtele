@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc -p tsconfig.build.json --noEmit)",
+      "Bash(npx tsc -p tsconfig.build.json --noEmit *)"
+    ]
+  }
+}
