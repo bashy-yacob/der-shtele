@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SITE_NAME } from "@/lib/constants";
 import { AdminHeaderLink } from "./AdminHeaderLink";
+import { UserMenu } from "./UserMenu";
 
 const NAV_LINKS = [
   { href: "/", label: "דף הבית" },
@@ -42,21 +43,8 @@ export function Header() {
           </nav>
         </div>
 
-        {/* שמאל: כניסה + CTA הרשמה */}
-        <div className="flex items-center gap-3">
-          <Link
-            href="/login"
-            className="hidden sm:inline text-sm font-semibold text-ink-500 hover:text-navy-600 transition-colors"
-          >
-            כניסה
-          </Link>
-          <Link
-            href="/register"
-            className="bg-navy-600 hover:bg-navy-700 text-white text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl transition-colors duration-150 text-center"
-          >
-            הרשמה ←
-          </Link>
-        </div>
+        {/* שמאל: אזור המשתמש — כניסה/הרשמה או עיגול פרופיל */}
+        <UserMenu />
       </div>
     </header>
   );
