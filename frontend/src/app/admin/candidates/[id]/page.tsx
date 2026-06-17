@@ -19,7 +19,7 @@ import {
   EmptyState,
   PageHeader,
 } from "@/components/admin/Feedback";
-import { Card, Button, Select, Textarea, Input } from "@/components/ui";
+import { Card, Button, Textarea, Input } from "@/components/ui";
 import {
   FIELD_LABELS,
   REGION_LABELS,
@@ -69,6 +69,28 @@ export default function CandidateDetailPage() {
         → חזרה לרשימת המועמדים
       </Link>
 
+      {/* שיוך למשרה — בולט, כדי שהצוות יראה מיד לאיזו משרה הוגש */}
+      {c.presentations.length > 0 ? (
+        <div className="mb-4 rounded-xl bg-olive-50 border border-olive-300 px-4 py-3 text-sm">
+          <span className="text-ink-500">הוגש למשרה: </span>
+          {c.presentations.map((p, i) => (
+            <span key={p.id}>
+              {i > 0 && ", "}
+              <Link
+                href={`/admin/jobs/${p.jobId}`}
+                className="font-semibold text-olive-700 hover:underline"
+              >
+                {p.job?.title ?? "משרה"}
+              </Link>
+            </span>
+          ))}
+        </div>
+      ) : (
+        <div className="mb-4 rounded-xl bg-sand-100 border border-sand-200 px-4 py-3 text-sm text-ink-500">
+          מועמד זה אינו משויך למשרה ספציפית.
+        </div>
+      )}
+
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <DetailsCard c={c} onChanged={reload} />
@@ -87,7 +109,31 @@ export default function CandidateDetailPage() {
   );
 }
 
-// ---- פרטי מועמד + סטטוס + הערות פנימיות ----
+// תווית פעולה ידידותית למעבר סטטוס (פועל, לא שם הסטטוס)
+function actionLabel(from: CandidateStatus, to: CandidateStatus): string {
+  switch (to) {
+    case "in_progress":
+      return from === "new" ? "קח לטיפול" : "החזר לטיפול";
+    case "presented":
+      return "סמן: הוצג למעסיק";
+    case "hired":
+      return "סמן: גויס ✓";
+    case "not_suitable":
+      return "סמן: לא מתאים";
+    default:
+      return CANDIDATE_STATUS_LABELS[to];
+  }
+}
+
+function actionVariant(
+  to: CandidateStatus,
+): "primary" | "secondary" | "outline" {
+  if (to === "hired") return "secondary"; // חיובי — olive
+  if (to === "not_suitable") return "outline"; // ניטרלי
+  return "primary";
+}
+
+// ---- פרטי מועמד + פעולות מהירות + הערות פנימיות ----
 function DetailsCard({
   c,
   onChanged,
@@ -96,24 +142,21 @@ function DetailsCard({
   onChanged: () => void;
 }) {
   const [notes, setNotes] = useState(c.notes ?? "");
-  const [status, setStatus] = useState<CandidateStatus | "">("");
   const [busy, setBusy] = useState(false);
+  const [savingNotes, setSavingNotes] = useState(false);
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
 
   const nextStatuses = CANDIDATE_TRANSITIONS[c.status];
 
-  const save = async () => {
+  // שינוי סטטוס בלחיצה אחת — פעולה ברורה ומיידית
+  const changeStatus = async (status: CandidateStatus) => {
     setBusy(true);
     setErr("");
     setMsg("");
     try {
-      await updateCandidate(c.id, {
-        notes,
-        ...(status ? { status } : {}),
-      });
-      setMsg("נשמר בהצלחה");
-      setStatus("");
+      await updateCandidate(c.id, { status });
+      setMsg(`הסטטוס עודכן ל"${CANDIDATE_STATUS_LABELS[status]}"`);
       onChanged();
     } catch (e) {
       setErr((e as Error).message);
@@ -122,38 +165,74 @@ function DetailsCard({
     }
   };
 
+  const saveNotes = async () => {
+    setSavingNotes(true);
+    setErr("");
+    setMsg("");
+    try {
+      await updateCandidate(c.id, { notes });
+      setMsg("ההערות נשמרו");
+      onChanged();
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setSavingNotes(false);
+    }
+  };
+
   return (
-    <Card className="space-y-4">
-      <h2 className="text-lg font-display text-ink-900">פרטים וטיפול</h2>
+    <Card className="space-y-5">
+      <div>
+        <h2 className="text-lg font-display text-ink-900 mb-1">
+          פעולות מהירות
+        </h2>
+        <p className="text-sm text-ink-500">
+          סטטוס נוכחי:{" "}
+          <span className="font-semibold text-ink-900">
+            {CANDIDATE_STATUS_LABELS[c.status]}
+          </span>
+        </p>
+      </div>
 
-      {nextStatuses.length > 0 && (
-        <Select
-          label="שינוי סטטוס"
-          value={status}
-          onChange={(e) => setStatus(e.target.value as CandidateStatus | "")}
-        >
-          <option value="">— ללא שינוי —</option>
+      {nextStatuses.length === 0 ? (
+        <p className="text-sm text-ink-400">
+          סטטוס סופי ({CANDIDATE_STATUS_LABELS[c.status]}) — אין פעולות נוספות.
+        </p>
+      ) : (
+        <div className="flex flex-wrap gap-2">
           {nextStatuses.map((s) => (
-            <option key={s} value={s}>
-              {CANDIDATE_STATUS_LABELS[s]}
-            </option>
+            <Button
+              key={s}
+              size="sm"
+              variant={actionVariant(s)}
+              onClick={() => changeStatus(s)}
+              disabled={busy}
+            >
+              {actionLabel(c.status, s)}
+            </Button>
           ))}
-        </Select>
+        </div>
       )}
-
-      <Textarea
-        label="הערות פנימיות (לצוות בלבד)"
-        value={notes}
-        onChange={(e) => setNotes(e.target.value)}
-        placeholder="הערות, רשמים, מידע פנימי..."
-      />
 
       {err && <ErrorNote message={err} />}
       {msg && <SuccessNote message={msg} />}
 
-      <Button onClick={save} disabled={busy}>
-        {busy ? "שומר..." : "שמירה"}
-      </Button>
+      <div className="pt-4 border-t border-sand-100 space-y-2">
+        <Textarea
+          label="הערות פנימיות (לצוות בלבד)"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="הערות, רשמים, מידע פנימי..."
+        />
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={saveNotes}
+          disabled={savingNotes}
+        >
+          {savingNotes ? "שומר..." : "שמירת הערות"}
+        </Button>
+      </div>
     </Card>
   );
 }
@@ -184,7 +263,9 @@ function CallLogCard({
       await addCallLog(c.id, {
         staffName,
         summary,
-        ...(followUpAt ? { followUpAt: new Date(followUpAt).toISOString() } : {}),
+        ...(followUpAt
+          ? { followUpAt: new Date(followUpAt).toISOString() }
+          : {}),
       });
       setSummary("");
       setFollowUpAt("");
@@ -224,10 +305,7 @@ function CallLogCard({
       ) : (
         <ul className="space-y-3">
           {c.callLogs.map((log) => (
-            <li
-              key={log.id}
-              className="border-r-2 border-navy-100 pr-3 py-1"
-            >
+            <li key={log.id} className="border-r-2 border-navy-100 pr-3 py-1">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-semibold text-ink-900">
                   {log.staffName}
@@ -294,7 +372,9 @@ function ContactCard({ c }: { c: CandidateDetail }) {
                 הועלה {formatDate(c.cvUploadedAt)}
               </p>
             )}
-            {resumeErr && <p className="text-xs text-red-600 mt-1">{resumeErr}</p>}
+            {resumeErr && (
+              <p className="text-xs text-red-600 mt-1">{resumeErr}</p>
+            )}
           </>
         ) : (
           <p className="text-sm text-ink-400">לא הועלו קורות חיים</p>

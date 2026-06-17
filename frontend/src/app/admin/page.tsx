@@ -36,10 +36,7 @@ export default function AdminDashboardPage() {
 
   return (
     <div>
-      <PageHeader
-        title="לוח בקרה"
-        subtitle="תמונת מצב של פעילות הסוכנות"
-      />
+      <PageHeader title="לוח בקרה" subtitle="תמונת מצב של פעילות הסוכנות" />
 
       {/* סטטיסטיקות */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -49,14 +46,8 @@ export default function AdminDashboardPage() {
           hint="מועמדים חדשים שטרם טופלו"
           tone={stats.queueCount > 0 ? "accent" : "default"}
         />
-        <StatCard
-          label="קו״ח השבוע"
-          value={stats.newCandidatesThisWeek}
-        />
-        <StatCard
-          label="גיוסים החודש"
-          value={stats.placementsThisMonth}
-        />
+        <StatCard label="קו״ח השבוע" value={stats.newCandidatesThisWeek} />
+        <StatCard label="גיוסים החודש" value={stats.placementsThisMonth} />
         <StatCard
           label="עמלות פתוחות"
           value={formatCurrency(stats.pendingCommissions)}
@@ -68,10 +59,7 @@ export default function AdminDashboardPage() {
           value={stats.overdueReminders}
           tone={stats.overdueReminders > 0 ? "warn" : "default"}
         />
-        <StatCard
-          label="מנויי מייל פעילים"
-          value={stats.activeSubscribers}
-        />
+        <StatCard label="מנויי מייל פעילים" value={stats.activeSubscribers} />
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
@@ -97,14 +85,21 @@ export default function AdminDashboardPage() {
                     className="flex items-center justify-between py-3 hover:bg-sand-50 -mx-2 px-2 rounded-lg transition-colors"
                   >
                     <div>
-                      <p className="font-semibold text-ink-900">
-                        {c.fullName}
-                      </p>
+                      <p className="font-semibold text-ink-900">{c.fullName}</p>
                       <p className="text-xs text-ink-500">
                         {FIELD_LABELS[c.field]} · {REGION_LABELS[c.region]}
                       </p>
+                      {c.job ? (
+                        <p className="text-xs text-olive-700 font-semibold mt-0.5">
+                          הוגש למשרה: {c.job.title}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-ink-400 mt-0.5">
+                          ללא שיוך למשרה
+                        </p>
+                      )}
                     </div>
-                    <span className="text-xs text-ink-400">
+                    <span className="text-xs text-ink-400 whitespace-nowrap">
                       {formatDate(c.createdAt)}
                     </span>
                   </Link>
