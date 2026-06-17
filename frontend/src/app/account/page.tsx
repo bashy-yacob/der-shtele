@@ -22,9 +22,11 @@ export default function AccountProfilePage() {
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between border-b border-sand-200 pb-2 last:border-0">
-      <span className="text-ink-500 text-sm">{label}</span>
-      <span className="font-medium text-ink-900">{value}</span>
+    <div className="flex justify-between items-baseline gap-3 border-b border-sand-200 pb-2 last:border-0">
+      <span className="text-ink-500 text-sm shrink-0">{label}</span>
+      <span className="font-medium text-ink-900 text-end break-words min-w-0">
+        {value}
+      </span>
     </div>
   );
 }
