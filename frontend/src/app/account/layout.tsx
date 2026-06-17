@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { OptInReminder } from "@/components/account/OptInReminder";
 import { cn } from "@/lib/utils";
 
 const ACCOUNT_NAV = [
@@ -62,7 +63,10 @@ export default function AccountLayout({
             </button>
           </nav>
         </aside>
-        <section className="md:col-span-3 min-w-0">{children}</section>
+        <section className="md:col-span-3 min-w-0">
+          <OptInReminder />
+          {children}
+        </section>
       </div>
     </main>
   );

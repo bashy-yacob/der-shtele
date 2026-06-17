@@ -2,6 +2,7 @@ import { Body, Controller, Get, Patch, Post } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
+import { GoogleLoginDto } from "./dto/google-login.dto";
 import { UpdateMeDto } from "./dto/update-me.dto";
 import { ChangePasswordDto } from "./dto/change-password.dto";
 import { Public } from "../../common/decorators/public.decorator";
@@ -26,6 +27,13 @@ export class AuthController {
     return this.authService.login(dto);
   }
 
+  /** התחברות/הרשמה דרך Google — מקבל code מה-callback (proxy בפרונט). */
+  @Public()
+  @Post("google")
+  loginWithGoogle(@Body() dto: GoogleLoginDto) {
+    return this.authService.loginWithGoogle(dto.code);
+  }
+
   /** מחזיר את המשתמש המחובר (דורש token תקין) — כולל העדפת דיוור עדכנית. */
   @Get("me")
   me(@CurrentUser() user: AuthUser) {
@@ -45,5 +53,11 @@ export class AuthController {
     @Body() dto: ChangePasswordDto,
   ) {
     return this.authService.changePassword(user.userId, dto);
+  }
+
+  /** סימון שתזכורת ה-opt-in הוצגה כעת (מאפס את הספירה ל-~30 יום הבאים). */
+  @Post("me/optin-prompted")
+  markOptInPrompted(@CurrentUser() user: AuthUser) {
+    return this.authService.markOptInPrompted(user.userId);
   }
 }

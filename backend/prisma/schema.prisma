@@ -83,6 +83,12 @@ enum UserRole {
   admin        // מנהל מערכת
 }
 
+// אופן ההזדהות של המשתמש — אימייל+סיסמה מקומי או חשבון Google
+enum AuthProvider {
+  local
+  google
+}
+
 // ----------------------------------------------------------------
 // שלב ב — משתמשים (auth)
 // ----------------------------------------------------------------
@@ -90,13 +96,28 @@ enum UserRole {
 model User {
   id             String     @id @default(cuid())
   email          String     @unique
-  passwordHash   String
+  // nullable — משתמשי Google נוצרים בלי סיסמה מקומית
+  passwordHash   String?
   fullName       String
   role           UserRole   @default(candidate)
+
+  // הזדהות חיצונית (Google OAuth)
+  authProvider   AuthProvider @default(local)
+  googleId       String?      @unique // ה-"sub" של Google — מזהה יציב
+  profilePicture String?      // נשמר אך לא מוצג (כלל "ללא תמונות אנשים")
 
   // opt-in חובה בהרשמה — הסכמה לקבלת עדכונים
   optInMarketing Boolean    @default(false)
   optInAt        DateTime?
+  // מתי הוצגה לאחרונה תזכורת ה-opt-in (תזכורת חודשית למשתמשי Google שלא אישרו)
+  optInPromptedAt DateTime?
+
+  // פרטי פרופיל לדיוור מותאם אישית — המשתמש ממלא מרצון באזור האישי.
+  // עיר/תחום מפלחים את רשימת התפוצה; טלפון/ניסיון משרתים את הצוות.
+  phone           String?
+  city            String?   // עיר/אזור מגורים — פילוח דיוור לפי אזור (region)
+  preferredField  JobField? // תחום תעסוקה מבוקש — פילוח דיוור לפי תחום (field)
+  yearsExperience Int?      // שנות ניסיון — סינון פנימי של הצוות
 
   // קישור לרשומת מועמד ב-CRM (אם זה מועמד)
   candidateId    String?    @unique

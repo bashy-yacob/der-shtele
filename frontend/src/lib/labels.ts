@@ -6,6 +6,7 @@ import type {
   PlacementStatus,
   CommissionStatus,
   PlacementEventType,
+  InquiryType,
 } from "@/types";
 
 // עיר/אזור — טקסט חופשי. הכלים נמצאים ב-constants ומיוצאים מחדש כאן לנוחות.
@@ -65,6 +66,12 @@ export const PLACEMENT_EVENT_LABELS: Record<PlacementEventType, string> = {
   amount_updated: "סכום העמלה עודכן",
 };
 
+export const INQUIRY_TYPE_LABELS: Record<InquiryType, string> = {
+  candidate: "מועמד/ת",
+  employer: "מעסיק",
+  general: "כללי",
+};
+
 export const SCOPE_OPTIONS = ["מלאה", "חלקית", "גמיש"] as const;
 
 /** צבע badge לפי סטטוס — גוונים שמרניים מתוך מערכת העיצוב. */
@@ -88,4 +95,8 @@ export const STATUS_TONE: Record<string, string> = {
   invoiced: "bg-navy-50 text-navy-700",
   paid: "bg-olive-500 text-white",
   partial_refund: "bg-red-100 text-red-700",
+  // inquiry_type (פניות)
+  employer: "bg-navy-50 text-navy-700",
+  candidate: "bg-olive-100 text-olive-700",
+  general: "bg-sand-200 text-ink-700",
 };

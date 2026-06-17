@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 // ניווט הדשבורד — לפי סעיף 7 באיפיון.
 const ADMIN_NAV = [
   { href: "/admin", label: "לוח בקרה", exact: true },
+  { href: "/admin/contacts", label: "פניות" },
   { href: "/admin/candidates", label: "מועמדים" },
   { href: "/admin/jobs", label: "משרות" },
   { href: "/admin/employers", label: "מעסיקים" },

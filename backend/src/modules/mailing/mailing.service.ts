@@ -30,19 +30,45 @@ export class MailingService {
     private readonly email: EmailService,
   ) {}
 
-  /** רשימת מנויים פעילים (הסכמה תקפה) + פרטי המועמד המקושר לסינון. */
+  /**
+   * רשימת מנויים פעילים (הסכמה תקפה), עם נתוני פילוח לדיוור מותאם.
+   * עדיפות לפרטי הפרופיל שהמשתמש מילא בעצמו (city / preferredField);
+   * אם לא מילא — נופלים לרשומת המועמד המקושרת (field / region).
+   * סטטוס קיים רק ברמת המועמד.
+   */
   async subscribers(filter: MailingFilterDto = {}): Promise<Subscriber[]> {
-    // סינון על שדות המועמד המקושר — מחייב מועמד תואם כשניתן פילטר.
-    const candidateFilter: Prisma.CandidateWhereInput = {};
-    if (filter.field) candidateFilter.field = filter.field;
-    if (filter.region) candidateFilter.region = filter.region;
-    if (filter.status) candidateFilter.status = filter.status;
-    const hasCandidateFilter = Object.keys(candidateFilter).length > 0;
+    const and: Prisma.UserWhereInput[] = [];
+
+    // תחום: התאמה לתחום שהמשתמש ביקש, או — אם לא הוגדר — לתחום המועמד.
+    if (filter.field) {
+      and.push({
+        OR: [
+          { preferredField: filter.field },
+          {
+            preferredField: null,
+            candidate: { is: { field: filter.field } },
+          },
+        ],
+      });
+    }
+    // אזור: התאמה לעיר המגורים שהמשתמש מילא, או — אם לא מילא — לאזור המועמד.
+    if (filter.region) {
+      and.push({
+        OR: [
+          { city: filter.region },
+          { city: null, candidate: { is: { region: filter.region } } },
+        ],
+      });
+    }
+    // סטטוס מתקיים רק ברמת המועמד.
+    if (filter.status) {
+      and.push({ candidate: { is: { status: filter.status } } });
+    }
 
     const users = await this.prisma.user.findMany({
       where: {
         optInMarketing: true,
-        ...(hasCandidateFilter ? { candidate: { is: candidateFilter } } : {}),
+        ...(and.length ? { AND: and } : {}),
       },
       orderBy: { optInAt: "desc" },
       select: {
@@ -50,6 +76,8 @@ export class MailingService {
         email: true,
         fullName: true,
         optInAt: true,
+        city: true,
+        preferredField: true,
         candidate: {
           select: { field: true, region: true, status: true },
         },
@@ -61,8 +89,8 @@ export class MailingService {
       email: u.email,
       fullName: u.fullName,
       optInAt: u.optInAt,
-      field: u.candidate?.field ?? null,
-      region: u.candidate?.region ?? null,
+      field: u.preferredField ?? u.candidate?.field ?? null,
+      region: u.city ?? u.candidate?.region ?? null,
       status: u.candidate?.status ?? null,
     }));
   }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { RegisterForm } from "@/components/forms/RegisterForm";
 import { AuthShell } from "@/components/auth/AuthShell";
+import { GoogleButton } from "@/components/auth/GoogleButton";
 
 export const metadata: Metadata = { title: "הרשמה" };
 
@@ -30,6 +31,7 @@ export default function RegisterPage() {
       }
     >
       <RegisterForm />
+      <GoogleButton label="הרשמה עם Google" />
     </AuthShell>
   );
 }

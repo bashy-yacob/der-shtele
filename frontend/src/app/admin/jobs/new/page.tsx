@@ -46,6 +46,12 @@ export default function NewJobPage() {
     scope: SCOPE_OPTIONS[0] as string,
   });
   const [publishNow, setPublishNow] = useState(false);
+  // פרטי מעסיק שהגיעו מפנייה (?company=...&contactName=...&phone=...) לטעינת הטופס המוטמע
+  const [employerPrefill, setEmployerPrefill] = useState<{
+    companyName?: string;
+    contactName?: string;
+    contactPhone?: string;
+  } | null>(null);
 
   useEffect(() => {
     listEmployers()
@@ -59,6 +65,41 @@ export default function NewJobPage() {
     listRegions()
       .then((r) => setCityOptions(buildCityOptions(r)))
       .catch(() => undefined);
+  }, []);
+
+  // טעינה מראש מתוך פניית מעסיק (מ-/admin/contacts → "צור משרה מפנייה זו").
+  // קוראים מ-window.location.search כדי לא לחייב Suspense (useSearchParams).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const q = new URLSearchParams(window.location.search);
+    if (!q.toString()) return;
+
+    const field = q.get("field") as JobField | null;
+    const scope = q.get("scope") ?? "";
+    const description = q.get("description") ?? "";
+    setForm((f) => ({
+      ...f,
+      field: field ?? f.field,
+      region: q.get("region") ?? f.region,
+      scope: (SCOPE_OPTIONS as readonly string[]).includes(scope)
+        ? scope
+        : f.scope,
+      // התיאור מהפנייה משמש בסיס לשני התיאורים; את הציבורי יש לאנונימז ידנית
+      descriptionInternal: description || f.descriptionInternal,
+      descriptionPublic: description || f.descriptionPublic,
+    }));
+
+    const companyName = q.get("company");
+    const contactName = q.get("contactName");
+    const contactPhone = q.get("phone");
+    if (companyName || contactName || contactPhone) {
+      setEmployerPrefill({
+        companyName: companyName ?? undefined,
+        contactName: contactName ?? undefined,
+        contactPhone: contactPhone ?? undefined,
+      });
+      setShowEmployerForm(true);
+    }
   }, []);
 
   const set = (k: keyof typeof form) => (v: string) =>
@@ -157,6 +198,7 @@ export default function NewJobPage() {
               onCreated={onEmployerCreated}
               onCancel={() => setShowEmployerForm(false)}
               showCancel={employers.length > 0}
+              initial={employerPrefill}
             />
           )}
         </div>
@@ -241,15 +283,21 @@ function InlineEmployerForm({
   onCreated,
   onCancel,
   showCancel,
+  initial,
 }: {
   onCreated: (e: Employer) => void;
   onCancel: () => void;
   showCancel: boolean;
+  initial?: {
+    companyName?: string;
+    contactName?: string;
+    contactPhone?: string;
+  } | null;
 }) {
   const [f, setF] = useState({
-    companyName: "",
-    contactName: "",
-    contactPhone: "",
+    companyName: initial?.companyName ?? "",
+    contactName: initial?.contactName ?? "",
+    contactPhone: initial?.contactPhone ?? "",
     contactEmail: "",
     businessNumber: "",
     address: "",

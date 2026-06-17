@@ -300,6 +300,21 @@ export interface ContactInfo {
   hours: string;
 }
 
+/** סוג פנייה מטופס "צור קשר" — מקביל ל-InquiryType ב-backend */
+export type InquiryType = "candidate" | "employer" | "general";
+
+/** פנייה נכנסת מטופס "צור קשר" / פניית מעסיק (טבלת contacts) */
+export interface Contact {
+  id: string;
+  name: string;
+  phone: string;
+  inquiry_type: InquiryType;
+  message: string;
+  resumePath: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ApiResponse<T = void> {
   success: boolean;
   data?: T;

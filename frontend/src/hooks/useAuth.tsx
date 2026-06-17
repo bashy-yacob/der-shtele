@@ -10,14 +10,27 @@ import {
 
 // קוראים דרך proxy routes יחסיים (same-origin) ולא ישירות לבק — כך ההתחברות
 // לא נחסמת ע"י NetFree אצל משתמשים חרדים.
+import type { JobField } from "@/types";
+
 const TOKEN_KEY = "ds_token";
 
-export interface AuthUser {
+/** פרטי הפרופיל שהמשתמש ממלא מרצון — משמשים לדיוור מותאם אישית. */
+export interface ProfileFields {
+  phone?: string | null;
+  city?: string | null;
+  preferredField?: JobField | null;
+  yearsExperience?: number | null;
+}
+
+export interface AuthUser extends ProfileFields {
   id: string;
   email: string;
   fullName: string;
   role: string;
   optInMarketing?: boolean;
+  // לתזכורת ה-opt-in החודשית (משתמשי Google שלא אישרו דיוור)
+  optInPromptedAt?: string | null;
+  authProvider?: string;
 }
 
 export interface AuthContextValue {
@@ -32,6 +45,10 @@ export interface AuthContextValue {
   }) => Promise<void>;
   logout: () => void;
   updateMarketing: (optInMarketing: boolean) => Promise<void>;
+  /** עדכון פרטי הפרופיל לדיוור מותאם (עיר, תחום, טלפון, שנות ניסיון). */
+  updateProfile: (fields: ProfileFields) => Promise<void>;
+  /** מסמן בשרת שתזכורת ה-opt-in הוצגה (מאפס את הספירה ל-~30 יום הבאים). */
+  markOptInPrompted: () => Promise<void>;
   changePassword: (
     currentPassword: string,
     newPassword: string,
@@ -76,6 +93,12 @@ function useAuthState(): AuthContextValue {
             fullName: res.data.fullName ?? "",
             role: res.data.role,
             optInMarketing: res.data.optInMarketing,
+            phone: res.data.phone ?? null,
+            city: res.data.city ?? null,
+            preferredField: res.data.preferredField ?? null,
+            yearsExperience: res.data.yearsExperience ?? null,
+            optInPromptedAt: res.data.optInPromptedAt ?? null,
+            authProvider: res.data.authProvider,
           });
         }
       })
@@ -134,6 +157,48 @@ function useAuthState(): AuthContextValue {
     setUser((u) => (u ? { ...u, optInMarketing: res.data.optInMarketing } : u));
   };
 
+  /**
+   * עדכון פרטי הפרופיל לדיוור מותאם — שולח רק את השדות שניתנו (PATCH חלקי),
+   * וממזג את התשובה ל-state כדי שהטופס יציג מיד את הערכים השמורים.
+   */
+  const updateProfile = async (fields: ProfileFields) => {
+    const t = token();
+    if (!t) throw new Error("לא מחובר");
+    const res = await fetch("/api/auth/me", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${t}`,
+      },
+      body: JSON.stringify(fields),
+    }).then((r) => (r.ok ? r.json() : null));
+    if (!res?.success) throw new Error(res?.error ?? "שגיאה בשמירת הפרטים");
+    setUser((u) =>
+      u
+        ? {
+            ...u,
+            phone: res.data.phone ?? null,
+            city: res.data.city ?? null,
+            preferredField: res.data.preferredField ?? null,
+            yearsExperience: res.data.yearsExperience ?? null,
+          }
+        : u,
+    );
+  };
+
+  /** מסמן שתזכורת ה-opt-in הוצגה — מעדכן גם את ה-state כדי שלא תוצג שוב כעת. */
+  const markOptInPrompted = async () => {
+    const t = token();
+    if (!t) return;
+    await fetch("/api/auth/optin-prompted", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${t}` },
+    }).catch(() => undefined);
+    setUser((u) =>
+      u ? { ...u, optInPromptedAt: new Date().toISOString() } : u,
+    );
+  };
+
   /** שינוי סיסמה — מאמת את הסיסמה הנוכחית בצד שרת. */
   const changePassword = async (
     currentPassword: string,
@@ -159,6 +224,8 @@ function useAuthState(): AuthContextValue {
     register,
     logout,
     updateMarketing,
+    updateProfile,
+    markOptInPrompted,
     changePassword,
     getToken: token,
   };

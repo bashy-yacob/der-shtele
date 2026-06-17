@@ -8,6 +8,7 @@ import type {
   CandidateListItem,
   CandidateStatus,
   CallLog,
+  Contact,
   DashboardSummary,
   Employer,
   InternalJob,
@@ -62,6 +63,10 @@ async function adminFetch<T>(
 // ---- לוח בקרה ----
 export const getDashboard = () =>
   adminFetch<DashboardSummary>("dashboard/summary");
+
+// ---- פניות (טופס "צור קשר" + פניות מעסיקים) ----
+// GET /api/contact — staff/admin בלבד. הפניות נשמרות בטבלת contacts ומיון יורד לפי תאריך.
+export const listContacts = () => adminFetch<Contact[]>("contact");
 
 // ---- מועמדים ----
 export const listCandidates = () =>

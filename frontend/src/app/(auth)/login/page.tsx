@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { AuthShell } from "@/components/auth/AuthShell";
+import { GoogleButton } from "@/components/auth/GoogleButton";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,6 +16,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // חזרה מ-Google עם כשל (state שגוי / אימות נכשל / NetFree חוסם).
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("error") === "google") {
+      setError("ההתחברות עם Google נכשלה. נסה שוב או השתמש בדואר אלקטרוני וסיסמה.");
+    }
+  }, []);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,6 +90,7 @@ export default function LoginPage() {
           {loading ? "מתחבר..." : "התחברות"}
         </Button>
       </form>
+      <GoogleButton label="התחברות עם Google" />
     </AuthShell>
   );
 }
