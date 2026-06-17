@@ -140,6 +140,8 @@ export const updateCommissionStatus = (
   });
 
 export const listPlacements = () => adminFetch<Placement[]>("placements");
+export const getPlacement = (id: string) =>
+  adminFetch<Placement>(`placements/${id}`);
 export const createPlacement = (body: {
   jobId: string;
   candidateId: string;
