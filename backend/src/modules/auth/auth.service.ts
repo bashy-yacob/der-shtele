@@ -1,15 +1,17 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   UnauthorizedException,
-} from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcryptjs';
-import { PrismaService } from '../../prisma/prisma.service';
-import { RegisterDto } from './dto/register.dto';
-import { LoginDto } from './dto/login.dto';
-import { UpdateMeDto } from './dto/update-me.dto';
-import { JwtPayload } from './jwt.strategy';
+} from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import * as bcrypt from "bcryptjs";
+import { PrismaService } from "../../prisma/prisma.service";
+import { RegisterDto } from "./dto/register.dto";
+import { LoginDto } from "./dto/login.dto";
+import { UpdateMeDto } from "./dto/update-me.dto";
+import { ChangePasswordDto } from "./dto/change-password.dto";
+import { JwtPayload } from "./jwt.strategy";
 
 @Injectable()
 export class AuthService {
@@ -23,7 +25,7 @@ export class AuthService {
       where: { email: dto.email },
     });
     if (existing) {
-      throw new ConflictException('כתובת אימייל זו כבר רשומה');
+      throw new ConflictException("כתובת אימייל זו כבר רשומה");
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
@@ -32,7 +34,7 @@ export class AuthService {
         email: dto.email,
         fullName: dto.fullName,
         passwordHash,
-        role: 'candidate',
+        role: "candidate",
         optInMarketing: dto.optInMarketing,
         optInAt: dto.optInMarketing ? new Date() : null,
       },
@@ -46,7 +48,7 @@ export class AuthService {
       where: { email: dto.email },
     });
     if (!user || !(await bcrypt.compare(dto.password, user.passwordHash))) {
-      throw new UnauthorizedException('אימייל או סיסמה שגויים');
+      throw new UnauthorizedException("אימייל או סיסמה שגויים");
     }
     return this.issueToken(user);
   }
@@ -54,7 +56,7 @@ export class AuthService {
   /** פרטי המשתמש המחובר — כולל העדפת דיוור עדכנית מה-DB (לא מה-token). */
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new UnauthorizedException('משתמש לא נמצא');
+    if (!user) throw new UnauthorizedException("משתמש לא נמצא");
     return {
       userId: user.id,
       email: user.email,
@@ -81,6 +83,26 @@ export class AuthService {
       role: user.role,
       optInMarketing: user.optInMarketing,
     };
+  }
+
+  /** שינוי סיסמה — מאמת את הסיסמה הנוכחית לפני העדכון. */
+  async changePassword(userId: string, dto: ChangePasswordDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException("משתמש לא נמצא");
+
+    const ok = await bcrypt.compare(dto.currentPassword, user.passwordHash);
+    if (!ok) throw new UnauthorizedException("הסיסמה הנוכחית שגויה");
+
+    if (dto.currentPassword === dto.newPassword) {
+      throw new BadRequestException("הסיסמה החדשה זהה לנוכחית");
+    }
+
+    const passwordHash = await bcrypt.hash(dto.newPassword, 10);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+    });
+    return { message: "הסיסמה עודכנה בהצלחה" };
   }
 
   private issueToken(user: {

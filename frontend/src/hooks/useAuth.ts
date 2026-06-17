@@ -103,6 +103,24 @@ export function useAuth() {
     setUser((u) => (u ? { ...u, optInMarketing: res.data.optInMarketing } : u));
   };
 
+  /** שינוי סיסמה — מאמת את הסיסמה הנוכחית בצד שרת. */
+  const changePassword = async (
+    currentPassword: string,
+    newPassword: string,
+  ) => {
+    const t = token();
+    if (!t) throw new Error("לא מחובר");
+    const res = await fetch("/api/auth/password", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${t}`,
+      },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    }).then((r) => r.json().catch(() => null));
+    if (!res?.success) throw new Error(res?.error ?? "שגיאה בעדכון הסיסמה");
+  };
+
   return {
     user,
     loading,
@@ -110,6 +128,7 @@ export function useAuth() {
     register,
     logout,
     updateMarketing,
+    changePassword,
     getToken: token,
   };
 }

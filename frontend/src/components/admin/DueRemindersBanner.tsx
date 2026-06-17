@@ -1,10 +1,47 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { updateReminder } from "@/lib/admin-api";
 import type { Reminder } from "@/types";
 import { formatDateTime } from "@/lib/utils";
+
+/**
+ * מחזיר את מרחק ה-bottom (px) שבו הכרטיס הצף צריך לשבת — מתרומם מעל הפוטר
+ * כשהוא נכנס לתצוגה, כדי לא להסתיר אותו.
+ */
+function useBottomAboveFooter(margin = 16): number {
+  const [bottom, setBottom] = useState(margin);
+
+  useEffect(() => {
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const footer = document.querySelector("footer");
+      if (!footer) {
+        setBottom(margin);
+        return;
+      }
+      const rect = footer.getBoundingClientRect();
+      // כמה מהפוטר חודר לתוך החלון מלמטה
+      const overlap = window.innerHeight - rect.top;
+      setBottom(overlap > 0 ? overlap + margin : margin);
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [margin]);
+
+  return bottom;
+}
 
 /**
  * התראת תזכורות צפה — כרטיס קטן בפינה השמאלית התחתונה (לא תופס מקום מהתוכן).
@@ -19,6 +56,7 @@ export function DueRemindersBanner({
 }) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [minimized, setMinimized] = useState(false);
+  const bottom = useBottomAboveFooter();
   if (due.length === 0) return null;
 
   const markDone = async (id: string) => {
@@ -38,7 +76,8 @@ export function DueRemindersBanner({
     return (
       <button
         onClick={() => setMinimized(false)}
-        className="fixed bottom-4 left-4 z-50 flex items-center gap-2 rounded-full bg-red-500 text-white shadow-lg px-4 py-2.5 text-sm font-bold hover:bg-red-600 transition-colors"
+        style={{ bottom }}
+        className="fixed left-4 z-50 flex items-center gap-2 rounded-full bg-red-500 text-white shadow-lg px-4 py-2.5 text-sm font-bold hover:bg-red-600 transition-colors"
         aria-label="הצג תזכורות ממתינות"
       >
         <span className="relative flex h-2.5 w-2.5">
@@ -55,7 +94,8 @@ export function DueRemindersBanner({
   return (
     <div
       dir="rtl"
-      className="fixed bottom-4 left-4 z-50 w-80 max-w-[calc(100vw-2rem)] rounded-2xl border-2 border-red-300 bg-white p-3 shadow-lg"
+      style={{ bottom }}
+      className="fixed left-4 z-50 w-80 max-w-[calc(100vw-2rem)] rounded-2xl border-2 border-red-300 bg-white p-3 shadow-lg transition-[bottom] duration-150"
     >
       <div className="flex items-center justify-between mb-2">
         <h2 className="flex items-center gap-2 text-sm font-bold text-red-700">
