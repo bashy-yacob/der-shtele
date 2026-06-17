@@ -13,6 +13,7 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import { CandidatesService } from "./candidates.service";
 import { CreateCandidateDto } from "./dto/create-candidate.dto";
 import { UpdateCandidateDto } from "./dto/update-candidate.dto";
+import { CreateCallLogDto } from "./dto/create-call-log.dto";
 import { Roles } from "../../common/decorators/roles.decorator";
 import { RolesGuard } from "../../common/guards/roles.guard";
 import { StorageService } from "../../common/storage/storage.service";
@@ -62,6 +63,14 @@ export class CandidatesController {
   @Roles("staff", "admin")
   resume(@Param("id") id: string) {
     return this.candidatesService.getResumeUrl(id);
+  }
+
+  /** הוספת רשומת שיחה ידנית לכרטיס מועמד. */
+  @Post(":id/calls")
+  @UseGuards(RolesGuard)
+  @Roles("staff", "admin")
+  addCall(@Param("id") id: string, @Body() dto: CreateCallLogDto) {
+    return this.candidatesService.addCallLog(id, dto);
   }
 
   @Patch(":id")

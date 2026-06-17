@@ -8,52 +8,52 @@
 // ----------------------------------------------------------------
 
 export type JobField =
-  | 'logistics'
-  | 'admin'
-  | 'sales'
-  | 'education'
-  | 'tech'
-  | 'finance'
-  | 'healthcare'
-  | 'other';
+  | "logistics"
+  | "admin"
+  | "sales"
+  | "education"
+  | "tech"
+  | "finance"
+  | "healthcare"
+  | "other";
 
 export type Region =
-  | 'bnei_brak'
-  | 'jerusalem'
-  | 'elad'
-  | 'modiin_ilit'
-  | 'beitar_ilit'
-  | 'other';
+  | "bnei_brak"
+  | "jerusalem"
+  | "elad"
+  | "modiin_ilit"
+  | "beitar_ilit"
+  | "other";
 
 // ----------------------------------------------------------------
 // סטטוסים — מוגדרים כאן, מעברים חוקיים ב-lib/statusMachine.ts
 // ----------------------------------------------------------------
 
 export type JobStatus =
-  | 'active'       // פעילה, מוצגת באתר
-  | 'paused'       // מושהית זמנית
-  | 'closed'       // נסגרה ללא גיוס
-  | 'filled';      // גויסה בהצלחה
+  | "active" // פעילה, מוצגת באתר
+  | "paused" // מושהית זמנית
+  | "closed" // נסגרה ללא גיוס
+  | "filled"; // גויסה בהצלחה
 
 export type CandidateStatus =
-  | 'new'          // נכנס — טרם טופל
-  | 'in_progress'  // בטיפול הצוות
-  | 'presented'    // הוצג למעסיק אחד לפחות
-  | 'hired'        // גויס
-  | 'not_suitable';// לא מתאים — ארכיב
+  | "new" // נכנס — טרם טופל
+  | "in_progress" // בטיפול הצוות
+  | "presented" // הוצג למעסיק אחד לפחות
+  | "hired" // גויס
+  | "not_suitable"; // לא מתאים — ארכיב
 
 export type PlacementStatus =
-  | 'pending'      // גיוס הוצע, ממתין לאישור
-  | 'confirmed'    // גיוס אושר — עמלה מגיעה
-  | 'guarantee'    // בתוך תקופת ערבות (3 חודשים)
-  | 'completed'    // תקופת ערבות עברה — סגור
-  | 'cancelled';   // בוטל (החזר חלקי אם בתוך ערבות)
+  | "pending" // גיוס הוצע, ממתין לאישור
+  | "confirmed" // גיוס אושר — עמלה מגיעה
+  | "guarantee" // בתוך תקופת ערבות (3 חודשים)
+  | "completed" // תקופת ערבות עברה — סגור
+  | "cancelled"; // בוטל (החזר חלקי אם בתוך ערבות)
 
 export type CommissionStatus =
-  | 'pending'      // ממתין לתשלום
-  | 'invoiced'     // חשבונית נשלחה
-  | 'paid'         // שולם
-  | 'partial_refund'; // החזר חלקי (ערבות)
+  | "pending" // ממתין לתשלום
+  | "invoiced" // חשבונית נשלחה
+  | "paid" // שולם
+  | "partial_refund"; // החזר חלקי (ערבות)
 
 // ----------------------------------------------------------------
 // שלב א — אתר ציבורי
@@ -63,11 +63,11 @@ export type CommissionStatus =
 export interface PublicJob {
   id: string;
   title: string;
-  description: string;         // תיאור אנונימי
+  description: string; // תיאור אנונימי
   field: JobField;
   region: Region;
-  scope: string;               // 'מלאה' | 'חלקית' | 'גמיש'
-  createdAt: string;           // ISO date string
+  scope: string; // 'מלאה' | 'חלקית' | 'גמיש'
+  createdAt: string; // ISO date string
 }
 
 /** טופס הגשת מועמדות מהאתר */
@@ -77,7 +77,7 @@ export interface CandidateFormData {
   email: string;
   field: JobField;
   region: Region;
-  jobId?: string;              // אם הוגש על משרה ספציפית
+  jobId?: string; // אם הוגש על משרה ספציפית
   notes?: string;
   cvFile: File;
 }
@@ -95,10 +95,10 @@ export interface Candidate {
   city: string;
   field: JobField;
   region: Region;
-  cvUrl: string | null;        // Supabase Storage URL
+  cvUrl: string | null; // Supabase Storage URL
   cvUploadedAt: string | null;
   status: CandidateStatus;
-  notes: string | null;        // הערות פנימיות לצוות
+  notes: string | null; // הערות פנימיות לצוות
   createdAt: string;
   updatedAt: string;
 }
@@ -107,10 +107,10 @@ export interface Candidate {
 export interface CallLog {
   id: string;
   candidateId: string;
-  staffName: string;           // מי מהצוות התקשר
-  calledAt: string;            // ISO date string
+  staffName: string; // מי מהצוות התקשר
+  calledAt: string; // ISO date string
   summary: string;
-  followUpAt: string | null;   // תזכורת לשיחה חוזרת
+  followUpAt: string | null; // תזכורת לשיחה חוזרת
 }
 
 /** מעסיק — נשמר פנימי, לא חשוף לציבור */
@@ -122,7 +122,7 @@ export interface Employer {
   contactName: string;
   contactPhone: string;
   contactEmail: string;
-  notes: string | null;          // אמינות, העדפות, הערות
+  notes: string | null; // אמינות, העדפות, הערות
   createdAt: string;
 }
 
@@ -130,10 +130,10 @@ export interface Employer {
 export interface InternalJob {
   id: string;
   employerId: string;
-  employer?: Employer;           // populated join
+  employer?: Employer; // populated join
   title: string;
-  descriptionPublic: string;     // מה שעולה לאתר
-  descriptionInternal: string;   // דרישות מלאות, פנימי
+  descriptionPublic: string; // מה שעולה לאתר
+  descriptionInternal: string; // דרישות מלאות, פנימי
   field: JobField;
   region: Region;
   scope: string;
@@ -147,9 +147,9 @@ export interface JobPresentation {
   id: string;
   jobId: string;
   candidateId: string;
-  candidate?: Pick<Candidate, 'id' | 'fullName' | 'phone'>;
+  candidate?: Pick<Candidate, "id" | "fullName" | "phone">;
   presentedAt: string;
-  status: CandidateStatus;       // סטטוס המועמד ביחס למשרה הספציפית
+  status: CandidateStatus; // סטטוס המועמד ביחס למשרה הספציפית
   notes: string | null;
 }
 
@@ -163,11 +163,11 @@ export interface Placement {
   jobId: string;
   candidateId: string;
   employerId: string;
-  job?: Pick<InternalJob, 'id' | 'title'>;
-  candidate?: Pick<Candidate, 'id' | 'fullName'>;
-  employer?: Pick<Employer, 'id' | 'companyName'>;
+  job?: Pick<InternalJob, "id" | "title">;
+  candidate?: Pick<Candidate, "id" | "fullName">;
+  employer?: Pick<Employer, "id" | "companyName">;
   placedAt: string;
-  guaranteeEndsAt: string;       // placedAt + 3 חודשים
+  guaranteeEndsAt: string; // placedAt + 3 חודשים
   status: PlacementStatus;
   commissionAmount: number | null; // בשקלים
   commissionStatus: CommissionStatus;
@@ -180,9 +180,9 @@ export interface Reminder {
   candidateId: string | null;
   jobId: string | null;
   message: string;
-  remindAt: string;              // ISO date string
+  remindAt: string; // ISO date string
   done: boolean;
-  createdBy: string;             // שם נציג
+  createdBy: string; // שם נציג
 }
 
 /** סטטיסטיקות ללוח בקרה */
@@ -191,8 +191,72 @@ export interface DashboardStats {
   activeCandidates: number;
   activeJobs: number;
   placementsThisMonth: number;
-  pendingCommissions: number;    // בשקלים
+  pendingCommissions: number; // בשקלים
   overdueReminders: number;
+  activeSubscribers: number;
+  queueCount: number;
+}
+
+/** מועמד בתור הטיפול (ווידג'ט) */
+export interface QueueItem {
+  id: string;
+  fullName: string;
+  field: JobField;
+  region: Region;
+  createdAt: string;
+}
+
+/** משרה פעילה + מספר מועמדים שהוצגו (ווידג'ט) */
+export interface ActiveJobWidget {
+  id: string;
+  title: string;
+  field: JobField;
+  region: Region;
+  presentedCount: number;
+}
+
+/** תמונת מצב מלאה של לוח הבקרה */
+export interface DashboardSummary {
+  stats: DashboardStats;
+  queue: QueueItem[];
+  activeJobs: ActiveJobWidget[];
+  openReminders: Reminder[];
+}
+
+/** הצגת מועמד למשרה — עם פרטי המשרה (לכרטיס המועמד) */
+export interface PresentationWithJob extends JobPresentation {
+  job?: Pick<InternalJob, "id" | "title">;
+}
+
+/** מועמד מלא לכרטיס ה-CRM — כולל שיחות, הצגות וגיוסים */
+export interface CandidateDetail extends Candidate {
+  callLogs: CallLog[];
+  presentations: PresentationWithJob[];
+  placements: Placement[];
+}
+
+/** הצגת מועמד למשרה — עם פרטי המועמד (לעמוד המשרה) */
+export interface PresentationWithCandidate extends JobPresentation {
+  candidate?: Pick<Candidate, "id" | "fullName" | "phone"> & {
+    status: CandidateStatus;
+  };
+}
+
+/** משרה מלאה לעמוד ה-CRM — כולל מעסיק והצגות מועמדים */
+export interface JobDetail extends InternalJob {
+  employer?: Employer;
+  presentations: PresentationWithCandidate[];
+}
+
+/** מנוי ברשימת התפוצה */
+export interface Subscriber {
+  userId: string;
+  email: string;
+  fullName: string;
+  optInAt: string | null;
+  field: JobField | null;
+  region: Region | null;
+  status: CandidateStatus | null;
 }
 
 // ----------------------------------------------------------------
