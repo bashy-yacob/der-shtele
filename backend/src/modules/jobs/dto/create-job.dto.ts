@@ -1,5 +1,5 @@
-import { IsEnum, IsString, MinLength } from 'class-validator';
-import { JobField, Region } from '@prisma/client';
+import { IsEnum, IsString, MinLength } from "class-validator";
+import { JobField } from "@prisma/client";
 
 export class CreateJobDto {
   @IsString()
@@ -19,8 +19,9 @@ export class CreateJobDto {
   @IsEnum(JobField)
   field!: JobField;
 
-  @IsEnum(Region)
-  region!: Region;
+  @IsString()
+  @MinLength(1)
+  region!: string; // עיר/אזור — טקסט חופשי
 
   @IsString()
   scope!: string; // 'מלאה' | 'חלקית' | 'גמיש'

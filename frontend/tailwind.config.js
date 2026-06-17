@@ -53,6 +53,28 @@ module.exports = {
       boxShadow: {
         // צל רך חמים (חום-אפרפר, נמוך)
         soft: "0 1px 2px rgba(33, 30, 24, 0.04), 0 6px 20px -8px rgba(33, 30, 24, 0.12)",
+        // צל מורם מעט — לכרטיסים מודגשים / hover
+        lift: "0 2px 4px rgba(33, 30, 24, 0.05), 0 18px 40px -16px rgba(33, 30, 24, 0.18)",
+      },
+      // ---- אנימציות עדינות בלבד (מכובדות, לא פולשניות) ----
+      keyframes: {
+        "fade-up": {
+          "0%": { opacity: "0", transform: "translateY(18px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "fade-in": {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        float: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
+      },
+      animation: {
+        "fade-up": "fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both",
+        "fade-in": "fade-in 0.9s ease-out both",
+        float: "float 7s ease-in-out infinite",
       },
     },
   },

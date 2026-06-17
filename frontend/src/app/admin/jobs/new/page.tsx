@@ -8,6 +8,7 @@ import {
   createJob,
   updateJob,
   createEmployer,
+  listRegions,
 } from "@/lib/admin-api";
 import type { Employer, JobField, Region } from "@/types";
 import {
@@ -16,8 +17,15 @@ import {
   PageHeader,
   Loading,
 } from "@/components/admin/Feedback";
-import { Card, Button, Input, Select, Textarea } from "@/components/ui";
-import { FIELD_LABELS, REGION_LABELS, SCOPE_OPTIONS } from "@/lib/labels";
+import {
+  Card,
+  Button,
+  Input,
+  Select,
+  Textarea,
+  CityCombobox,
+} from "@/components/ui";
+import { FIELD_LABELS, SCOPE_OPTIONS, buildCityOptions } from "@/lib/labels";
 
 export default function NewJobPage() {
   const router = useRouter();
@@ -26,6 +34,7 @@ export default function NewJobPage() {
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   const [showEmployerForm, setShowEmployerForm] = useState(false);
+  const [cityOptions, setCityOptions] = useState<string[]>(buildCityOptions());
 
   const [form, setForm] = useState({
     employerId: "",
@@ -47,6 +56,9 @@ export default function NewJobPage() {
       })
       .catch((e) => setErr(e.message))
       .finally(() => setLoadingEmployers(false));
+    listRegions()
+      .then((r) => setCityOptions(buildCityOptions(r)))
+      .catch(() => undefined);
   }, []);
 
   const set = (k: keyof typeof form) => (v: string) =>
@@ -168,18 +180,12 @@ export default function NewJobPage() {
               </option>
             ))}
           </Select>
-          <Select
-            label="אזור *"
+          <CityCombobox
+            label="עיר / אזור *"
+            options={cityOptions}
             value={form.region}
             onChange={(e) => set("region")(e.target.value)}
-          >
-            <option value="">— בחר —</option>
-            {Object.entries(REGION_LABELS).map(([k, v]) => (
-              <option key={k} value={k}>
-                {v}
-              </option>
-            ))}
-          </Select>
+          />
           <Select
             label="היקף משרה *"
             value={form.scope}

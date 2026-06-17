@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { listCandidates } from "@/lib/admin-api";
+import { listCandidates, listRegions } from "@/lib/admin-api";
 import type {
   CandidateListItem,
   CandidateStatus,
@@ -19,7 +19,8 @@ import {
 import { Card, Input, Select } from "@/components/ui";
 import {
   FIELD_LABELS,
-  REGION_LABELS,
+  regionLabel,
+  buildCityOptions,
   CANDIDATE_STATUS_LABELS,
 } from "@/lib/labels";
 import { formatDate } from "@/lib/utils";
@@ -33,12 +34,16 @@ export default function CandidatesListPage() {
   const [field, setField] = useState<JobField | "">("");
   const [region, setRegion] = useState<Region | "">("");
   const [status, setStatus] = useState<CandidateStatus | "">("");
+  const [cityOptions, setCityOptions] = useState<string[]>(buildCityOptions());
 
   useEffect(() => {
     listCandidates()
       .then(setCandidates)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
+    listRegions()
+      .then((r) => setCityOptions(buildCityOptions(r)))
+      .catch(() => undefined);
   }, []);
 
   const filtered = useMemo(() => {
@@ -85,9 +90,9 @@ export default function CandidatesListPage() {
             onChange={(e) => setRegion(e.target.value as Region | "")}
           >
             <option value="">כל האזורים</option>
-            {Object.entries(REGION_LABELS).map(([k, v]) => (
-              <option key={k} value={k}>
-                {v}
+            {cityOptions.map((city) => (
+              <option key={city} value={city}>
+                {city}
               </option>
             ))}
           </Select>
@@ -142,7 +147,7 @@ export default function CandidatesListPage() {
                     {FIELD_LABELS[c.field]}
                   </td>
                   <td className="px-4 py-3 text-ink-700">
-                    {REGION_LABELS[c.region]}
+                    {regionLabel(c.region)}
                   </td>
                   <td className="px-4 py-3">
                     {c.presentations.length > 0 ? (

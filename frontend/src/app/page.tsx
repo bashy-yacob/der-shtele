@@ -3,28 +3,85 @@ import { getPublicJobs } from "@/lib/api";
 import { JobCard } from "@/components/jobs/JobCard";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { SkylineMotif } from "@/components/ui/SkylineMotif";
+import { Reveal } from "@/components/ui/Reveal";
+import { CountUp } from "@/components/ui/CountUp";
 
 const CONTENT = {
   hero: {
-    title: "דער שטעלע — מוצאים לך את המשרה הנכונה",
+    title: "המשרה הנכונה מחכה לך — בלי לחפש, בלי להיחשף",
     subtitle:
-      "סוכנות השמה מקצועית לציבור החרדי בישראל. אנחנו מטפלים בכל הפרטים — אתם מתמקדים בעבודה.",
+      "דער שטעלע היא סוכנות השמה לציבור החרדי. נרשמים, שולחים קורות חיים — והצוות שלנו עושה את כל השאר. כל פנייה עוברת דרכנו, והמעסיק לא רואה את הפרטים שלך עד הרגע הנכון.",
     primary: "הרשמה וחיפוש משרות ←",
-    secondary: "צפה במשרות הפתוחות",
+    secondary: "צפייה במשרות הפתוחות",
+    pills: [
+      "דיסקרטיות מלאה",
+      "ליווי אישי של הצוות",
+      "הרשמה חינם",
+      "בלי פרסומות",
+    ],
   },
-  trust: ["מעסיק לא רואה את הפרטים שלך", "הכל עובר דרך הצוות", "ללא פרסומות"],
+  why: {
+    eyebrow: "למה דרכנו",
+    title: "לא לוח מודעות. סוכנות שעובדת בשבילך.",
+    subtitle:
+      "אנחנו עושים את העבודה השחורה — כדי שתמצא את המקום הנכון בשקט ובכבוד.",
+    cards: [
+      {
+        title: "דיסקרטיות מלאה",
+        desc: "המעסיק אף פעם לא רואה את הפרטים שלך ישירות. כל קשר עובר דרך הצוות — אתה נחשף רק כשזה באמת מתאים.",
+      },
+      {
+        title: "אנחנו עושים את העבודה",
+        desc: "אין צורך לרדוף אחרי מעסיקים. שולחים קורות חיים פעם אחת, ואנחנו מציגים אותך למשרות הנכונות.",
+      },
+      {
+        title: "התאמה אמיתית, לא הצפה",
+        desc: "לומדים מה מתאים לך ופונים אליך רק כשיש משהו קונקרטי. בלי עשרות מיילים, בלי רעש.",
+      },
+      {
+        title: "סביבה שמכבדת אותך",
+        desc: "ממשק נקי, בלי תמונות ובלי פרסומות. צוות שמכיר את הציבור ועובד לפי ערכיו.",
+      },
+    ],
+  },
   steps: {
     eyebrow: "איך זה עובד",
     title: "שלושה שלבים — וזה אצלנו",
     list: [
-      { title: "נרשמים", desc: "יוצרים חשבון חינמי — לוקח דקה." },
+      { title: "נרשמים", desc: "חשבון חינמי, דקה אחת. בלי התחייבות." },
       {
         title: "שולחים קורות חיים",
-        desc: "מגישים למשרות שמתאימות, והצוות מטפל בהכל.",
+        desc: "מגישים למשרות שמדברות אליך — והצוות מטפל בכל השאר.",
       },
       {
         title: "מקבלים הצעה",
-        desc: "אם נמצאה התאמה — ניצור אתכם קשר עם הצעה קונקרטית.",
+        desc: "אם יש התאמה, נחזור אליך עם משהו קונקרטי. בלי הצפה, בלי לחץ.",
+      },
+    ],
+  },
+  faq: {
+    eyebrow: "שאלות נפוצות",
+    title: "מה שחשוב לדעת",
+    list: [
+      {
+        q: "המעסיק יֵדע מי אני?",
+        a: "לא. כל הפרטים שלך נשארים אצל הצוות בלבד. מעסיק רואה אותך רק אחרי שסיננו והתאמנו — ובאישורך.",
+      },
+      {
+        q: "כמה זה עולה לי?",
+        a: "למועמדים השירות חינמי לחלוטין — הרשמה, הגשה וליווי לאורך כל הדרך.",
+      },
+      {
+        q: "אין כרגע משרה שמתאימה לי. כדאי בכל זאת להירשם?",
+        a: "בהחלט. נרשמים ומשאירים קורות חיים, וברגע שתיפתח משרה מתאימה באזור שלך — ניצור קשר.",
+      },
+      {
+        q: "תשלחו לי הודעות בשבת?",
+        a: "לעולם לא. אנחנו לא שולחים מיילים או הודעות בשבת ובימים טובים.",
+      },
+      {
+        q: "מה קורה אחרי שאני מגיש מועמדות?",
+        a: "הצוות עובר על המועמדות, ואם יש התאמה ניצור איתך קשר עם פרטים קונקרטיים. אין צורך לעשות דבר בינתיים.",
       },
     ],
   },
@@ -34,26 +91,39 @@ export default async function HomePage() {
   const jobs = await getPublicJobs();
   const latest = jobs.slice(0, 4);
 
+  const stats = [
+    { to: jobs.length, suffix: "+", label: "משרות פתוחות עכשיו" },
+    { to: 100, suffix: "%", label: "דיסקרטי — הפרטים נשארים אצלנו" },
+    { to: 0, suffix: " ₪", label: "להרשמה ולהגשה — תמיד" },
+    { to: 3, suffix: "", label: "חודשי ערבות על כל השמה" },
+  ];
+
   return (
     <div dir="rtl">
       {/* ======== HERO ======== */}
       <section className="relative overflow-hidden bg-sand-100 border-b border-sand-200">
-        {/* מוטיב קו-רקיע עדין בתחתית */}
+        {/* מוטיב קו-רקיע עדין שמרחף קלות */}
         <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-40 text-sand-300/70"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-44 text-sand-300/70 animate-float"
           aria-hidden="true"
         >
           <SkylineMotif className="w-full h-full" />
         </div>
 
         <div className="relative max-w-4xl mx-auto px-4 py-24 sm:py-28 text-center">
-          <h1 className="font-display text-ink-900 text-4xl sm:text-6xl font-bold tracking-tight leading-tight mb-6">
+          <h1 className="font-display text-ink-900 text-4xl sm:text-6xl font-bold tracking-tight leading-tight mb-6 animate-fade-up">
             {CONTENT.hero.title}
           </h1>
-          <p className="text-ink-700 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed mb-10">
+          <p
+            className="text-ink-700 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed mb-10 animate-fade-up"
+            style={{ animationDelay: "120ms" }}
+          >
             {CONTENT.hero.subtitle}
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div
+            className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-up"
+            style={{ animationDelay: "240ms" }}
+          >
             <Link
               href="/register"
               className="w-full sm:w-auto bg-navy-600 hover:bg-navy-700 text-white font-bold text-lg px-8 py-3.5 rounded-xl transition-colors duration-150 text-center"
@@ -67,56 +137,156 @@ export default async function HomePage() {
               {CONTENT.hero.secondary}
             </Link>
           </div>
+
+          {/* תגיות אמון קטנות */}
+          <ul
+            className="mt-10 flex flex-wrap justify-center gap-x-3 gap-y-2 animate-fade-up"
+            style={{ animationDelay: "360ms" }}
+          >
+            {CONTENT.hero.pills.map((pill) => (
+              <li
+                key={pill}
+                className="inline-flex items-center gap-1.5 bg-white/70 border border-sand-200 text-ink-700 text-sm font-semibold px-3 py-1.5 rounded-full"
+              >
+                <svg
+                  className="w-4 h-4 text-olive-600 shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+                {pill}
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
-      {/* ======== פס אמון ======== */}
+      {/* ======== פס סטטיסטיקות ======== */}
       <section className="bg-navy-600 text-white">
-        <div className="max-w-5xl mx-auto px-4 py-5 flex flex-wrap justify-center items-center gap-x-8 gap-y-3 text-sm sm:text-base font-semibold">
-          {CONTENT.trust.map((item, idx) => (
-            <span key={idx} className="flex items-center gap-2">
-              <svg
-                className="w-5 h-5 text-olive-300 shrink-0"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-              {item}
-            </span>
-          ))}
+        <div className="max-w-5xl mx-auto px-4 py-12">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-y-8 gap-x-4">
+            {stats.map((stat, idx) => (
+              <Reveal key={stat.label} delay={idx * 90} className="text-center">
+                <div className="font-display text-4xl sm:text-5xl font-bold text-olive-300 mb-1.5">
+                  <CountUp to={stat.to} suffix={stat.suffix} />
+                </div>
+                <p className="text-sand-200 text-sm leading-snug max-w-[12rem] mx-auto">
+                  {stat.label}
+                </p>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ======== למה דרכנו ======== */}
+      <section className="bg-sand-50 py-20 px-4">
+        <div className="max-w-5xl mx-auto">
+          <Reveal>
+            <SectionHeading
+              eyebrow={CONTENT.why.eyebrow}
+              title={CONTENT.why.title}
+              subtitle={CONTENT.why.subtitle}
+              className="mb-14 mx-auto"
+            />
+          </Reveal>
+          <div className="grid sm:grid-cols-2 gap-6">
+            {CONTENT.why.cards.map((card, idx) => (
+              <Reveal key={card.title} delay={idx * 90}>
+                <div className="h-full flex gap-4 bg-white border border-sand-200 rounded-2xl shadow-soft p-7 transition-shadow hover:shadow-lift">
+                  <span
+                    className="flex items-center justify-center w-11 h-11 rounded-full bg-olive-100 text-olive-700 shrink-0"
+                    aria-hidden="true"
+                  >
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  </span>
+                  <div>
+                    <h3 className="font-display text-ink-900 text-xl font-bold mb-2">
+                      {card.title}
+                    </h3>
+                    <p className="text-ink-700 leading-relaxed">{card.desc}</p>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ======== שלושה שלבים ======== */}
+      <section className="bg-white border-y border-sand-200 py-20 px-4">
+        <div className="max-w-5xl mx-auto">
+          <Reveal>
+            <SectionHeading
+              eyebrow={CONTENT.steps.eyebrow}
+              title={CONTENT.steps.title}
+              className="mb-14"
+            />
+          </Reveal>
+          <div className="grid md:grid-cols-3 gap-8">
+            {CONTENT.steps.list.map((step, idx) => (
+              <Reveal key={step.title} delay={idx * 110}>
+                <div className="h-full flex flex-col items-start gap-4 bg-sand-50 border border-sand-200 rounded-2xl shadow-soft p-7">
+                  <span className="flex items-center justify-center w-11 h-11 rounded-full bg-olive-100 text-olive-700 font-display text-xl font-bold shrink-0">
+                    {idx + 1}
+                  </span>
+                  <h3 className="font-display text-ink-900 text-xl font-bold">
+                    {step.title}
+                  </h3>
+                  <p className="text-ink-700 leading-relaxed">{step.desc}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* ======== הצצה למשרות חיות ======== */}
       <section className="bg-sand-50 py-20 px-4">
         <div className="max-w-5xl mx-auto">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
-            <SectionHeading
-              align="start"
-              eyebrow="משרות פתוחות"
-              title="הצצה למשרות האחרונות"
-              subtitle="כל המשרות מועברות דרכנו — פרטי החברה נמסרים רק לאחר אישור הצוות."
-            />
-            <Link
-              href="/jobs"
-              className="shrink-0 text-navy-600 hover:text-navy-700 font-bold whitespace-nowrap"
-            >
-              לכל המשרות ←
-            </Link>
-          </div>
+          <Reveal>
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
+              <SectionHeading
+                align="start"
+                eyebrow="משרות פתוחות"
+                title="הצצה למשרות האחרונות"
+                subtitle="כל המשרות מועברות דרכנו — פרטי החברה נמסרים רק לאחר אישור הצוות."
+              />
+              <Link
+                href="/jobs"
+                className="shrink-0 text-navy-600 hover:text-navy-700 font-bold whitespace-nowrap"
+              >
+                לכל המשרות ←
+              </Link>
+            </div>
+          </Reveal>
 
           {latest.length > 0 ? (
             <div className="grid md:grid-cols-2 gap-6">
-              {latest.map((job) => (
-                <JobCard key={job.id} job={job} />
+              {latest.map((job, idx) => (
+                <Reveal key={job.id} delay={idx * 80}>
+                  <JobCard job={job} />
+                </Reveal>
               ))}
             </div>
           ) : (
@@ -136,28 +306,40 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ======== שלושה שלבים ======== */}
-      <section className="bg-white border-y border-sand-200 py-20 px-4">
-        <div className="max-w-5xl mx-auto">
-          <SectionHeading
-            eyebrow={CONTENT.steps.eyebrow}
-            title={CONTENT.steps.title}
-            className="mb-14"
-          />
-          <div className="grid md:grid-cols-3 gap-8">
-            {CONTENT.steps.list.map((step, idx) => (
-              <div
-                key={idx}
-                className="flex flex-col items-start gap-4 bg-sand-50 border border-sand-200 rounded-2xl shadow-soft p-7"
-              >
-                <span className="flex items-center justify-center w-11 h-11 rounded-full bg-olive-100 text-olive-700 font-display text-xl font-bold shrink-0">
-                  {idx + 1}
-                </span>
-                <h3 className="font-display text-ink-900 text-xl font-bold">
-                  {step.title}
-                </h3>
-                <p className="text-ink-700 leading-relaxed">{step.desc}</p>
-              </div>
+      {/* ======== שאלות נפוצות ======== */}
+      <section className="bg-white border-t border-sand-200 py-20 px-4">
+        <div className="max-w-3xl mx-auto">
+          <Reveal>
+            <SectionHeading
+              eyebrow={CONTENT.faq.eyebrow}
+              title={CONTENT.faq.title}
+              className="mb-12"
+            />
+          </Reveal>
+          <div className="space-y-3">
+            {CONTENT.faq.list.map((item, idx) => (
+              <Reveal key={item.q} delay={idx * 60}>
+                <details className="group bg-sand-50 border border-sand-200 rounded-2xl px-5 py-4 [&_summary]:list-none open:shadow-soft">
+                  <summary className="flex items-center justify-between gap-4 cursor-pointer font-display text-lg font-bold text-ink-900">
+                    {item.q}
+                    <svg
+                      className="w-5 h-5 text-olive-600 shrink-0 transition-transform duration-200 group-open:rotate-180"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </summary>
+                  <p className="text-ink-700 leading-relaxed mt-3">{item.a}</p>
+                </details>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -165,20 +347,22 @@ export default async function HomePage() {
 
       {/* ======== CTA סוגר ======== */}
       <section className="bg-sand-100 py-20 px-4">
-        <div className="max-w-3xl mx-auto bg-navy-600 rounded-3xl px-8 py-12 sm:py-14 text-center">
-          <h2 className="font-display text-white text-3xl font-bold mb-4">
-            מוכנים להתחיל?
-          </h2>
-          <p className="text-sand-200 mb-8 max-w-md mx-auto leading-relaxed">
-            הרשמה קצרה, ואנחנו כבר נדאג לחפש עבורכם את המשרה המתאימה ביותר.
-          </p>
-          <Link
-            href="/register"
-            className="inline-flex items-center justify-center bg-olive-500 hover:bg-olive-600 text-white font-bold text-lg px-10 py-3.5 rounded-xl transition-colors duration-150"
-          >
-            הרשמה וחיפוש משרות ←
-          </Link>
-        </div>
+        <Reveal>
+          <div className="max-w-3xl mx-auto bg-navy-600 rounded-3xl px-8 py-12 sm:py-14 text-center">
+            <h2 className="font-display text-white text-3xl font-bold mb-4">
+              מוכן/ה למצוא את המשרה הנכונה?
+            </h2>
+            <p className="text-sand-200 mb-8 max-w-md mx-auto leading-relaxed">
+              הרשמה לוקחת דקה. מכאן — אנחנו כבר דואגים לכל השאר.
+            </p>
+            <Link
+              href="/register"
+              className="inline-flex items-center justify-center bg-olive-500 hover:bg-olive-600 text-white font-bold text-lg px-10 py-3.5 rounded-xl transition-colors duration-150"
+            >
+              הרשמה וחיפוש משרות ←
+            </Link>
+          </div>
+        </Reveal>
       </section>
     </div>
   );

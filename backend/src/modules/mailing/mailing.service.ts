@@ -1,10 +1,10 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
-import { CandidateStatus, JobField, Prisma, Region } from '@prisma/client';
-import { PrismaService } from '../../prisma/prisma.service';
-import { EmailService } from '../email/email.service';
-import { isShabbatOrHoliday } from '../../common/shabbat/shabbat';
-import { escapeHtml } from '../../common/util/escape-html';
-import { SendMailingDto, MailingFilterDto } from './dto/send-mailing.dto';
+import { BadRequestException, Injectable, Logger } from "@nestjs/common";
+import { CandidateStatus, JobField, Prisma } from "@prisma/client";
+import { PrismaService } from "../../prisma/prisma.service";
+import { EmailService } from "../email/email.service";
+import { isShabbatOrHoliday } from "../../common/shabbat/shabbat";
+import { escapeHtml } from "../../common/util/escape-html";
+import { SendMailingDto, MailingFilterDto } from "./dto/send-mailing.dto";
 
 export interface Subscriber {
   userId: string;
@@ -12,7 +12,7 @@ export interface Subscriber {
   fullName: string;
   optInAt: Date | null;
   field: JobField | null;
-  region: Region | null;
+  region: string | null;
   status: CandidateStatus | null;
 }
 
@@ -42,11 +42,9 @@ export class MailingService {
     const users = await this.prisma.user.findMany({
       where: {
         optInMarketing: true,
-        ...(hasCandidateFilter
-          ? { candidate: { is: candidateFilter } }
-          : {}),
+        ...(hasCandidateFilter ? { candidate: { is: candidateFilter } } : {}),
       },
-      orderBy: { optInAt: 'desc' },
+      orderBy: { optInAt: "desc" },
       select: {
         id: true,
         email: true,
@@ -76,13 +74,13 @@ export class MailingService {
   async send(dto: SendMailingDto): Promise<{ total: number; sent: number }> {
     if (isShabbatOrHoliday()) {
       throw new BadRequestException(
-        'לא ניתן לשלוח מיילים בשבת או ביום טוב — נסה שוב לאחר צאת השבת/החג',
+        "לא ניתן לשלוח מיילים בשבת או ביום טוב — נסה שוב לאחר צאת השבת/החג",
       );
     }
 
     const recipients = await this.subscribers(dto.filter ?? {});
     if (recipients.length === 0) {
-      throw new BadRequestException('אין מנויים פעילים התואמים לסינון שנבחר');
+      throw new BadRequestException("אין מנויים פעילים התואמים לסינון שנבחר");
     }
 
     const html = this.wrapBody(dto.body);
@@ -101,7 +99,7 @@ export class MailingService {
 
   /** עוטף טקסט חופשי בתבנית RTL בטוחה (escapeHtml + שמירת שורות). */
   private wrapBody(body: string): string {
-    const safe = escapeHtml(body).replace(/\n/g, '<br/>');
+    const safe = escapeHtml(body).replace(/\n/g, "<br/>");
     return `<div dir="rtl" style="font-family:Arial,sans-serif;line-height:1.6">
       ${safe}
       <hr style="margin-top:24px;border:none;border-top:1px solid #eee"/>

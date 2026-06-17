@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { PublicJob } from "@/types";
-import { FIELD_LABELS, REGION_LABELS } from "@/lib/constants";
+import { FIELD_LABELS, regionLabel } from "@/lib/constants";
+import { SaveJobButton } from "./SaveJobButton";
 
 interface JobCardProps {
   job: PublicJob;
@@ -8,11 +9,15 @@ interface JobCardProps {
 
 export function JobCard({ job }: JobCardProps) {
   // זהות מעסיק אנונימית לפי אזור (פרטי החברה נמסרים רק דרך הצוות)
-  const companyLabel = `ארגון ב${REGION_LABELS[job.region]}`;
+  const companyLabel = `ארגון ב${regionLabel(job.region)}`;
 
   return (
-    <div className="flex flex-col bg-white border border-sand-200 rounded-2xl shadow-soft p-6 hover:border-olive-300 transition-colors">
-      <h3 className="font-display text-ink-900 text-xl font-bold">
+    <div className="relative flex flex-col bg-white border border-sand-200 rounded-2xl shadow-soft p-6 hover:border-olive-300 transition-colors">
+      <SaveJobButton
+        jobId={job.id}
+        className="absolute top-4 left-4 shadow-soft"
+      />
+      <h3 className="font-display text-ink-900 text-xl font-bold pe-12">
         {job.title}
       </h3>
       <p className="text-sm text-ink-500 mt-1">{companyLabel}</p>
@@ -23,7 +28,7 @@ export function JobCard({ job }: JobCardProps) {
 
       <div className="flex flex-wrap gap-2 text-xs mb-6">
         <Tag>{FIELD_LABELS[job.field]}</Tag>
-        <Tag>{REGION_LABELS[job.region]}</Tag>
+        <Tag>{regionLabel(job.region)}</Tag>
         <Tag>{job.scope}</Tag>
       </div>
 

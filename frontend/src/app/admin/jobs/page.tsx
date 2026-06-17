@@ -12,7 +12,7 @@ import {
   PageHeader,
 } from "@/components/admin/Feedback";
 import { Card, Button } from "@/components/ui";
-import { FIELD_LABELS, REGION_LABELS, JOB_STATUS_LABELS } from "@/lib/labels";
+import { FIELD_LABELS, regionLabel, JOB_STATUS_LABELS } from "@/lib/labels";
 import { formatDate } from "@/lib/utils";
 
 export default function JobsListPage() {
@@ -72,7 +72,7 @@ export default function JobsListPage() {
                     {FIELD_LABELS[j.field]}
                   </td>
                   <td className="px-4 py-3 text-ink-700">
-                    {REGION_LABELS[j.region]}
+                    {regionLabel(j.region)}
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge

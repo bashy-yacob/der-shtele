@@ -1,7 +1,10 @@
 export { Button } from "./Button";
 export { Input } from "./Input";
 export { Select } from "./Select";
+export { CityCombobox } from "./CityCombobox";
 export { Textarea } from "./Textarea";
 export { Card } from "./Card";
 export { SectionHeading } from "./SectionHeading";
 export { SkylineMotif } from "./SkylineMotif";
+export { Reveal } from "./Reveal";
+export { CountUp } from "./CountUp";

@@ -22,7 +22,7 @@ import {
 import { Card, Button, Textarea, Input } from "@/components/ui";
 import {
   FIELD_LABELS,
-  REGION_LABELS,
+  regionLabel,
   CANDIDATE_STATUS_LABELS,
 } from "@/lib/labels";
 import { CANDIDATE_TRANSITIONS } from "@/lib/status-machine";
@@ -54,7 +54,7 @@ export default function CandidateDetailPage() {
     <div>
       <PageHeader
         title={c.fullName}
-        subtitle={`${FIELD_LABELS[c.field]} · ${REGION_LABELS[c.region]}`}
+        subtitle={`${FIELD_LABELS[c.field]} · ${regionLabel(c.region)}`}
         action={
           <StatusBadge
             status={c.status}

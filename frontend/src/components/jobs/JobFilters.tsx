@@ -1,12 +1,18 @@
 import Link from "next/link";
-import { FIELD_LABELS, REGION_LABELS } from "@/lib/constants";
+import { FIELD_LABELS, buildCityOptions } from "@/lib/constants";
 
 interface JobFiltersProps {
   current: { field?: string; region?: string };
+  /** ערים קיימות מהשרת — נמזגות עם ברירות-המחדל. */
+  regions?: string[];
 }
 
 /** טופס סינון משרות (GET — query params). */
-export function JobFilters({ current }: JobFiltersProps) {
+export function JobFilters({ current, regions = [] }: JobFiltersProps) {
+  // ערים כ-Record (ערך=תווית) כדי להתאים ל-Select הגנרי.
+  const cityOptions = Object.fromEntries(
+    buildCityOptions(regions).map((c) => [c, c]),
+  );
   return (
     <form className="grid grid-cols-1 md:grid-cols-3 gap-5 items-end">
       <Select
@@ -18,7 +24,7 @@ export function JobFilters({ current }: JobFiltersProps) {
       <Select
         name="region"
         label="אזור מגורים"
-        options={REGION_LABELS}
+        options={cityOptions}
         current={current.region}
       />
       <div className="flex gap-2">

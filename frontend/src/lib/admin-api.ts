@@ -91,6 +91,10 @@ export const createEmployer = (body: {
   notes?: string;
 }) => adminFetch<Employer>("employers", { method: "POST", body });
 
+// ---- ערים/אזורים ----
+// רשימת הערים הקיימות (משרות+מועמדים) — להזנת רשימות הבחירה בטפסים.
+export const listRegions = () => adminFetch<string[]>("jobs/regions");
+
 // ---- משרות ----
 export const listJobs = () => adminFetch<InternalJob[]>("jobs/admin/all");
 export const getJob = (id: string) => adminFetch<JobDetail>(`jobs/admin/${id}`);

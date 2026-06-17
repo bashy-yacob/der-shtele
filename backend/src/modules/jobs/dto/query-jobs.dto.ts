@@ -1,5 +1,5 @@
-import { IsEnum, IsOptional } from 'class-validator';
-import { JobField, Region } from '@prisma/client';
+import { IsEnum, IsOptional, IsString } from "class-validator";
+import { JobField } from "@prisma/client";
 
 /** פילטרים ללוח המשרות הציבורי */
 export class QueryJobsDto {
@@ -8,6 +8,6 @@ export class QueryJobsDto {
   field?: JobField;
 
   @IsOptional()
-  @IsEnum(Region)
-  region?: Region;
+  @IsString()
+  region?: string; // עיר/אזור — טקסט חופשי
 }

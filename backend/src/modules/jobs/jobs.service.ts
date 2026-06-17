@@ -34,6 +34,29 @@ export class JobsService {
     });
   }
 
+  /**
+   * רשימת ערים/אזורים קיימים — איחוד ערכי ה-region הייחודיים ממשרות וממועמדים.
+   * משמשת להזנת רשימות הבחירה בכל הטפסים, כך שעיר חדשה מופיעה אוטומטית.
+   */
+  async listRegions(): Promise<string[]> {
+    const [jobs, candidates] = await Promise.all([
+      this.prisma.job.findMany({
+        distinct: ["region"],
+        select: { region: true },
+      }),
+      this.prisma.candidate.findMany({
+        distinct: ["region"],
+        select: { region: true },
+      }),
+    ]);
+    const set = new Set<string>();
+    for (const { region } of [...jobs, ...candidates]) {
+      const value = region?.trim();
+      if (value) set.add(value);
+    }
+    return [...set].sort((a, b) => a.localeCompare(b, "he"));
+  }
+
   /** משרה ציבורית בודדת. */
   async findPublicOne(id: string) {
     const job = await this.prisma.job.findFirst({

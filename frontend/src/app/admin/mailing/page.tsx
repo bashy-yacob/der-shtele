@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { listSubscribers, sendMailing } from "@/lib/admin-api";
+import { listSubscribers, sendMailing, listRegions } from "@/lib/admin-api";
 import type { CandidateStatus, JobField, Region, Subscriber } from "@/types";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { StatCard } from "@/components/admin/StatCard";
@@ -15,7 +15,8 @@ import {
 import { Card, Button, Input, Select, Textarea } from "@/components/ui";
 import {
   FIELD_LABELS,
-  REGION_LABELS,
+  regionLabel,
+  buildCityOptions,
   CANDIDATE_STATUS_LABELS,
 } from "@/lib/labels";
 import { formatDate } from "@/lib/utils";
@@ -31,6 +32,7 @@ export default function MailingPage() {
   const [filter, setFilter] = useState<Filter>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [cityOptions, setCityOptions] = useState<string[]>(buildCityOptions());
 
   const load = (f: Filter) => {
     setLoading(true);
@@ -43,6 +45,9 @@ export default function MailingPage() {
 
   useEffect(() => {
     load({});
+    listRegions()
+      .then((r) => setCityOptions(buildCityOptions(r)))
+      .catch(() => undefined);
   }, []);
 
   const applyFilter = (patch: Partial<Filter>) => {
@@ -62,7 +67,7 @@ export default function MailingPage() {
         s.fullName,
         s.email,
         s.field ? FIELD_LABELS[s.field] : "",
-        s.region ? REGION_LABELS[s.region] : "",
+        s.region ? regionLabel(s.region) : "",
         s.status ? CANDIDATE_STATUS_LABELS[s.status] : "",
         s.optInAt ? formatDate(s.optInAt) : "",
       ]
@@ -126,9 +131,9 @@ export default function MailingPage() {
             }
           >
             <option value="">כל האזורים</option>
-            {Object.entries(REGION_LABELS).map(([k, v]) => (
-              <option key={k} value={k}>
-                {v}
+            {cityOptions.map((city) => (
+              <option key={city} value={city}>
+                {city}
               </option>
             ))}
           </Select>

@@ -17,13 +17,9 @@ export type JobField =
   | "healthcare"
   | "other";
 
-export type Region =
-  | "bnei_brak"
-  | "jerusalem"
-  | "elad"
-  | "modiin_ilit"
-  | "beitar_ilit"
-  | "other";
+// עיר/אזור — טקסט חופשי. ערים חדשות מתווספות אוטומטית בעת יצירת משרה/מועמד.
+// רשימת הברירה נגזרת מהנתונים (ראה getRegions / DEFAULT_CITIES).
+export type Region = string;
 
 // ----------------------------------------------------------------
 // סטטוסים — מוגדרים כאן, מעברים חוקיים ב-lib/statusMachine.ts

@@ -18,6 +18,10 @@ import { Roles } from "../../common/decorators/roles.decorator";
 import { RolesGuard } from "../../common/guards/roles.guard";
 import { StorageService } from "../../common/storage/storage.service";
 import { resumeUploadOptions } from "../../common/storage/resume-upload.options";
+import {
+  CurrentUser,
+  AuthUser,
+} from "../../common/decorators/current-user.decorator";
 
 @Controller("candidates")
 export class CandidatesController {
@@ -36,10 +40,16 @@ export class CandidatesController {
     return { path };
   }
 
-  /** הגשת מועמדות מהאתר. דורש התחברות (מועמד רשום). */
+  /** הגשת מועמדות מהאתר. דורש התחברות (מועמד רשום) — ההגשה נקשרת למשתמש. */
   @Post()
-  apply(@Body() dto: CreateCandidateDto) {
-    return this.candidatesService.createFromApplication(dto);
+  apply(@CurrentUser() user: AuthUser, @Body() dto: CreateCandidateDto) {
+    return this.candidatesService.createFromApplication(dto, user.userId);
+  }
+
+  /** ההגשות של המשתמש המחובר (לאזור האישי). חייב לבוא לפני ":id". */
+  @Get("me/applications")
+  myApplications(@CurrentUser() user: AuthUser) {
+    return this.candidatesService.getMyApplications(user.userId);
   }
 
   // ---- CRM (צוות) ----

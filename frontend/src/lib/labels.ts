@@ -1,12 +1,14 @@
 // labels — מיפוי ערכי enum לתוויות עברית. מקור אמת אחד לכל הדשבורד.
 import type {
   JobField,
-  Region,
   JobStatus,
   CandidateStatus,
   PlacementStatus,
   CommissionStatus,
 } from "@/types";
+
+// עיר/אזור — טקסט חופשי. הכלים נמצאים ב-constants ומיוצאים מחדש כאן לנוחות.
+export { DEFAULT_CITIES, regionLabel, buildCityOptions } from "./constants";
 
 export const FIELD_LABELS: Record<JobField, string> = {
   logistics: "לוגיסטיקה",
@@ -16,15 +18,6 @@ export const FIELD_LABELS: Record<JobField, string> = {
   tech: "מחשבים",
   finance: "כספים",
   healthcare: "בריאות",
-  other: "אחר",
-};
-
-export const REGION_LABELS: Record<Region, string> = {
-  bnei_brak: "בני ברק",
-  jerusalem: "ירושלים",
-  elad: "אלעד",
-  modiin_ilit: "מודיעין עילית",
-  beitar_ilit: "ביתר עילית",
   other: "אחר",
 };
 

@@ -1,24 +1,25 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
+import { Module } from "@nestjs/common";
+import { ConfigModule } from "@nestjs/config";
+import { APP_GUARD } from "@nestjs/core";
 
-import { AppController } from './app.controller';
-import { PrismaModule } from './prisma/prisma.module';
-import { StorageModule } from './common/storage/storage.module';
-import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { AppController } from "./app.controller";
+import { PrismaModule } from "./prisma/prisma.module";
+import { StorageModule } from "./common/storage/storage.module";
+import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
 
-import { JobsModule } from './modules/jobs/jobs.module';
-import { CandidatesModule } from './modules/candidates/candidates.module';
-import { EmployersModule } from './modules/employers/employers.module';
-import { ApplicationsModule } from './modules/applications/applications.module';
-import { PlacementsModule } from './modules/placements/placements.module';
-import { CommissionsModule } from './modules/commissions/commissions.module';
-import { RemindersModule } from './modules/reminders/reminders.module';
-import { ContactModule } from './modules/contact/contact.module';
-import { AuthModule } from './modules/auth/auth.module';
-import { EmailModule } from './modules/email/email.module';
-import { DashboardModule } from './modules/dashboard/dashboard.module';
-import { MailingModule } from './modules/mailing/mailing.module';
+import { JobsModule } from "./modules/jobs/jobs.module";
+import { CandidatesModule } from "./modules/candidates/candidates.module";
+import { EmployersModule } from "./modules/employers/employers.module";
+import { ApplicationsModule } from "./modules/applications/applications.module";
+import { PlacementsModule } from "./modules/placements/placements.module";
+import { CommissionsModule } from "./modules/commissions/commissions.module";
+import { RemindersModule } from "./modules/reminders/reminders.module";
+import { ContactModule } from "./modules/contact/contact.module";
+import { AuthModule } from "./modules/auth/auth.module";
+import { EmailModule } from "./modules/email/email.module";
+import { DashboardModule } from "./modules/dashboard/dashboard.module";
+import { MailingModule } from "./modules/mailing/mailing.module";
+import { SavedJobsModule } from "./modules/saved-jobs/saved-jobs.module";
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { MailingModule } from './modules/mailing/mailing.module';
     ContactModule,
     DashboardModule,
     MailingModule,
+    SavedJobsModule,
   ],
   controllers: [AppController],
   providers: [

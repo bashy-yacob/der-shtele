@@ -1,15 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { FIELD_LABELS, REGION_LABELS, SITE_CONTENT } from "@/lib/constants";
+import { FIELD_LABELS, buildCityOptions, SITE_CONTENT } from "@/lib/constants";
 import { phoneSchema } from "@/lib/validations";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import { Button, Card, Input } from "@/components/ui";
+import { Button, Card, Input, CityCombobox } from "@/components/ui";
 
 const ALLOWED_CV_TYPES = [
   "application/pdf",
@@ -52,6 +52,17 @@ export default function ApplicationForm({
   const pathname = usePathname();
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cityOptions, setCityOptions] = useState<string[]>(buildCityOptions());
+
+  // רשימת הערים הקיימות (same-origin proxy → לא נחסם ע"י NetFree). נכשל בעדינות.
+  useEffect(() => {
+    fetch("/api/jobs/regions")
+      .then((r) => r.json())
+      .then((j) => {
+        if (Array.isArray(j?.data)) setCityOptions(buildCityOptions(j.data));
+      })
+      .catch(() => undefined);
+  }, []);
   const {
     register,
     handleSubmit,
@@ -211,30 +222,14 @@ export default function ApplicationForm({
           )}
         </div>
 
-        {/* Region */}
-        <div>
-          <label
-            htmlFor="region"
-            className="block text-sm font-semibold text-ink-700 mb-1.5"
-          >
-            אזור מועדף *
-          </label>
-          <select
-            {...register("region")}
-            id="region"
-            className="w-full px-4 py-2.5 border border-sand-300 rounded-xl text-sm bg-white text-ink-900 focus:ring-2 focus:ring-navy-600/30 focus:border-navy-600 focus:outline-none transition-all"
-          >
-            <option value="">בחרו...</option>
-            {Object.entries(REGION_LABELS).map(([val, label]) => (
-              <option key={val} value={val}>
-                {label}
-              </option>
-            ))}
-          </select>
-          {errors.region && (
-            <p className="text-red-600 text-xs mt-1">{errors.region.message}</p>
-          )}
-        </div>
+        {/* Region / City */}
+        <CityCombobox
+          {...register("region")}
+          id="region"
+          label="עיר / אזור מועדף *"
+          options={cityOptions}
+          error={errors.region?.message}
+        />
 
         {/* Notes */}
         <div>

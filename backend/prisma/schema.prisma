@@ -31,14 +31,8 @@ enum JobField {
   other
 }
 
-enum Region {
-  bnei_brak
-  jerusalem
-  elad
-  modiin_ilit
-  beitar_ilit
-  other
-}
+// אזור/עיר — טקסט חופשי (לא enum). מאפשר הוספת ערים חדשות אוטומטית
+// בעת יצירת משרה/מועמד. רשימת הברירה נגזרת מהערכים הקיימים ב-DB.
 
 enum JobStatus {
   active
@@ -94,6 +88,9 @@ model User {
   // קישור לרשומת מועמד ב-CRM (אם זה מועמד)
   candidateId    String?    @unique
   candidate      Candidate? @relation(fields: [candidateId], references: [id])
+
+  // משרות שהמשתמש שמר ללב — להגשה מאוחר יותר
+  savedJobs      SavedJob[]
 
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
@@ -151,7 +148,7 @@ model Job {
   descriptionInternal   String    // דרישות מלאות — פנימי בלבד
 
   field                 JobField
-  region                Region
+  region                String    // עיר/אזור — טקסט חופשי
   scope                 String    // 'מלאה' | 'חלקית' | 'גמיש'
 
   status                JobStatus @default(active)
@@ -160,11 +157,29 @@ model Job {
 
   presentations         JobPresentation[]
   placements            Placement[]
+  savedBy               SavedJob[]
 
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
   @@map("jobs")
+}
+
+// ----------------------------------------------------------------
+// שלב ב — משרות שמורות (מועמד שומר ♡ משרה להגשה מאוחר יותר)
+// ----------------------------------------------------------------
+
+model SavedJob {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId     String
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, jobId]) // משרה נשמרת פעם אחת בלבד לכל משתמש
+  @@map("saved_jobs")
 }
 
 // ----------------------------------------------------------------
@@ -178,7 +193,7 @@ model Candidate {
   email        String
   city         String          @default("")
   field        JobField
-  region       Region
+  region       String          // עיר/אזור — טקסט חופשי
 
   cvUrl        String?         // Supabase Storage URL
   cvUploadedAt DateTime?

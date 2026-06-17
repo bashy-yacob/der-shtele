@@ -1,4 +1,4 @@
-import { getPublicJobs } from "@/lib/api";
+import { getPublicJobs, getRegions } from "@/lib/api";
 import { JobFilters } from "@/components/jobs/JobFilters";
 import { JobList } from "@/components/jobs/JobList";
 import { SectionHeading } from "@/components/ui/SectionHeading";
@@ -35,10 +35,13 @@ export default async function JobsPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const filtered = await getPublicJobs({
-    field: searchParams.field as JobField | undefined,
-    region: searchParams.region as Region | undefined,
-  });
+  const [filtered, regions] = await Promise.all([
+    getPublicJobs({
+      field: searchParams.field as JobField | undefined,
+      region: searchParams.region as Region | undefined,
+    }),
+    getRegions(),
+  ]);
 
   return (
     <div dir="rtl">
@@ -59,7 +62,7 @@ export default async function JobsPage({
           <h2 className="font-display text-ink-900 text-lg font-bold mb-6">
             חיפוש משרה מתאימה
           </h2>
-          <JobFilters current={searchParams} />
+          <JobFilters current={searchParams} regions={regions} />
         </div>
 
         {/* תוצאות */}

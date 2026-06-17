@@ -13,7 +13,7 @@ import {
   PageHeader,
 } from "@/components/admin/Feedback";
 import { Card } from "@/components/ui";
-import { FIELD_LABELS, REGION_LABELS } from "@/lib/labels";
+import { FIELD_LABELS, regionLabel } from "@/lib/labels";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 export default function AdminDashboardPage() {
@@ -87,7 +87,7 @@ export default function AdminDashboardPage() {
                     <div>
                       <p className="font-semibold text-ink-900">{c.fullName}</p>
                       <p className="text-xs text-ink-500">
-                        {FIELD_LABELS[c.field]} · {REGION_LABELS[c.region]}
+                        {FIELD_LABELS[c.field]} · {regionLabel(c.region)}
                       </p>
                       {c.job ? (
                         <p className="text-xs text-olive-700 font-semibold mt-0.5">
@@ -133,7 +133,7 @@ export default function AdminDashboardPage() {
                     <div>
                       <p className="font-semibold text-ink-900">{j.title}</p>
                       <p className="text-xs text-ink-500">
-                        {FIELD_LABELS[j.field]} · {REGION_LABELS[j.region]}
+                        {FIELD_LABELS[j.field]} · {regionLabel(j.region)}
                       </p>
                     </div>
                     <span className="text-xs text-ink-500 whitespace-nowrap">

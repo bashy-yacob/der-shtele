@@ -1,9 +1,10 @@
 import { notFound } from "next/navigation";
 import { getPublicJob } from "@/lib/api";
-import { FIELD_LABELS, REGION_LABELS } from "@/lib/constants";
+import { FIELD_LABELS, regionLabel } from "@/lib/constants";
 import type { Metadata } from "next";
 import Link from "next/link";
 import ApplicationForm from "@/components/forms/ApplicationForm";
+import { SaveJobButton } from "@/components/jobs/SaveJobButton";
 
 interface Props {
   params: { id: string };
@@ -19,7 +20,7 @@ export default async function JobPage({ params }: Props) {
   if (!job) notFound();
 
   // Anonymize company name
-  const companyLabel = `ארגון ב${REGION_LABELS[job.region]}`;
+  const companyLabel = `ארגון ב${regionLabel(job.region)}`;
 
   return (
     <main className="bg-sand-100 min-h-screen">
@@ -52,7 +53,7 @@ export default async function JobPage({ params }: Props) {
               {/* Tags */}
               <div className="flex flex-wrap gap-2">
                 <Tag label="תחום" value={FIELD_LABELS[job.field]} />
-                <Tag label="אזור" value={REGION_LABELS[job.region]} />
+                <Tag label="אזור" value={regionLabel(job.region)} />
                 <Tag label="היקף" value={job.scope} />
               </div>
             </div>
@@ -95,7 +96,8 @@ export default async function JobPage({ params }: Props) {
 
           {/* Application Form - Sticky Sidebar */}
           <section className="md:col-span-1">
-            <div className="md:sticky md:top-4">
+            <div className="md:sticky md:top-4 space-y-4">
+              <SaveJobButton jobId={job.id} variant="full" />
               <ApplicationForm jobId={job.id} jobTitle={job.title} />
             </div>
           </section>

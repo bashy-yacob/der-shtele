@@ -9,6 +9,7 @@ import {
   listCandidates,
   createPresentation,
   updatePresentation,
+  listRegions,
 } from "@/lib/admin-api";
 import type {
   Candidate,
@@ -26,10 +27,18 @@ import {
   EmptyState,
   PageHeader,
 } from "@/components/admin/Feedback";
-import { Card, Button, Input, Select, Textarea } from "@/components/ui";
+import {
+  Card,
+  Button,
+  Input,
+  Select,
+  Textarea,
+  CityCombobox,
+} from "@/components/ui";
 import {
   FIELD_LABELS,
-  REGION_LABELS,
+  regionLabel,
+  buildCityOptions,
   JOB_STATUS_LABELS,
   CANDIDATE_STATUS_LABELS,
   SCOPE_OPTIONS,
@@ -62,7 +71,7 @@ export default function JobDetailPage() {
     <div>
       <PageHeader
         title={job.title}
-        subtitle={`${FIELD_LABELS[job.field]} · ${REGION_LABELS[job.region]} · ${job.scope}`}
+        subtitle={`${FIELD_LABELS[job.field]} · ${regionLabel(job.region)} · ${job.scope}`}
         action={
           <StatusBadge
             status={job.status}
@@ -109,6 +118,15 @@ function EditCard({
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [msg, setMsg] = useState("");
+  const [cityOptions, setCityOptions] = useState<string[]>(
+    buildCityOptions(job.region ? [job.region] : []),
+  );
+
+  useEffect(() => {
+    listRegions()
+      .then((r) => setCityOptions(buildCityOptions([...r, job.region])))
+      .catch(() => undefined);
+  }, [job.region]);
 
   const set = (k: keyof typeof form) => (v: string) =>
     setForm((f) => ({ ...f, [k]: v }));
@@ -148,17 +166,12 @@ function EditCard({
             </option>
           ))}
         </Select>
-        <Select
-          label="אזור"
+        <CityCombobox
+          label="עיר / אזור"
+          options={cityOptions}
           value={form.region}
           onChange={(e) => set("region")(e.target.value)}
-        >
-          {Object.entries(REGION_LABELS).map(([k, v]) => (
-            <option key={k} value={k}>
-              {v}
-            </option>
-          ))}
-        </Select>
+        />
         <Select
           label="היקף"
           value={form.scope}

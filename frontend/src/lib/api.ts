@@ -2,22 +2,24 @@
 // ה-frontend לא ניגש ל-DB ישירות — הכל עובר דרך כאן.
 // בצד שרת משתמשים ב-BACKEND_API_URL; בצד לקוח ב-NEXT_PUBLIC_API_URL.
 
-import type { PublicJob, JobField, Region } from '@/types';
+import type { PublicJob, JobField, Region } from "@/types";
 
 // מוריד סלאש מיותר בסוף הכתובת כדי שלא ייווצר `//api/...`
 const BASE_URL = (
   process.env.BACKEND_API_URL ??
   process.env.NEXT_PUBLIC_API_URL ??
-  'http://localhost:4000'
-).replace(/\/+$/, '');
+  "http://localhost:4000"
+).replace(/\/+$/, "");
 
 /** עוטף את ApiResponse<T> של ה-backend ומחזיר את ה-data. */
 async function unwrap<T>(res: Response): Promise<T> {
-  const json = (await res.json().catch(() => null)) as
-    | { success: boolean; data?: T; error?: string }
-    | null;
+  const json = (await res.json().catch(() => null)) as {
+    success: boolean;
+    data?: T;
+    error?: string;
+  } | null;
   if (!res.ok || !json?.success) {
-    throw new Error(json?.error ?? 'שגיאה בתקשורת עם השרת');
+    throw new Error(json?.error ?? "שגיאה בתקשורת עם השרת");
   }
   return json.data as T;
 }
@@ -56,8 +58,8 @@ export async function getPublicJobs(
   filter: JobsFilter = {},
 ): Promise<PublicJob[]> {
   const params = new URLSearchParams();
-  if (filter.field) params.set('field', filter.field);
-  if (filter.region) params.set('region', filter.region);
+  if (filter.field) params.set("field", filter.field);
+  if (filter.region) params.set("region", filter.region);
 
   try {
     const res = await fetch(`${BASE_URL}/api/jobs?${params.toString()}`, {
@@ -65,6 +67,18 @@ export async function getPublicJobs(
     });
     const raw = await unwrap<RawPublicJob[]>(res);
     return raw.map(toPublicJob);
+  } catch {
+    return [];
+  }
+}
+
+/** רשימת ערים/אזורים קיימים (לרשימות בחירה). נכשל בעדינות — [] אם אין תקשורת. */
+export async function getRegions(): Promise<string[]> {
+  try {
+    const res = await fetch(`${BASE_URL}/api/jobs/regions`, {
+      next: { revalidate: 60 },
+    });
+    return await unwrap<string[]>(res);
   } catch {
     return [];
   }
@@ -87,8 +101,8 @@ export async function submitApplication(
   body: Record<string, unknown>,
 ): Promise<void> {
   const res = await fetch(`${BASE_URL}/api/candidates`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
   await unwrap<unknown>(res);

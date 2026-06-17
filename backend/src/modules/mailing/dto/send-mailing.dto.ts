@@ -1,12 +1,12 @@
-import { Type } from 'class-transformer';
+import { Type } from "class-transformer";
 import {
   IsEnum,
   IsOptional,
   IsString,
   MinLength,
   ValidateNested,
-} from 'class-validator';
-import { CandidateStatus, JobField, Region } from '@prisma/client';
+} from "class-validator";
+import { CandidateStatus, JobField } from "@prisma/client";
 
 /** סינון נמענים לפי שדות המועמד המקושר (אופציונלי). */
 export class MailingFilterDto {
@@ -15,8 +15,8 @@ export class MailingFilterDto {
   field?: JobField;
 
   @IsOptional()
-  @IsEnum(Region)
-  region?: Region;
+  @IsString()
+  region?: string; // עיר/אזור — טקסט חופשי
 
   @IsOptional()
   @IsEnum(CandidateStatus)
