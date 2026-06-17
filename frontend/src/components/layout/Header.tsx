@@ -2,14 +2,8 @@ import Link from "next/link";
 import { SITE_NAME } from "@/lib/constants";
 import { AdminHeaderLink } from "./AdminHeaderLink";
 import { UserMenu } from "./UserMenu";
-
-const NAV_LINKS = [
-  { href: "/", label: "דף הבית" },
-  { href: "/jobs", label: "לוח משרות" },
-  { href: "/employers", label: "למעסיקים" },
-  { href: "/about", label: "אודות" },
-  { href: "/contact", label: "צור קשר" },
-];
+import { MobileMenu } from "./MobileMenu";
+import { NAV_LINKS } from "./nav-links";
 
 export function Header() {
   return (
@@ -44,8 +38,11 @@ export function Header() {
           </nav>
         </div>
 
-        {/* שמאל: אזור המשתמש — כניסה/הרשמה או עיגול פרופיל */}
-        <UserMenu />
+        {/* שמאל: אזור המשתמש + המבורגר במובייל */}
+        <div className="flex items-center gap-2">
+          <UserMenu />
+          <MobileMenu links={NAV_LINKS} />
+        </div>
       </div>
     </header>
   );
