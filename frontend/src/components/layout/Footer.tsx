@@ -53,8 +53,19 @@ export function Footer() {
       </div>
 
       <div className="border-t border-navy-700">
-        <div className="max-w-5xl mx-auto px-4 py-5 text-sand-400 text-xs">
-          © {new Date().getFullYear()} {SITE_NAME}. כל הזכויות שמורות.
+        <div className="max-w-5xl mx-auto px-4 py-5 text-sand-400 text-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <span>
+            © {new Date().getFullYear()} {SITE_NAME}. כל הזכויות שמורות.
+          </span>
+          <span>
+            האתר נבנה על ידי Bashy Klein ·{" "}
+            <a
+              href="mailto:bashy3309@gmail.com"
+              className="text-sand-300 hover:text-olive-300 transition-colors"
+            >
+              bashy3309@gmail.com
+            </a>
+          </span>
         </div>
       </div>
     </footer>
