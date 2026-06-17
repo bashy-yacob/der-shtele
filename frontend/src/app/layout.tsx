@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Heebo, Frank_Ruhl_Libre } from "next/font/google";
 import "@/styles/globals.css";
+import { ConstructionBanner } from "@/components/layout/ConstructionBanner";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { GlobalReminderAlert } from "@/components/admin/GlobalReminderAlert";
@@ -45,6 +46,7 @@ export default function RootLayout({
     >
       <body className="flex flex-col min-h-screen font-sans">
         <AuthProvider>
+          <ConstructionBanner />
           <Header />
           <GlobalReminderAlert />
           <main className="flex-1">{children}</main>
