@@ -18,9 +18,6 @@ export function GlobalReminderAlert() {
 
   if (!authorized || due.length === 0) return null;
 
-  return (
-    <div className="max-w-5xl mx-auto px-4 pt-4" dir="rtl">
-      <DueRemindersBanner due={due} onChanged={refresh} />
-    </div>
-  );
+  // הכרטיס ממקם את עצמו (fixed bottom-left) — אין צורך ב-wrapper שתופס מקום.
+  return <DueRemindersBanner due={due} onChanged={refresh} />;
 }
