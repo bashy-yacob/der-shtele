@@ -58,7 +58,7 @@ export const SITE_SUBTITLE =
 // ---- פרטי קשר של הסוכנות ----
 export const CONTACT_INFO = {
   phone: "050-000-0000",
-  email: "info@dershtele.co.il",
+  email: "dershtele@gmail.com",
   hours: "א׳–ה׳: 09:00–18:00 · ערב שישי: 09:00–12:00",
   note: "אין מענה בשבת ויום טוב",
 } as const;
