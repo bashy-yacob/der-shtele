@@ -5,7 +5,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useDueReminders } from "@/hooks/useDueReminders";
-import { DueRemindersBanner } from "@/components/admin/DueRemindersBanner";
 import { cn } from "@/lib/utils";
 
 // ניווט הדשבורד — לפי סעיף 7 באיפיון.
@@ -31,7 +30,8 @@ export default function AdminLayout({
   const pathname = usePathname();
 
   const authorized = !!user && ADMIN_ROLES.includes(user.role);
-  const { due, dueCount, refresh } = useDueReminders(authorized);
+  // המונה לתג בניווט; הבאנר עצמו גלובלי (ב-RootLayout) ומופיע בכל עמוד.
+  const { dueCount } = useDueReminders(authorized);
 
   // שער כניסה — רק צוות פנימי (staff/admin). אחרים מנותבים.
   useEffect(() => {
@@ -102,10 +102,7 @@ export default function AdminLayout({
             </nav>
           </div>
         </aside>
-        <section className="md:col-span-4 min-w-0">
-          <DueRemindersBanner due={due} onChanged={refresh} />
-          {children}
-        </section>
+        <section className="md:col-span-4 min-w-0">{children}</section>
       </div>
     </main>
   );

@@ -59,15 +59,6 @@ export default function RemindersPage() {
     }
   };
 
-  const markDone = async (id: string) => {
-    try {
-      await updateReminder(id, { done: true });
-      reload();
-    } catch (e) {
-      setError((e as Error).message);
-    }
-  };
-
   const toggleDone = () => {
     const next = !includeDone;
     setIncludeDone(next);
@@ -113,46 +104,151 @@ export default function RemindersPage() {
         <EmptyState message="אין תזכורות להצגה" />
       ) : (
         <div className="space-y-2">
-          {reminders.map((r) => {
-            const overdue = !r.done && new Date(r.remindAt) < new Date();
-            return (
-              <Card
-                key={r.id}
-                className="flex items-center justify-between gap-3 py-3"
-              >
-                <div>
-                  <p
-                    className={`text-sm ${r.done ? "text-ink-400 line-through" : "text-ink-900"}`}
-                  >
-                    {r.message}
-                  </p>
-                  <p className="text-xs text-ink-400">
-                    {formatDateTime(r.remindAt)} · {r.createdBy}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  {r.done ? (
-                    <StatusBadge status="completed" label="טופל" />
-                  ) : (
-                    <>
-                      {overdue && (
-                        <StatusBadge status="cancelled" label="באיחור" />
-                      )}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => markDone(r.id)}
-                      >
-                        סמן כטופל
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </Card>
-            );
-          })}
+          {reminders.map((r) => (
+            <ReminderRow
+              key={r.id}
+              r={r}
+              onChanged={reload}
+              onError={setError}
+            />
+          ))}
         </div>
       )}
     </div>
+  );
+}
+
+/** ממיר ISO לפורמט שדה datetime-local (זמן מקומי, YYYY-MM-DDTHH:mm). */
+function toLocalInput(iso: string): string {
+  const d = new Date(iso);
+  const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
+}
+
+/** שורת תזכורת — תצוגה + מצב עריכה (תוכן ומועד). */
+function ReminderRow({
+  r,
+  onChanged,
+  onError,
+}: {
+  r: Reminder;
+  onChanged: () => void;
+  onError: (msg: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [message, setMessage] = useState(r.message);
+  const [remindAt, setRemindAt] = useState(toLocalInput(r.remindAt));
+  const [busy, setBusy] = useState(false);
+
+  const overdue = !r.done && new Date(r.remindAt) < new Date();
+
+  const startEdit = () => {
+    setMessage(r.message);
+    setRemindAt(toLocalInput(r.remindAt));
+    setEditing(true);
+  };
+
+  const save = async () => {
+    if (message.trim().length < 2 || !remindAt) {
+      onError("יש למלא תוכן תזכורת ומועד");
+      return;
+    }
+    setBusy(true);
+    onError("");
+    try {
+      await updateReminder(r.id, {
+        message,
+        remindAt: new Date(remindAt).toISOString(),
+      });
+      setEditing(false);
+      onChanged();
+    } catch (e) {
+      onError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const markDone = async () => {
+    setBusy(true);
+    try {
+      await updateReminder(r.id, { done: true });
+      onChanged();
+    } catch (e) {
+      onError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (editing) {
+    return (
+      <Card className="space-y-3 py-3">
+        <Input
+          label="תוכן"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+        />
+        <Input
+          type="datetime-local"
+          label="מועד התזכורת"
+          value={remindAt}
+          onChange={(e) => setRemindAt(e.target.value)}
+        />
+        <div className="flex gap-2">
+          <Button size="sm" onClick={save} disabled={busy}>
+            {busy ? "שומר..." : "שמירה"}
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setEditing(false)}
+            disabled={busy}
+          >
+            ביטול
+          </Button>
+        </div>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="flex items-center justify-between gap-3 py-3">
+      <div>
+        <p
+          className={`text-sm ${r.done ? "text-ink-400 line-through" : "text-ink-900"}`}
+        >
+          {r.message}
+        </p>
+        <p className="text-xs text-ink-400">
+          {formatDateTime(r.remindAt)} · {r.createdBy}
+        </p>
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        {r.done ? (
+          <StatusBadge status="completed" label="טופל" />
+        ) : (
+          <>
+            {overdue && <StatusBadge status="cancelled" label="באיחור" />}
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={startEdit}
+              disabled={busy}
+            >
+              עריכה
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={markDone}
+              disabled={busy}
+            >
+              סמן כטופל
+            </Button>
+          </>
+        )}
+      </div>
+    </Card>
   );
 }
