@@ -74,6 +74,15 @@ export const updateCandidate = (
 ) => adminFetch<Candidate>(`candidates/${id}`, { method: "PATCH", body });
 export const getCandidateResume = (id: string) =>
   adminFetch<{ url: string }>(`candidates/${id}/resume`);
+/** סימון מועמד כגויס — יוצר גיוס + עמלה ומחזיר את המועמד המעודכן. */
+export const hireCandidate = (
+  id: string,
+  body: { jobId: string; commissionAmount: number },
+) =>
+  adminFetch<CandidateDetail>(`candidates/${id}/hire`, {
+    method: "POST",
+    body,
+  });
 export const addCallLog = (
   id: string,
   body: { staffName: string; summary: string; followUpAt?: string },

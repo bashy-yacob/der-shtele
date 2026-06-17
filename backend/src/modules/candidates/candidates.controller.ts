@@ -14,6 +14,7 @@ import { CandidatesService } from "./candidates.service";
 import { CreateCandidateDto } from "./dto/create-candidate.dto";
 import { UpdateCandidateDto } from "./dto/update-candidate.dto";
 import { CreateCallLogDto } from "./dto/create-call-log.dto";
+import { HireCandidateDto } from "./dto/hire-candidate.dto";
 import { Roles } from "../../common/decorators/roles.decorator";
 import { RolesGuard } from "../../common/guards/roles.guard";
 import { StorageService } from "../../common/storage/storage.service";
@@ -88,5 +89,17 @@ export class CandidatesController {
   @Roles("staff", "admin")
   update(@Param("id") id: string, @Body() dto: UpdateCandidateDto) {
     return this.candidatesService.update(id, dto);
+  }
+
+  /** סימון מועמד כגויס — יוצר גיוס + עמלה ומתחיל את לוג הפעולות. */
+  @Post(":id/hire")
+  @UseGuards(RolesGuard)
+  @Roles("staff", "admin")
+  hire(
+    @Param("id") id: string,
+    @Body() dto: HireCandidateDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.candidatesService.markHired(id, dto, user.fullName);
   }
 }

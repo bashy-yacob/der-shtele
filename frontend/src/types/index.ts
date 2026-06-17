@@ -153,6 +153,28 @@ export interface JobPresentation {
 // שלב ג — עמלות ותזכורות
 // ----------------------------------------------------------------
 
+/** סוג פעולה בלוג הגיוס — מקביל ל-PlacementEventType ב-Prisma */
+export type PlacementEventType =
+  | "created" // הגיוס נוצר
+  | "confirmed" // הגיוס אושר
+  | "guarantee" // נכנס לתקופת ערבות
+  | "completed" // הגיוס הושלם
+  | "cancelled" // הגיוס בוטל
+  | "commission_invoiced" // נשלחה חשבונית
+  | "commission_paid" // העמלה שולמה
+  | "commission_refunded" // החזר חלקי
+  | "amount_updated"; // סכום העמלה עודכן
+
+/** רשומת לוג — פעולה אחת בהיסטוריית הגיוס */
+export interface PlacementEvent {
+  id: string;
+  placementId: string;
+  type: PlacementEventType;
+  note: string | null;
+  createdBy: string | null; // שם הנציג שביצע
+  createdAt: string; // ISO date string
+}
+
 /** גיוס מוצלח */
 export interface Placement {
   id: string;
@@ -168,6 +190,7 @@ export interface Placement {
   commissionAmount: number | null; // בשקלים
   commissionStatus: CommissionStatus;
   notes: string | null;
+  events?: PlacementEvent[]; // לוג פעולות (היסטוריה מלאה)
 }
 
 /** תזכורת לצוות */

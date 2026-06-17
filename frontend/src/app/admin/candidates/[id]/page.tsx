@@ -8,10 +8,12 @@ import {
   updateCandidate,
   getCandidateResume,
   addCallLog,
+  hireCandidate,
 } from "@/lib/admin-api";
 import type { CandidateDetail, CandidateStatus } from "@/types";
 import { useAuth } from "@/hooks/useAuth";
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { PlacementTimeline } from "@/components/admin/PlacementTimeline";
 import {
   Loading,
   ErrorNote,
@@ -24,9 +26,11 @@ import {
   FIELD_LABELS,
   regionLabel,
   CANDIDATE_STATUS_LABELS,
+  PLACEMENT_STATUS_LABELS,
+  COMMISSION_STATUS_LABELS,
 } from "@/lib/labels";
 import { CANDIDATE_TRANSITIONS } from "@/lib/status-machine";
-import { formatDate, formatDateTime } from "@/lib/utils";
+import { formatDate, formatDateTime, formatCurrency } from "@/lib/utils";
 
 export default function CandidateDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -94,6 +98,7 @@ export default function CandidateDetailPage() {
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <DetailsCard c={c} onChanged={reload} />
+          {c.placements.length > 0 && <PlacementsCard c={c} />}
           <CallLogCard
             c={c}
             staffName={user?.fullName || user?.email || "צוות"}
@@ -144,6 +149,7 @@ function DetailsCard({
   const [notes, setNotes] = useState(c.notes ?? "");
   const [busy, setBusy] = useState(false);
   const [savingNotes, setSavingNotes] = useState(false);
+  const [hiring, setHiring] = useState(false);
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
 
@@ -200,18 +206,42 @@ function DetailsCard({
         </p>
       ) : (
         <div className="flex flex-wrap gap-2">
-          {nextStatuses.map((s) => (
-            <Button
-              key={s}
-              size="sm"
-              variant={actionVariant(s)}
-              onClick={() => changeStatus(s)}
-              disabled={busy}
-            >
-              {actionLabel(c.status, s)}
-            </Button>
-          ))}
+          {nextStatuses.map((s) =>
+            s === "hired" ? (
+              // גיוס דורש בחירת משרה + סכום עמלה — נפתח טופס במקום שינוי מיידי
+              <Button
+                key={s}
+                size="sm"
+                variant={actionVariant(s)}
+                onClick={() => setHiring((v) => !v)}
+                disabled={busy}
+              >
+                {actionLabel(c.status, s)}
+              </Button>
+            ) : (
+              <Button
+                key={s}
+                size="sm"
+                variant={actionVariant(s)}
+                onClick={() => changeStatus(s)}
+                disabled={busy}
+              >
+                {actionLabel(c.status, s)}
+              </Button>
+            ),
+          )}
         </div>
+      )}
+
+      {hiring && (
+        <HireForm
+          c={c}
+          onCancel={() => setHiring(false)}
+          onDone={() => {
+            setHiring(false);
+            onChanged();
+          }}
+        />
       )}
 
       {err && <ErrorNote message={err} />}
@@ -409,6 +439,151 @@ function RelatedCard({ c }: { c: CandidateDetail }) {
           ))}
         </ul>
       )}
+    </Card>
+  );
+}
+
+// ---- טופס גיוס — בחירת משרה + סכום עמלה, יוצר Placement ומתחיל מעקב ----
+function HireForm({
+  c,
+  onCancel,
+  onDone,
+}: {
+  c: CandidateDetail;
+  onCancel: () => void;
+  onDone: () => void;
+}) {
+  const options = c.presentations;
+  const [jobId, setJobId] = useState(
+    options.length === 1 ? options[0].jobId : "",
+  );
+  const [amount, setAmount] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+
+  if (options.length === 0) {
+    return (
+      <div className="rounded-xl bg-sand-100 border border-sand-200 px-4 py-3 text-sm text-ink-600">
+        כדי לגייס יש להציג את המועמד למשרה תחילה (אין משרה משויכת).
+        <div className="mt-2">
+          <Button size="sm" variant="ghost" onClick={onCancel}>
+            סגירה
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const submit = async () => {
+    setErr("");
+    if (!jobId) {
+      setErr("יש לבחור משרה");
+      return;
+    }
+    const value = Number(amount);
+    if (!amount || isNaN(value) || value <= 0) {
+      setErr("יש להזין סכום עמלה (₪) — נדרש כדי לעקוב אחר הגבייה");
+      return;
+    }
+    setBusy(true);
+    try {
+      await hireCandidate(c.id, { jobId, commissionAmount: value });
+      onDone();
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="rounded-xl bg-olive-50 border border-olive-300 p-4 space-y-3">
+      <p className="text-sm font-semibold text-olive-700">
+        רישום גיוס — מתחיל מעקב עמלה + תקופת ערבות (3 חודשים)
+      </p>
+
+      <div>
+        <label className="block text-sm text-ink-700 mb-1">משרה</label>
+        <select
+          value={jobId}
+          onChange={(e) => setJobId(e.target.value)}
+          className="w-full rounded-lg border border-sand-300 bg-white px-3 py-2 text-sm text-ink-900 focus:outline-none focus:ring-2 focus:ring-olive-300"
+        >
+          <option value="">— בחירת משרה —</option>
+          {options.map((p) => (
+            <option key={p.id} value={p.jobId}>
+              {p.job?.title ?? "משרה"}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <Input
+        type="number"
+        min={0}
+        label="סכום עמלה (₪)"
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+        placeholder="לדוגמה: 8000"
+      />
+
+      {err && <ErrorNote message={err} />}
+
+      <div className="flex gap-2">
+        <Button size="sm" variant="secondary" onClick={submit} disabled={busy}>
+          {busy ? "מבצע גיוס..." : "אישור גיוס"}
+        </Button>
+        <Button size="sm" variant="ghost" onClick={onCancel} disabled={busy}>
+          ביטול
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// ---- גיוסים של המועמד — סטטוס + לוג פעולות מלא לכל גיוס ----
+function PlacementsCard({ c }: { c: CandidateDetail }) {
+  return (
+    <Card className="space-y-4">
+      <h2 className="text-lg font-display text-ink-900">גיוסים ועמלות</h2>
+      {c.placements.map((p) => (
+        <div
+          key={p.id}
+          className="rounded-xl border border-sand-200 p-4 space-y-3"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="font-semibold text-ink-900">
+                {p.job?.title ?? "משרה"}
+              </p>
+              <p className="text-xs text-ink-400">
+                {p.employer?.companyName ?? "—"} · גויס{" "}
+                {formatDate(p.placedAt)}
+              </p>
+            </div>
+            <div className="text-end shrink-0">
+              <p className="font-semibold text-ink-900">
+                {p.commissionAmount
+                  ? formatCurrency(p.commissionAmount)
+                  : "—"}
+              </p>
+              <div className="flex gap-1 justify-end mt-1">
+                <StatusBadge
+                  status={p.status}
+                  label={PLACEMENT_STATUS_LABELS[p.status]}
+                />
+                <StatusBadge
+                  status={p.commissionStatus}
+                  label={COMMISSION_STATUS_LABELS[p.commissionStatus]}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="pt-2 border-t border-sand-100">
+            <PlacementTimeline p={p} />
+          </div>
+        </div>
+      ))}
     </Card>
   );
 }

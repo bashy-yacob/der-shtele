@@ -26,6 +26,19 @@ export function formatDateTime(date: string | Date): string {
   });
 }
 
+/**
+ * מספר הימים השלמים מהיום עד תאריך נתון (שלילי אם התאריך עבר).
+ * מנורמל לחצות כדי לספור ימים שלמים ולא שעות.
+ */
+export function daysUntil(date: string | Date): number {
+  const MS_PER_DAY = 1000 * 60 * 60 * 24;
+  const target = new Date(date);
+  const now = new Date();
+  const a = Date.UTC(target.getFullYear(), target.getMonth(), target.getDate());
+  const b = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.round((a - b) / MS_PER_DAY);
+}
+
 /** סכום בשקלים (₪). */
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('he-IL', {

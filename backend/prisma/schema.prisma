@@ -64,6 +64,19 @@ enum CommissionStatus {
   partial_refund
 }
 
+// סוגי פעולות בלוג הגיוס (placement_events) — היסטוריה מלאה לכל גיוס
+enum PlacementEventType {
+  created             // הגיוס נוצר (סימון "גויס")
+  confirmed           // הגיוס אושר
+  guarantee           // נכנס לתקופת ערבות
+  completed           // הגיוס הושלם (ערבות עברה)
+  cancelled           // הגיוס בוטל
+  commission_invoiced // נשלחה חשבונית
+  commission_paid     // העמלה שולמה
+  commission_refunded // החזר חלקי למעסיק
+  amount_updated      // סכום העמלה עודכן
+}
+
 enum UserRole {
   candidate    // מועמד — אזור אישי
   staff        // נציג צוות — CRM
@@ -271,10 +284,33 @@ model Placement {
 
   notes            String?
 
+  events           PlacementEvent[]
+
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
 
   @@map("placements")
+}
+
+// ----------------------------------------------------------------
+// שלב ג — לוג פעולות לגיוס (היסטוריה אמיתית עם חותמת זמן)
+// כל פעולה על גיוס/עמלה נרשמת כאן — כדי שהצוות יראה את כל השרשרת
+// ולא "תקפוץ" עמלה פתאום אחרי תקופה.
+// ----------------------------------------------------------------
+
+model PlacementEvent {
+  id          String             @id @default(cuid())
+  placementId String
+  placement   Placement          @relation(fields: [placementId], references: [id], onDelete: Cascade)
+
+  type        PlacementEventType
+  note        String?            // פירוט אנושי (סכום, מעבר סטטוס)
+  createdBy   String?            // שם הנציג שביצע
+
+  createdAt   DateTime           @default(now())
+
+  @@index([placementId])
+  @@map("placement_events")
 }
 
 // ----------------------------------------------------------------

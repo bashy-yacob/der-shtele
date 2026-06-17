@@ -1,11 +1,17 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
 import { EmailService } from "../email/email.service";
 import { StorageService } from "../../common/storage/storage.service";
 import { CreateCandidateDto } from "./dto/create-candidate.dto";
 import { UpdateCandidateDto } from "./dto/update-candidate.dto";
 import { CreateCallLogDto } from "./dto/create-call-log.dto";
+import { HireCandidateDto } from "./dto/hire-candidate.dto";
 import { assertCandidateTransition } from "../../common/status-machine/status-machine";
+import { calcGuaranteeEnd } from "../../common/commission/commission";
 import { escapeHtml } from "../../common/util/escape-html";
 
 @Injectable()
@@ -126,6 +132,7 @@ export class CandidatesService {
           include: {
             job: { select: { id: true, title: true } },
             employer: { select: { id: true, companyName: true } },
+            events: { orderBy: { createdAt: "asc" } },
           },
         },
       },
@@ -156,9 +163,90 @@ export class CandidatesService {
   async update(id: string, dto: UpdateCandidateDto) {
     const candidate = await this.findOne(id);
     if (dto.status && dto.status !== candidate.status) {
+      // גיוס לא מתבצע כאן — הוא דורש יצירת Placement (משרה + סכום עמלה).
+      // לכן המעבר ל-hired נחסם בעדכון רגיל ומופנה ל-markHired.
+      if (dto.status === "hired") {
+        throw new BadRequestException(
+          'סימון כגויס מתבצע דרך פעולת "סמן כגויס" (בחירת משרה + סכום עמלה), לא דרך עדכון סטטוס',
+        );
+      }
       assertCandidateTransition(candidate.status, dto.status);
     }
     return this.prisma.candidate.update({ where: { id }, data: dto });
+  }
+
+  /**
+   * סימון מועמד כגויס — פעולה אטומית אחת שעושה הכל:
+   * 1. יוצרת רשומת Placement בסטטוס confirmed (שעון הערבות + העמלה מתחיל מיד).
+   * 2. מעדכנת את סטטוס המועמד ל-hired.
+   * 3. מעדכנת את ההצגה למשרה (JobPresentation) ל-hired.
+   * כך הגיוס מופיע מיידית בעמוד העמלות עם ספירה לאחור — בלי "קפיצה פתאומית".
+   */
+  async markHired(id: string, dto: HireCandidateDto, createdBy?: string) {
+    const candidate = await this.findOne(id);
+    assertCandidateTransition(candidate.status, "hired");
+
+    // המשרה חייבת להיות אחת מהמשרות שהמועמד הוצג אליהן
+    const presentation = candidate.presentations.find(
+      (p) => p.jobId === dto.jobId,
+    );
+    if (!presentation) {
+      throw new BadRequestException(
+        "יש לבחור משרה מבין המשרות שהמועמד הוצג אליהן",
+      );
+    }
+
+    const job = await this.prisma.job.findUnique({
+      where: { id: dto.jobId },
+      select: { id: true, employerId: true },
+    });
+    if (!job) throw new NotFoundException("המשרה לא נמצאה");
+
+    // מניעת כפילות — גיוס פעיל (שלא בוטל) כבר קיים לאותה משרה+מועמד
+    const existing = await this.prisma.placement.findFirst({
+      where: {
+        candidateId: id,
+        jobId: dto.jobId,
+        status: { not: "cancelled" },
+      },
+    });
+    if (existing) {
+      throw new BadRequestException(
+        "כבר קיים גיוס פעיל למשרה זו עבור מועמד זה",
+      );
+    }
+
+    const placedAt = new Date();
+    const amountLabel = dto.commissionAmount.toLocaleString("he-IL");
+    await this.prisma.$transaction(async (tx) => {
+      const placement = await tx.placement.create({
+        data: {
+          jobId: dto.jobId,
+          candidateId: id,
+          employerId: job.employerId,
+          commissionAmount: dto.commissionAmount,
+          placedAt,
+          guaranteeEndsAt: calcGuaranteeEnd(placedAt),
+          status: "confirmed", // גיוס אושר — מתחיל מעקב עמלה + ערבות מיד
+        },
+      });
+      // לוג פעולה ראשון — תחילת שרשרת ההיסטוריה של הגיוס
+      await tx.placementEvent.create({
+        data: {
+          placementId: placement.id,
+          type: "created",
+          note: `גיוס נוצר ואושר · עמלה ₪${amountLabel}`,
+          createdBy,
+        },
+      });
+      await tx.candidate.update({ where: { id }, data: { status: "hired" } });
+      await tx.jobPresentation.update({
+        where: { id: presentation.id },
+        data: { status: "hired" },
+      });
+    });
+
+    return this.findOne(id);
   }
 
   /** signed URL זמני לצפייה בקו"ח (צוות בלבד). */

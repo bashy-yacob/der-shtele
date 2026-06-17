@@ -1,7 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { UpdateCommissionDto } from './dto/update-commission.dto';
-import { isCommissionDue } from '../../common/commission/commission';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { CommissionStatus, PlacementEventType } from "@prisma/client";
+import { PrismaService } from "../../prisma/prisma.service";
+import { UpdateCommissionDto } from "./dto/update-commission.dto";
+import { isCommissionDue } from "../../common/commission/commission";
+
+// מיפוי סטטוס עמלה → סוג אירוע בלוג
+const COMMISSION_EVENT: Record<CommissionStatus, PlacementEventType | null> = {
+  pending: null,
+  invoiced: PlacementEventType.commission_invoiced,
+  paid: PlacementEventType.commission_paid,
+  partial_refund: PlacementEventType.commission_refunded,
+};
 
 /**
  * עמלות — נשמרות על מודל Placement (commissionAmount, commissionStatus).
@@ -16,7 +25,7 @@ export class CommissionsService {
     return this.prisma.placement.findMany({
       where: { commissionAmount: { not: null } },
       select: this.select,
-      orderBy: { placedAt: 'desc' },
+      orderBy: { placedAt: "desc" },
     });
   }
 
@@ -41,14 +50,25 @@ export class CommissionsService {
     return { count: due.length, pendingTotal };
   }
 
-  async updateStatus(placementId: string, dto: UpdateCommissionDto) {
+  async updateStatus(
+    placementId: string,
+    dto: UpdateCommissionDto,
+    createdBy?: string,
+  ) {
     const placement = await this.prisma.placement.findUnique({
       where: { id: placementId },
     });
-    if (!placement) throw new NotFoundException('גיוס לא נמצא');
+    if (!placement) throw new NotFoundException("גיוס לא נמצא");
+
+    const changed = dto.status !== placement.commissionStatus;
+    const evt = changed ? COMMISSION_EVENT[dto.status] : null;
+
     return this.prisma.placement.update({
       where: { id: placementId },
-      data: { commissionStatus: dto.status },
+      data: {
+        commissionStatus: dto.status,
+        ...(evt ? { events: { create: { type: evt, createdBy } } } : {}),
+      },
       select: this.select,
     });
   }
@@ -62,5 +82,6 @@ export class CommissionsService {
     guaranteeEndsAt: true,
     job: { select: { id: true, title: true } },
     employer: { select: { id: true, companyName: true } },
+    events: { orderBy: { createdAt: "asc" as const } },
   };
 }

@@ -5,6 +5,7 @@ import type {
   CandidateStatus,
   PlacementStatus,
   CommissionStatus,
+  PlacementEventType,
 } from "@/types";
 
 // עיר/אזור — טקסט חופשי. הכלים נמצאים ב-constants ומיוצאים מחדש כאן לנוחות.
@@ -49,6 +50,19 @@ export const COMMISSION_STATUS_LABELS: Record<CommissionStatus, string> = {
   invoiced: "חשבונית נשלחה",
   paid: "שולם",
   partial_refund: "החזר חלקי",
+};
+
+/** תוויות פעולות בלוג הגיוס — שורה אחת לכל אירוע בהיסטוריה. */
+export const PLACEMENT_EVENT_LABELS: Record<PlacementEventType, string> = {
+  created: "גויס ואושר",
+  confirmed: "הגיוס אושר",
+  guarantee: "נכנס לתקופת ערבות",
+  completed: "הגיוס הושלם",
+  cancelled: "הגיוס בוטל",
+  commission_invoiced: "נשלחה חשבונית",
+  commission_paid: "העמלה שולמה",
+  commission_refunded: "החזר חלקי למעסיק",
+  amount_updated: "סכום העמלה עודכן",
 };
 
 export const SCOPE_OPTIONS = ["מלאה", "חלקית", "גמיש"] as const;

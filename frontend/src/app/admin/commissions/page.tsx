@@ -1,16 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import Link from "next/link";
 import {
   listCommissions,
   getCommissionsSummary,
   updateCommissionStatus,
+  updatePlacement,
   createReminder,
 } from "@/lib/admin-api";
 import type { CommissionStatus, Placement } from "@/types";
 import { useAuth } from "@/hooks/useAuth";
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { PlacementTimeline } from "@/components/admin/PlacementTimeline";
 import { StatCard } from "@/components/admin/StatCard";
 import {
   Loading,
@@ -19,12 +21,12 @@ import {
   EmptyState,
   PageHeader,
 } from "@/components/admin/Feedback";
-import { Card, Button } from "@/components/ui";
+import { Card, Button, Input } from "@/components/ui";
 import {
   COMMISSION_STATUS_LABELS,
   PLACEMENT_STATUS_LABELS,
 } from "@/lib/labels";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency, formatDate, daysUntil } from "@/lib/utils";
 import { isCommissionDue, isCollectibleNow } from "@/lib/commission";
 
 export default function CommissionsPage() {
@@ -37,6 +39,11 @@ export default function CommissionsPage() {
   const [error, setError] = useState("");
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState<string | null>(null);
+  // עריכת סכום עמלה inline — id הגיוס שנערך + הערך הנוכחי בשדה
+  const [editing, setEditing] = useState<string | null>(null);
+  const [amountDraft, setAmountDraft] = useState("");
+  const [savingAmount, setSavingAmount] = useState(false);
 
   const reload = () =>
     Promise.all([listCommissions(), getCommissionsSummary()])
@@ -60,6 +67,34 @@ export default function CommissionsPage() {
       reload();
     } catch (e) {
       setError((e as Error).message);
+    }
+  };
+
+  const startEdit = (p: Placement) => {
+    setError("");
+    setMsg("");
+    setEditing(p.id);
+    setAmountDraft(p.commissionAmount ? String(p.commissionAmount) : "");
+  };
+
+  const saveAmount = async (id: string) => {
+    setError("");
+    setMsg("");
+    const value = Number(amountDraft);
+    if (!amountDraft || isNaN(value) || value <= 0) {
+      setError("יש להזין סכום עמלה תקין (₪)");
+      return;
+    }
+    setSavingAmount(true);
+    try {
+      await updatePlacement(id, { commissionAmount: value });
+      setMsg("סכום העמלה עודכן");
+      setEditing(null);
+      reload();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setSavingAmount(false);
     }
   };
 
@@ -134,86 +169,163 @@ export default function CommissionsPage() {
                   p.commissionStatus,
                   p.guaranteeEndsAt,
                 );
+                const settled =
+                  p.commissionStatus === "paid" ||
+                  p.commissionStatus === "partial_refund";
+                const days = daysUntil(p.guaranteeEndsAt);
+                const approaching =
+                  !settled && !collectible && days > 0 && days <= 7;
+                const isOpen = expanded === p.id;
                 return (
-                  <tr key={p.id} className="hover:bg-sand-50">
-                    <td className="px-4 py-3">
-                      <p className="font-semibold text-ink-900">
-                        {p.job?.title ?? "—"}
-                      </p>
-                      <p className="text-xs text-ink-400">
-                        {p.employer?.companyName ?? "—"}
-                      </p>
-                    </td>
-                    <td className="px-4 py-3 font-semibold text-ink-900 whitespace-nowrap">
-                      {p.commissionAmount
-                        ? formatCurrency(p.commissionAmount)
-                        : "—"}
-                    </td>
-                    <td className="px-4 py-3">
-                      <StatusBadge
-                        status={p.status}
-                        label={PLACEMENT_STATUS_LABELS[p.status]}
-                      />
-                    </td>
-                    <td className="px-4 py-3">
-                      <StatusBadge
-                        status={p.commissionStatus}
-                        label={COMMISSION_STATUS_LABELS[p.commissionStatus]}
-                      />
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span
-                        className={
-                          collectible
-                            ? "text-olive-700 font-bold"
-                            : "text-ink-400"
-                        }
-                      >
-                        {formatDate(p.guaranteeEndsAt)}
-                      </span>
-                      {collectible && (
-                        <span className="block text-xs text-olive-700">
-                          ניתן לגבות
+                  <Fragment key={p.id}>
+                    <tr className="hover:bg-sand-50">
+                      <td className="px-4 py-3">
+                        <p className="font-semibold text-ink-900">
+                          {p.job?.title ?? "—"}
+                        </p>
+                        <p className="text-xs text-ink-400">
+                          {p.employer?.companyName ?? "—"} · גויס{" "}
+                          {formatDate(p.placedAt)}
+                        </p>
+                      </td>
+                      <td className="px-4 py-3 font-semibold text-ink-900 whitespace-nowrap">
+                        {editing === p.id ? (
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-28">
+                              <Input
+                                type="number"
+                                min={0}
+                                value={amountDraft}
+                                onChange={(e) => setAmountDraft(e.target.value)}
+                                placeholder="₪"
+                              />
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => saveAmount(p.id)}
+                              disabled={savingAmount}
+                            >
+                              שמירה
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setEditing(null)}
+                              disabled={savingAmount}
+                            >
+                              ביטול
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <span>
+                              {p.commissionAmount
+                                ? formatCurrency(p.commissionAmount)
+                                : "—"}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => startEdit(p)}
+                              className="text-xs text-navy-600 hover:underline font-normal"
+                            >
+                              עריכה
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <StatusBadge
+                          status={p.status}
+                          label={PLACEMENT_STATUS_LABELS[p.status]}
+                        />
+                      </td>
+                      <td className="px-4 py-3">
+                        <StatusBadge
+                          status={p.commissionStatus}
+                          label={COMMISSION_STATUS_LABELS[p.commissionStatus]}
+                        />
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span
+                          className={
+                            collectible
+                              ? "text-olive-700 font-bold"
+                              : approaching
+                                ? "text-amber-700 font-semibold"
+                                : "text-ink-500"
+                          }
+                        >
+                          {formatDate(p.guaranteeEndsAt)}
                         </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-1.5">
-                        <Link href={`/admin/commissions/${p.id}/invoice`}>
-                          <Button size="sm" variant="ghost">
-                            חשבונית
-                          </Button>
-                        </Link>
-                        {due && p.commissionStatus === "pending" && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setStatus(p.id, "invoiced")}
+                        {collectible ? (
+                          <span className="block text-xs text-olive-700">
+                            ניתן לגבות
+                          </span>
+                        ) : settled ? null : (
+                          <span
+                            className={
+                              "block text-xs " +
+                              (approaching ? "text-amber-700" : "text-ink-400")
+                            }
                           >
-                            סמן כחויב
-                          </Button>
+                            {approaching && "⏰ "}
+                            עוד {days} {days === 1 ? "יום" : "ימים"}
+                          </span>
                         )}
-                        {due && (
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            onClick={() => setStatus(p.id, "paid")}
-                          >
-                            סמן כשולם
-                          </Button>
-                        )}
-                        {collectible && (
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap gap-1.5">
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => createCollectionReminder(p)}
+                            onClick={() => setExpanded(isOpen ? null : p.id)}
                           >
-                            תזכורת גבייה
+                            {isOpen ? "סגירת מסלול" : "מסלול הגיוס"}
                           </Button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
+                          <Link href={`/admin/commissions/${p.id}/invoice`}>
+                            <Button size="sm" variant="ghost">
+                              חשבונית
+                            </Button>
+                          </Link>
+                          {due && p.commissionStatus === "pending" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setStatus(p.id, "invoiced")}
+                            >
+                              סמן כחויב
+                            </Button>
+                          )}
+                          {due && (
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => setStatus(p.id, "paid")}
+                            >
+                              סמן כשולם
+                            </Button>
+                          )}
+                          {collectible && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => createCollectionReminder(p)}
+                            >
+                              תזכורת גבייה
+                            </Button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                    {isOpen && (
+                      <tr className="bg-sand-50">
+                        <td colSpan={6} className="px-4 py-4">
+                          <PlacementTimeline p={p} />
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
                 );
               })}
             </tbody>

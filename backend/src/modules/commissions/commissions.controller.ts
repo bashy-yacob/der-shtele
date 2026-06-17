@@ -1,12 +1,16 @@
-import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
-import { CommissionsService } from './commissions.service';
-import { UpdateCommissionDto } from './dto/update-commission.dto';
-import { Roles } from '../../common/decorators/roles.decorator';
-import { RolesGuard } from '../../common/guards/roles.guard';
+import { Body, Controller, Get, Param, Patch, UseGuards } from "@nestjs/common";
+import { CommissionsService } from "./commissions.service";
+import { UpdateCommissionDto } from "./dto/update-commission.dto";
+import { Roles } from "../../common/decorators/roles.decorator";
+import { RolesGuard } from "../../common/guards/roles.guard";
+import {
+  CurrentUser,
+  AuthUser,
+} from "../../common/decorators/current-user.decorator";
 
-@Controller('commissions')
+@Controller("commissions")
 @UseGuards(RolesGuard)
-@Roles('admin')
+@Roles("admin")
 export class CommissionsController {
   constructor(private readonly commissionsService: CommissionsService) {}
 
@@ -15,21 +19,26 @@ export class CommissionsController {
     return this.commissionsService.findAll();
   }
 
-  @Get('due')
+  @Get("due")
   findDue() {
     return this.commissionsService.findDue();
   }
 
-  @Get('summary')
+  @Get("summary")
   summary() {
     return this.commissionsService.summary();
   }
 
-  @Patch(':placementId')
+  @Patch(":placementId")
   updateStatus(
-    @Param('placementId') placementId: string,
+    @Param("placementId") placementId: string,
     @Body() dto: UpdateCommissionDto,
+    @CurrentUser() user: AuthUser,
   ) {
-    return this.commissionsService.updateStatus(placementId, dto);
+    return this.commissionsService.updateStatus(
+      placementId,
+      dto,
+      user.fullName,
+    );
   }
 }
