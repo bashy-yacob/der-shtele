@@ -4,6 +4,7 @@ import "@/styles/globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { GlobalReminderAlert } from "@/components/admin/GlobalReminderAlert";
+import { AuthProvider } from "@/hooks/useAuth";
 import { SITE_NAME, SITE_TAGLINE } from "@/lib/constants";
 
 // Heebo — גוף וממשק
@@ -43,10 +44,12 @@ export default function RootLayout({
       className={`${heebo.variable} ${frankRuhl.variable}`}
     >
       <body className="flex flex-col min-h-screen font-sans">
-        <Header />
-        <GlobalReminderAlert />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <AuthProvider>
+          <Header />
+          <GlobalReminderAlert />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </AuthProvider>
       </body>
     </html>
   );

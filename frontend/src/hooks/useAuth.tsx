@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 // קוראים דרך proxy routes יחסיים (same-origin) ולא ישירות לבק — כך ההתחברות
 // לא נחסמת ע"י NetFree אצל משתמשים חרדים.
@@ -14,8 +20,33 @@ export interface AuthUser {
   optInMarketing?: boolean;
 }
 
-/** ניהול התחברות בצד הלקוח — token ב-localStorage. */
-export function useAuth() {
+export interface AuthContextValue {
+  user: AuthUser | null;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  register: (body: {
+    fullName: string;
+    email: string;
+    password: string;
+    optInMarketing: boolean;
+  }) => Promise<void>;
+  logout: () => void;
+  updateMarketing: (optInMarketing: boolean) => Promise<void>;
+  changePassword: (
+    currentPassword: string,
+    newPassword: string,
+  ) => Promise<void>;
+  getToken: () => string | null;
+}
+
+const AuthContext = createContext<AuthContextValue | null>(null);
+
+/**
+ * מצב ההתחברות מנוהל כ-state יחיד ומשותף (Context) כדי שכל הצרכנים —
+ * הנאבבר, הדשבורד, הטפסים — יתעדכנו מיד אחרי התחברות/הרשמה/יציאה, בלי תלות
+ * ברענון או ברימאונט של הקומפוננטה.
+ */
+function useAuthState(): AuthContextValue {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -131,4 +162,17 @@ export function useAuth() {
     changePassword,
     getToken: token,
   };
+}
+
+/** עוטף את האפליקציה ומחזיק את מצב ההתחברות היחיד והמשותף. */
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const value = useAuthState();
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+/** ניהול התחברות בצד הלקוח — token ב-localStorage, state משותף דרך Context. */
+export function useAuth(): AuthContextValue {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth חייב לרוץ בתוך <AuthProvider>");
+  return ctx;
 }
