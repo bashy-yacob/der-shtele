@@ -4,6 +4,7 @@ import { EmailService } from '../email/email.service';
 import { StorageService } from '../../common/storage/storage.service';
 import { CreateCandidateDto } from './dto/create-candidate.dto';
 import { UpdateCandidateDto } from './dto/update-candidate.dto';
+import { CreateCallLogDto } from './dto/create-call-log.dto';
 import { assertCandidateTransition } from '../../common/status-machine/status-machine';
 import { escapeHtml } from '../../common/util/escape-html';
 
@@ -56,8 +57,40 @@ export class CandidatesService {
   async findOne(id: string) {
     const candidate = await this.prisma.candidate.findUnique({
       where: { id },
-      include: { callLogs: true, presentations: true },
+      include: {
+        callLogs: { orderBy: { calledAt: 'desc' } },
+        presentations: {
+          orderBy: { presentedAt: 'desc' },
+          include: { job: { select: { id: true, title: true } } },
+        },
+        placements: {
+          orderBy: { placedAt: 'desc' },
+          include: {
+            job: { select: { id: true, title: true } },
+            employer: { select: { id: true, companyName: true } },
+          },
+        },
+      },
     });
+    if (!candidate) throw new NotFoundException('מועמד לא נמצא');
+    return candidate;
+  }
+
+  /** הוספת רשומת שיחה ידנית לכרטיס המועמד. */
+  async addCallLog(id: string, dto: CreateCallLogDto) {
+    await this.ensureExists(id);
+    return this.prisma.callLog.create({
+      data: {
+        candidateId: id,
+        staffName: dto.staffName,
+        summary: dto.summary,
+        followUpAt: dto.followUpAt ? new Date(dto.followUpAt) : null,
+      },
+    });
+  }
+
+  private async ensureExists(id: string) {
+    const candidate = await this.prisma.candidate.findUnique({ where: { id } });
     if (!candidate) throw new NotFoundException('מועמד לא נמצא');
     return candidate;
   }

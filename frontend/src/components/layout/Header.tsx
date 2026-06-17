@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SITE_NAME } from "@/lib/constants";
+import { AdminHeaderLink } from "./AdminHeaderLink";
 
 const NAV_LINKS = [
   { href: "/", label: "דף הבית" },
@@ -37,6 +38,7 @@ export function Header() {
                 {link.label}
               </Link>
             ))}
+            <AdminHeaderLink />
           </nav>
         </div>
 

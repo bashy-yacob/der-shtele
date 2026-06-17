@@ -1,10 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { PrismaService } from '../../prisma/prisma.service';
-import { CreateJobDto } from './dto/create-job.dto';
-import { UpdateJobDto } from './dto/update-job.dto';
-import { QueryJobsDto } from './dto/query-jobs.dto';
-import { assertJobTransition } from '../../common/status-machine/status-machine';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
+import { PrismaService } from "../../prisma/prisma.service";
+import { CreateJobDto } from "./dto/create-job.dto";
+import { UpdateJobDto } from "./dto/update-job.dto";
+import { QueryJobsDto } from "./dto/query-jobs.dto";
+import { assertJobTransition } from "../../common/status-machine/status-machine";
 
 // השדות הציבוריים בלבד — לעולם לא חושפים employer / descriptionInternal
 const PUBLIC_SELECT = {
@@ -25,22 +25,22 @@ export class JobsService {
   findPublic(query: QueryJobsDto) {
     return this.prisma.job.findMany({
       where: {
-        status: 'active',
+        status: "active",
         ...(query.field && { field: query.field }),
         ...(query.region && { region: query.region }),
       },
       select: PUBLIC_SELECT,
-      orderBy: { openedAt: 'desc' },
+      orderBy: { openedAt: "desc" },
     });
   }
 
   /** משרה ציבורית בודדת. */
   async findPublicOne(id: string) {
     const job = await this.prisma.job.findFirst({
-      where: { id, status: 'active' },
+      where: { id, status: "active" },
       select: PUBLIC_SELECT,
     });
-    if (!job) throw new NotFoundException('משרה לא נמצאה');
+    if (!job) throw new NotFoundException("משרה לא נמצאה");
     return job;
   }
 
@@ -49,16 +49,26 @@ export class JobsService {
   findAll() {
     return this.prisma.job.findMany({
       include: { employer: true },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
 
   async findOne(id: string) {
     const job = await this.prisma.job.findUnique({
       where: { id },
-      include: { employer: true, presentations: true },
+      include: {
+        employer: true,
+        presentations: {
+          orderBy: { presentedAt: "desc" },
+          include: {
+            candidate: {
+              select: { id: true, fullName: true, phone: true, status: true },
+            },
+          },
+        },
+      },
     });
-    if (!job) throw new NotFoundException('משרה לא נמצאה');
+    if (!job) throw new NotFoundException("משרה לא נמצאה");
     return job;
   }
 
@@ -75,7 +85,7 @@ export class JobsService {
       where: { id },
       data: {
         ...dto,
-        ...(dto.status === 'closed' || dto.status === 'filled'
+        ...(dto.status === "closed" || dto.status === "filled"
           ? { closedAt: new Date() }
           : {}),
       },

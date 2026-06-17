@@ -17,6 +17,8 @@ import { RemindersModule } from './modules/reminders/reminders.module';
 import { ContactModule } from './modules/contact/contact.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { EmailModule } from './modules/email/email.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { MailingModule } from './modules/mailing/mailing.module';
 
 @Module({
   imports: [
@@ -33,6 +35,8 @@ import { EmailModule } from './modules/email/email.module';
     CommissionsModule,
     RemindersModule,
     ContactModule,
+    DashboardModule,
+    MailingModule,
   ],
   controllers: [AppController],
   providers: [

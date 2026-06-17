@@ -1,0 +1,189 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { listEmployers, createEmployer } from "@/lib/admin-api";
+import type { Employer } from "@/types";
+import {
+  Loading,
+  ErrorNote,
+  SuccessNote,
+  EmptyState,
+  PageHeader,
+} from "@/components/admin/Feedback";
+import { Card, Button, Input, Textarea } from "@/components/ui";
+import { formatDate } from "@/lib/utils";
+
+export default function EmployersPage() {
+  const [employers, setEmployers] = useState<Employer[]>([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+
+  const reload = () =>
+    listEmployers()
+      .then(setEmployers)
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+
+  useEffect(() => {
+    reload();
+  }, []);
+
+  return (
+    <div>
+      <PageHeader
+        title="ניהול מעסיקים"
+        subtitle="פרטי מעסיקים — פנימי בלבד, לא חשוף לציבור"
+        action={
+          <Button onClick={() => setShowForm((s) => !s)}>
+            {showForm ? "ביטול" : "מעסיק חדש +"}
+          </Button>
+        }
+      />
+
+      {showForm && (
+        <EmployerForm
+          onCreated={() => {
+            setShowForm(false);
+            reload();
+          }}
+        />
+      )}
+
+      {loading ? (
+        <Loading />
+      ) : error ? (
+        <ErrorNote message={error} />
+      ) : employers.length === 0 ? (
+        <EmptyState message="אין מעסיקים במערכת. הוסף מעסיק כדי לפתוח משרה." />
+      ) : (
+        <div className="grid md:grid-cols-2 gap-4">
+          {employers.map((e) => (
+            <Card key={e.id} className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h3 className="font-display text-lg text-ink-900">
+                  {e.companyName}
+                </h3>
+                <span className="text-xs text-ink-400">
+                  {formatDate(e.createdAt)}
+                </span>
+              </div>
+              <p className="text-sm text-ink-700">
+                איש קשר: {e.contactName} · {e.contactPhone}
+              </p>
+              <p className="text-sm text-ink-500">{e.contactEmail}</p>
+              {e.businessNumber && (
+                <p className="text-xs text-ink-400">ח.פ {e.businessNumber}</p>
+              )}
+              {e.address && <p className="text-xs text-ink-400">{e.address}</p>}
+              {e.notes && (
+                <p className="text-sm text-ink-700 bg-sand-50 rounded-lg p-2 mt-1">
+                  {e.notes}
+                </p>
+              )}
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EmployerForm({ onCreated }: { onCreated: () => void }) {
+  const [form, setForm] = useState({
+    companyName: "",
+    contactName: "",
+    contactPhone: "",
+    contactEmail: "",
+    businessNumber: "",
+    address: "",
+    notes: "",
+  });
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const [msg, setMsg] = useState("");
+
+  const set = (k: keyof typeof form) => (v: string) =>
+    setForm((f) => ({ ...f, [k]: v }));
+
+  const submit = async () => {
+    if (
+      !form.companyName ||
+      !form.contactName ||
+      !form.contactPhone ||
+      !form.contactEmail
+    ) {
+      setErr("יש למלא שם חברה, איש קשר, טלפון ומייל");
+      return;
+    }
+    setBusy(true);
+    setErr("");
+    setMsg("");
+    try {
+      await createEmployer({
+        companyName: form.companyName,
+        contactName: form.contactName,
+        contactPhone: form.contactPhone,
+        contactEmail: form.contactEmail,
+        businessNumber: form.businessNumber || undefined,
+        address: form.address || undefined,
+        notes: form.notes || undefined,
+      });
+      setMsg("המעסיק נוסף בהצלחה");
+      onCreated();
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card className="mb-6 space-y-3">
+      <h2 className="text-lg font-display text-ink-900">הוספת מעסיק</h2>
+      <div className="grid md:grid-cols-2 gap-3">
+        <Input
+          label="שם החברה *"
+          value={form.companyName}
+          onChange={(e) => set("companyName")(e.target.value)}
+        />
+        <Input
+          label="ח.פ / מספר עוסק"
+          value={form.businessNumber}
+          onChange={(e) => set("businessNumber")(e.target.value)}
+        />
+        <Input
+          label="איש קשר *"
+          value={form.contactName}
+          onChange={(e) => set("contactName")(e.target.value)}
+        />
+        <Input
+          label="טלפון איש קשר *"
+          value={form.contactPhone}
+          onChange={(e) => set("contactPhone")(e.target.value)}
+        />
+        <Input
+          label="מייל איש קשר *"
+          type="email"
+          value={form.contactEmail}
+          onChange={(e) => set("contactEmail")(e.target.value)}
+        />
+        <Input
+          label="כתובת"
+          value={form.address}
+          onChange={(e) => set("address")(e.target.value)}
+        />
+      </div>
+      <Textarea
+        label="הערות פנימיות (אמינות, העדפות)"
+        value={form.notes}
+        onChange={(e) => set("notes")(e.target.value)}
+      />
+      {err && <ErrorNote message={err} />}
+      {msg && <SuccessNote message={msg} />}
+      <Button onClick={submit} disabled={busy}>
+        {busy ? "שומר..." : "שמירת מעסיק"}
+      </Button>
+    </Card>
+  );
+}

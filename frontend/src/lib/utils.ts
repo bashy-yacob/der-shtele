@@ -14,3 +14,23 @@ export function formatDate(date: string | Date): string {
     year: 'numeric',
   });
 }
+
+/** תאריך + שעה (he-IL) — לרשומות שיחה והסכמות. */
+export function formatDateTime(date: string | Date): string {
+  return new Date(date).toLocaleString('he-IL', {
+    day: 'numeric',
+    month: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+/** סכום בשקלים (₪). */
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('he-IL', {
+    style: 'currency',
+    currency: 'ILS',
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
