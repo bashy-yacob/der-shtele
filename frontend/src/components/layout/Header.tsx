@@ -6,6 +6,7 @@ import { UserMenu } from "./UserMenu";
 const NAV_LINKS = [
   { href: "/", label: "דף הבית" },
   { href: "/jobs", label: "לוח משרות" },
+  { href: "/employers", label: "למעסיקים" },
   { href: "/about", label: "אודות" },
   { href: "/contact", label: "צור קשר" },
 ];
