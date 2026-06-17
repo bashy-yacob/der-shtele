@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { isCommissionDue } from '../../common/commission/commission';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
+import { isCommissionDue } from "../../common/commission/commission";
 
 /**
  * שירות לוח הבקרה — מרכז את כל מדדי הצוות במקום אחד (סעיף 7.1 באיפיון).
@@ -33,12 +33,14 @@ export class DashboardService {
       this.prisma.candidate.count({ where: { createdAt: { gte: weekAgo } } }),
       // מועמדים פעילים (בטיפול)
       this.prisma.candidate.count({
-        where: { status: { in: ['new', 'in_progress', 'presented'] } },
+        where: { status: { in: ["new", "in_progress", "presented"] } },
       }),
       // משרות פעילות
-      this.prisma.job.count({ where: { status: 'active' } }),
+      this.prisma.job.count({ where: { status: "active" } }),
       // גיוסים החודש
-      this.prisma.placement.count({ where: { placedAt: { gte: startOfMonth } } }),
+      this.prisma.placement.count({
+        where: { placedAt: { gte: startOfMonth } },
+      }),
       // תזכורות שעבר זמנן
       this.prisma.reminder.count({
         where: { done: false, remindAt: { lt: now } },
@@ -47,8 +49,8 @@ export class DashboardService {
       this.prisma.user.count({ where: { optInMarketing: true } }),
       // תור טיפול — מועמדים חדשים שטרם טופלו, לפי סדר הגעה
       this.prisma.candidate.findMany({
-        where: { status: 'new' },
-        orderBy: { createdAt: 'asc' },
+        where: { status: "new" },
+        orderBy: { createdAt: "asc" },
         take: 10,
         select: {
           id: true,
@@ -56,12 +58,18 @@ export class DashboardService {
           field: true,
           region: true,
           createdAt: true,
+          // לאיזו משרה הוגש המועמד (אם בכלל) — להצגה בתור הטיפול
+          presentations: {
+            orderBy: { presentedAt: "desc" },
+            take: 1,
+            select: { job: { select: { id: true, title: true } } },
+          },
         },
       }),
       // משרות פעילות + כמה מועמדים הוצגו לכל אחת
       this.prisma.job.findMany({
-        where: { status: 'active' },
-        orderBy: { openedAt: 'desc' },
+        where: { status: "active" },
+        orderBy: { openedAt: "desc" },
         take: 10,
         select: {
           id: true,
@@ -74,7 +82,7 @@ export class DashboardService {
       // תזכורות פתוחות
       this.prisma.reminder.findMany({
         where: { done: false },
-        orderBy: { remindAt: 'asc' },
+        orderBy: { remindAt: "asc" },
         take: 10,
       }),
       // עמלות פתוחות — לחישוב סכום
@@ -104,7 +112,14 @@ export class DashboardService {
         activeSubscribers,
         queueCount: queue.length,
       },
-      queue,
+      queue: queue.map((c) => ({
+        id: c.id,
+        fullName: c.fullName,
+        field: c.field,
+        region: c.region,
+        createdAt: c.createdAt,
+        job: c.presentations[0]?.job ?? null,
+      })),
       activeJobs: activeJobsList.map((j) => ({
         id: j.id,
         title: j.title,

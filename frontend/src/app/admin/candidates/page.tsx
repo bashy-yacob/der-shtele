@@ -3,9 +3,19 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { listCandidates } from "@/lib/admin-api";
-import type { Candidate, CandidateStatus, JobField, Region } from "@/types";
+import type {
+  CandidateListItem,
+  CandidateStatus,
+  JobField,
+  Region,
+} from "@/types";
 import { StatusBadge } from "@/components/admin/StatusBadge";
-import { Loading, ErrorNote, EmptyState, PageHeader } from "@/components/admin/Feedback";
+import {
+  Loading,
+  ErrorNote,
+  EmptyState,
+  PageHeader,
+} from "@/components/admin/Feedback";
 import { Card, Input, Select } from "@/components/ui";
 import {
   FIELD_LABELS,
@@ -15,7 +25,7 @@ import {
 import { formatDate } from "@/lib/utils";
 
 export default function CandidatesListPage() {
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [candidates, setCandidates] = useState<CandidateListItem[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -109,6 +119,9 @@ export default function CandidatesListPage() {
                 <th className="px-4 py-3 text-start font-semibold">שם</th>
                 <th className="px-4 py-3 text-start font-semibold">תחום</th>
                 <th className="px-4 py-3 text-start font-semibold">אזור</th>
+                <th className="px-4 py-3 text-start font-semibold">
+                  הוגש למשרה
+                </th>
                 <th className="px-4 py-3 text-start font-semibold">סטטוס</th>
                 <th className="px-4 py-3 text-start font-semibold">נכנס</th>
               </tr>
@@ -130,6 +143,20 @@ export default function CandidatesListPage() {
                   </td>
                   <td className="px-4 py-3 text-ink-700">
                     {REGION_LABELS[c.region]}
+                  </td>
+                  <td className="px-4 py-3">
+                    {c.presentations.length > 0 ? (
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-olive-700 bg-olive-50 rounded-full px-2.5 py-1">
+                        {c.presentations[0].job?.title ?? "משרה"}
+                        {c.presentations.length > 1 && (
+                          <span className="text-ink-400">
+                            +{c.presentations.length - 1}
+                          </span>
+                        )}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-ink-400">כללי</span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge

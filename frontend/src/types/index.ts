@@ -197,6 +197,12 @@ export interface DashboardStats {
   queueCount: number;
 }
 
+/** קישור מינימלי למשרה (לתצוגת שיוך) */
+export interface JobRef {
+  id: string;
+  title: string;
+}
+
 /** מועמד בתור הטיפול (ווידג'ט) */
 export interface QueueItem {
   id: string;
@@ -204,6 +210,7 @@ export interface QueueItem {
   field: JobField;
   region: Region;
   createdAt: string;
+  job: JobRef | null; // המשרה שאליה הוגש (אם הוגש דרך משרה)
 }
 
 /** משרה פעילה + מספר מועמדים שהוצגו (ווידג'ט) */
@@ -246,6 +253,11 @@ export interface PresentationWithCandidate extends JobPresentation {
 export interface JobDetail extends InternalJob {
   employer?: Employer;
   presentations: PresentationWithCandidate[];
+}
+
+/** מועמד ברשימת ה-CRM — כולל המשרות שהוגש אליהן (לתצוגת שיוך) */
+export interface CandidateListItem extends Candidate {
+  presentations: { jobId: string; job: JobRef | null }[];
 }
 
 /** מנוי ברשימת התפוצה */

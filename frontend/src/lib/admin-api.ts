@@ -5,6 +5,7 @@
 import type {
   Candidate,
   CandidateDetail,
+  CandidateListItem,
   CandidateStatus,
   CallLog,
   DashboardSummary,
@@ -63,7 +64,8 @@ export const getDashboard = () =>
   adminFetch<DashboardSummary>("dashboard/summary");
 
 // ---- מועמדים ----
-export const listCandidates = () => adminFetch<Candidate[]>("candidates");
+export const listCandidates = () =>
+  adminFetch<CandidateListItem[]>("candidates");
 export const getCandidate = (id: string) =>
   adminFetch<CandidateDetail>(`candidates/${id}`);
 export const updateCandidate = (

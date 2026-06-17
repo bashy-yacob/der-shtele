@@ -51,7 +51,19 @@ export class CandidatesService {
   // ---- CRM (צוות) ----
 
   findAll() {
-    return this.prisma.candidate.findMany({ orderBy: { createdAt: 'desc' } });
+    return this.prisma.candidate.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: {
+        // המשרות שהמועמד הוגש אליהן — כדי שהצוות יראה ברשימה לאיזו משרה הגיע
+        presentations: {
+          orderBy: { presentedAt: 'desc' },
+          select: {
+            jobId: true,
+            job: { select: { id: true, title: true } },
+          },
+        },
+      },
+    });
   }
 
   async findOne(id: string) {
