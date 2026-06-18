@@ -41,7 +41,9 @@ services:
         sync: false
       - key: JWT_SECRET
         sync: false
-      # --- מיילים: כרגע כבוי. השאירי ריק בינתיים, תמלאי כשיוגדר SMTP ---
+      # --- מיילים (Resend דרך SMTP). מלאי כשתפעילי שליחה בפרודקשן ---
+      # SMTP_HOST=smtp.resend.com · SMTP_PORT=587 · SMTP_USER=resend · SMTP_PASS=<API key>
+      # MAIL_FROM=onboarding@resend.dev (בבדיקה) או noreply@dershtele.co.il (אחרי אימות דומיין)
       - key: SMTP_HOST
         sync: false
       - key: SMTP_PORT
@@ -49,6 +51,10 @@ services:
       - key: SMTP_USER
         sync: false
       - key: SMTP_PASS
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: MAIL_FROM_NAME
         sync: false
       - key: TEAM_EMAIL
         sync: false

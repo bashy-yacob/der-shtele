@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { SITE_CONTENT, FIELD_LABELS, buildCityOptions } from "@/lib/constants";
-import { SCOPE_OPTIONS } from "@/lib/labels";
+import { SCOPE_OPTIONS, EXPERIENCE_OPTIONS } from "@/lib/labels";
 import { phoneSchema } from "@/lib/validations";
 import {
   Button,
@@ -21,10 +21,19 @@ import {
 const FORM = SITE_CONTENT.employers.contactForm;
 
 // ולידציה לטופס פניית מעסיק — נשלח דרך ה-endpoint הציבורי /api/contact.
+// המטרה: לאסוף מהמעסיק את כל מה שהצוות צריך כדי לפתוח משרה ולחזור אליו,
+// כך שהמנהל בדשבורד לא יצטרך לרדוף אחרי פרטים חסרים (איפיון 6.1 + 7.3).
 const employerSchema = z.object({
+  // —— פרטי החברה ואיש הקשר (פנימי בלבד) ——
   companyName: z.string().min(2, "שם החברה חייב להיות לפחות 2 תווים"),
+  businessNumber: z.string().optional(),
+  companyLocation: z.string().optional(),
   contactName: z.string().min(2, "שם איש הקשר חייב להיות לפחות 2 תווים"),
   phone: phoneSchema,
+  email: z.string().email("כתובת אימייל לא תקינה"),
+
+  // —— פרטי המשרה ——
+  jobTitle: z.string().min(2, "שם התפקיד חייב להיות לפחות 2 תווים"),
   field: z.enum(
     [
       "logistics",
@@ -40,6 +49,10 @@ const employerSchema = z.object({
   ),
   region: z.string().min(2, "נא להזין אזור"),
   scope: z.enum(SCOPE_OPTIONS, { required_error: "נא לבחור היקף" }),
+  experience: z.enum(EXPERIENCE_OPTIONS, {
+    required_error: "נא לבחור ניסיון נדרש",
+  }),
+  salary: z.string().optional(),
   description: z.string().min(10, "תיאור המשרה חייב להיות לפחות 10 תווים"),
 });
 
@@ -71,23 +84,30 @@ export default function EmployersContactPage() {
 
   const onSubmit = async (data: EmployerFormData) => {
     try {
-      // ה-endpoint הציבורי מקבל name/phone/inquiry_type/message בלבד —
-      // מרכזים את פרטי המשרה להודעה אחת מובנית שהצוות מקבל במייל.
-      const message = [
-        `חברה: ${data.companyName}`,
-        `תחום: ${FIELD_LABELS[data.field]}`,
-        `אזור: ${data.region}`,
-        `היקף: ${data.scope}`,
-        "",
-        "תיאור המשרה:",
-        data.description,
-      ].join("\n");
-
+      // שולחים כל פרט כשדה מובְנה בנפרד — כך הצוות מקבל בדשבורד פנייה מלאה
+      // ומובְנת (ולא טקסט שצריך לפענח), בלי לרדוף אחרי מידע חסר.
+      // message = תיאור המשרה (השדה החובה ב-endpoint).
       const formData = new FormData();
       formData.append("name", data.contactName);
       formData.append("phone", data.phone);
       formData.append("inquiry_type", "employer");
-      formData.append("message", message);
+      formData.append("message", data.description);
+
+      // פרטי החברה ואיש הקשר
+      formData.append("companyName", data.companyName);
+      formData.append("email", data.email);
+      if (data.businessNumber)
+        formData.append("businessNumber", data.businessNumber);
+      if (data.companyLocation)
+        formData.append("companyLocation", data.companyLocation);
+
+      // פרטי המשרה
+      formData.append("jobTitle", data.jobTitle);
+      formData.append("field", data.field);
+      formData.append("region", data.region);
+      formData.append("scope", data.scope);
+      formData.append("experience", data.experience);
+      if (data.salary) formData.append("salary", data.salary);
 
       const response = await fetch("/api/contact", {
         method: "POST",
@@ -152,10 +172,16 @@ export default function EmployersContactPage() {
             <div className="bg-white border border-sand-200 rounded-2xl shadow-soft p-6 sm:p-8">
               <SectionHeading
                 eyebrow="נשמח לשמוע"
-                title="פרטי המשרה"
+                title="פרטי הפנייה"
                 align="start"
                 className="mb-7"
               />
+
+              <p className="text-ink-500 text-sm leading-relaxed mb-6 -mt-3">
+                כדי שנוכל לטפל במשרה ולחזור אליכם מהר, מלאו את כל הפרטים. ככל
+                שהתמונה מלאה יותר — כך נחסוך פניות חוזרות. הכל נשמר אצל הצוות
+                בלבד.
+              </p>
 
               {submitted && (
                 <div className="bg-olive-50 border border-olive-200 rounded-xl p-4 mb-6">
@@ -170,6 +196,11 @@ export default function EmployersContactPage() {
               )}
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                {/* ——— פרטי החברה ואיש הקשר (פנימי בלבד) ——— */}
+                <h3 className="font-display text-ink-900 text-base font-bold border-b border-sand-200 pb-2">
+                  פרטי החברה ואיש הקשר
+                </h3>
+
                 <Input
                   {...register("companyName")}
                   type="text"
@@ -178,6 +209,26 @@ export default function EmployersContactPage() {
                   placeholder="שם החברה או הארגון"
                   error={errors.companyName?.message}
                 />
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <Input
+                    {...register("businessNumber")}
+                    type="text"
+                    id="businessNumber"
+                    label="ח.פ / מספר עוסק"
+                    placeholder="לא חובה"
+                    error={errors.businessNumber?.message}
+                  />
+
+                  <Input
+                    {...register("companyLocation")}
+                    type="text"
+                    id="companyLocation"
+                    label="מיקום החברה"
+                    placeholder="עיר / כתובת (לא חובה)"
+                    error={errors.companyLocation?.message}
+                  />
+                </div>
 
                 <Input
                   {...register("contactName")}
@@ -188,13 +239,38 @@ export default function EmployersContactPage() {
                   error={errors.contactName?.message}
                 />
 
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <Input
+                    {...register("phone")}
+                    type="tel"
+                    id="phone"
+                    label="טלפון *"
+                    placeholder="050-0000000"
+                    error={errors.phone?.message}
+                  />
+
+                  <Input
+                    {...register("email")}
+                    type="email"
+                    id="email"
+                    label="מייל *"
+                    placeholder="name@company.co.il"
+                    error={errors.email?.message}
+                  />
+                </div>
+
+                {/* ——— פרטי המשרה ——— */}
+                <h3 className="font-display text-ink-900 text-base font-bold border-b border-sand-200 pb-2 pt-2">
+                  פרטי המשרה
+                </h3>
+
                 <Input
-                  {...register("phone")}
-                  type="tel"
-                  id="phone"
-                  label="טלפון *"
-                  placeholder="050-0000000"
-                  error={errors.phone?.message}
+                  {...register("jobTitle")}
+                  type="text"
+                  id="jobTitle"
+                  label="שם התפקיד *"
+                  placeholder="לדוגמה: מנהל/ת חשבונות, נציג/ת מכירות"
+                  error={errors.jobTitle?.message}
                 />
 
                 <Select
@@ -219,19 +295,44 @@ export default function EmployersContactPage() {
                   error={errors.region?.message}
                 />
 
-                <Select
-                  {...register("scope")}
-                  id="scope"
-                  label="היקף משרה *"
-                  error={errors.scope ? "בחרו היקף" : undefined}
-                >
-                  <option value="">בחרו...</option>
-                  {SCOPE_OPTIONS.map((scope) => (
-                    <option key={scope} value={scope}>
-                      {scope}
-                    </option>
-                  ))}
-                </Select>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <Select
+                    {...register("scope")}
+                    id="scope"
+                    label="היקף משרה *"
+                    error={errors.scope ? "בחרו היקף" : undefined}
+                  >
+                    <option value="">בחרו...</option>
+                    {SCOPE_OPTIONS.map((scope) => (
+                      <option key={scope} value={scope}>
+                        {scope}
+                      </option>
+                    ))}
+                  </Select>
+
+                  <Select
+                    {...register("experience")}
+                    id="experience"
+                    label="ניסיון נדרש *"
+                    error={errors.experience ? "בחרו ניסיון נדרש" : undefined}
+                  >
+                    <option value="">בחרו...</option>
+                    {EXPERIENCE_OPTIONS.map((exp) => (
+                      <option key={exp} value={exp}>
+                        {exp}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+
+                <Input
+                  {...register("salary")}
+                  type="text"
+                  id="salary"
+                  label="טווח שכר מוצע"
+                  placeholder="נשמר אצל הצוות בלבד — לא יופיע באתר (לא חובה)"
+                  error={errors.salary?.message}
+                />
 
                 <Textarea
                   {...register("description")}

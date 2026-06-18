@@ -162,6 +162,21 @@ model Contact {
   inquiry_type String
   message      String
   resumePath   String?  // New field for resume file path
+
+  // פרטים מובְנים מטופס פניית מעסיק — null לפניות מועמד/כללי.
+  // נשמרים מובְנה (ולא כטקסט חופשי ב-message) כדי שהצוות יקבל בדשבורד את כל
+  // מה שצריך לפתיחת משרה, בלי לרדוף אחרי פרטים ובלי פענוח regex שביר.
+  email           String?   // מייל איש הקשר
+  companyName     String?   // שם החברה
+  businessNumber  String?   // ח.פ / מספר עוסק
+  companyLocation String?   // מיקום החברה / כתובת
+  jobTitle        String?   // שם התפקיד המבוקש
+  field           JobField? // תחום
+  region          String?   // עיר/אזור
+  scope           String?   // היקף — 'מלאה' | 'חלקית' | 'גמיש'
+  experience      String?   // ניסיון נדרש
+  salary          String?   // טווח שכר מוצע — פנימי בלבד
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -184,6 +199,9 @@ model Job {
   field                 JobField
   region                String    // עיר/אזור — טקסט חופשי
   scope                 String    // 'מלאה' | 'חלקית' | 'גמיש'
+
+  experience            String?   // ניסיון נדרש — גלוי לציבור (כרטיס/דף/סינון)
+  salary                String?   // שכר מוצע — פנימי בלבד, לא עולה לאתר
 
   status                JobStatus @default(active)
   openedAt              DateTime  @default(now())
@@ -228,6 +246,7 @@ model Candidate {
   city         String          @default("")
   field        JobField
   region       String          // עיר/אזור — טקסט חופשי
+  birthYear    Int?            // שנת לידה (אופציונלי) — נמסר בהגשה למשרה ספציפית
 
   cvUrl        String?         // Supabase Storage URL
   cvUploadedAt DateTime?

@@ -25,7 +25,12 @@ import {
   Textarea,
   CityCombobox,
 } from "@/components/ui";
-import { FIELD_LABELS, SCOPE_OPTIONS, buildCityOptions } from "@/lib/labels";
+import {
+  FIELD_LABELS,
+  SCOPE_OPTIONS,
+  EXPERIENCE_OPTIONS,
+  buildCityOptions,
+} from "@/lib/labels";
 
 export default function NewJobPage() {
   const router = useRouter();
@@ -44,6 +49,8 @@ export default function NewJobPage() {
     field: "" as JobField | "",
     region: "" as Region | "",
     scope: SCOPE_OPTIONS[0] as string,
+    experience: "",
+    salary: "",
   });
   const [publishNow, setPublishNow] = useState(false);
   // פרטי מעסיק שהגיעו מפנייה (?company=...&contactName=...&phone=...) לטעינת הטופס המוטמע
@@ -51,6 +58,9 @@ export default function NewJobPage() {
     companyName?: string;
     contactName?: string;
     contactPhone?: string;
+    contactEmail?: string;
+    businessNumber?: string;
+    address?: string;
   } | null>(null);
 
   useEffect(() => {
@@ -77,13 +87,22 @@ export default function NewJobPage() {
     const field = q.get("field") as JobField | null;
     const scope = q.get("scope") ?? "";
     const description = q.get("description") ?? "";
+    const title = q.get("title") ?? "";
+    const experience = q.get("experience") ?? "";
+    const salary = q.get("salary") ?? "";
+
     setForm((f) => ({
       ...f,
+      title: title || f.title,
       field: field ?? f.field,
       region: q.get("region") ?? f.region,
       scope: (SCOPE_OPTIONS as readonly string[]).includes(scope)
         ? scope
         : f.scope,
+      experience: (EXPERIENCE_OPTIONS as readonly string[]).includes(experience)
+        ? experience
+        : f.experience,
+      salary: salary || f.salary,
       // התיאור מהפנייה משמש בסיס לשני התיאורים; את הציבורי יש לאנונימז ידנית
       descriptionInternal: description || f.descriptionInternal,
       descriptionPublic: description || f.descriptionPublic,
@@ -92,11 +111,24 @@ export default function NewJobPage() {
     const companyName = q.get("company");
     const contactName = q.get("contactName");
     const contactPhone = q.get("phone");
-    if (companyName || contactName || contactPhone) {
+    const contactEmail = q.get("email");
+    const businessNumber = q.get("businessNumber");
+    const address = q.get("address");
+    if (
+      companyName ||
+      contactName ||
+      contactPhone ||
+      contactEmail ||
+      businessNumber ||
+      address
+    ) {
       setEmployerPrefill({
         companyName: companyName ?? undefined,
         contactName: contactName ?? undefined,
         contactPhone: contactPhone ?? undefined,
+        contactEmail: contactEmail ?? undefined,
+        businessNumber: businessNumber ?? undefined,
+        address: address ?? undefined,
       });
       setShowEmployerForm(true);
     }
@@ -137,6 +169,8 @@ export default function NewJobPage() {
         field: form.field as JobField,
         region: form.region as Region,
         scope: form.scope,
+        experience: form.experience || undefined,
+        salary: form.salary || undefined,
       });
       // אישור לפני פרסום: משרה חדשה נשמרת כטיוטה (מושהית) אלא אם נבחר לפרסם מיד.
       if (!publishNow) {
@@ -241,6 +275,26 @@ export default function NewJobPage() {
           </Select>
         </div>
 
+        <div className="grid md:grid-cols-2 gap-3">
+          <Select
+            label="ניסיון נדרש (גלוי באתר)"
+            value={form.experience}
+            onChange={(e) => set("experience")(e.target.value)}
+          >
+            <option value="">— ללא ציון —</option>
+            {EXPERIENCE_OPTIONS.map((x) => (
+              <option key={x} value={x}>
+                {x}
+              </option>
+            ))}
+          </Select>
+          <Input
+            label="טווח שכר מוצע (פנימי — לא עולה לאתר)"
+            value={form.salary}
+            onChange={(e) => set("salary")(e.target.value)}
+          />
+        </div>
+
         <div className="rounded-xl border border-olive-300 bg-olive-50 p-3">
           <Textarea
             label="תיאור ציבורי (אנונימי — עולה לאתר) *"
@@ -292,15 +346,18 @@ function InlineEmployerForm({
     companyName?: string;
     contactName?: string;
     contactPhone?: string;
+    contactEmail?: string;
+    businessNumber?: string;
+    address?: string;
   } | null;
 }) {
   const [f, setF] = useState({
     companyName: initial?.companyName ?? "",
     contactName: initial?.contactName ?? "",
     contactPhone: initial?.contactPhone ?? "",
-    contactEmail: "",
-    businessNumber: "",
-    address: "",
+    contactEmail: initial?.contactEmail ?? "",
+    businessNumber: initial?.businessNumber ?? "",
+    address: initial?.address ?? "",
     notes: "",
   });
   const [busy, setBusy] = useState(false);

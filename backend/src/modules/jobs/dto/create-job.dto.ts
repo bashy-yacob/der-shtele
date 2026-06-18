@@ -1,4 +1,4 @@
-import { IsEnum, IsString, MinLength } from "class-validator";
+import { IsEnum, IsOptional, IsString, MinLength } from "class-validator";
 import { JobField } from "@prisma/client";
 
 export class CreateJobDto {
@@ -25,4 +25,12 @@ export class CreateJobDto {
 
   @IsString()
   scope!: string; // 'מלאה' | 'חלקית' | 'גמיש'
+
+  @IsOptional()
+  @IsString()
+  experience?: string; // ניסיון נדרש — גלוי לציבור
+
+  @IsOptional()
+  @IsString()
+  salary?: string; // שכר מוצע — פנימי בלבד
 }

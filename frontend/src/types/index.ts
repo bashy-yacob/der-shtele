@@ -63,6 +63,7 @@ export interface PublicJob {
   field: JobField;
   region: Region;
   scope: string; // 'מלאה' | 'חלקית' | 'גמיש'
+  experience?: string | null; // ניסיון נדרש — גלוי לציבור (שכר נשאר פנימי)
   createdAt: string; // ISO date string
 }
 
@@ -91,6 +92,7 @@ export interface Candidate {
   city: string;
   field: JobField;
   region: Region;
+  birthYear: number | null; // שנת לידה — אופציונלי, נמסר בהגשה למשרה ספציפית
   cvUrl: string | null; // Supabase Storage URL
   cvUploadedAt: string | null;
   status: CandidateStatus;
@@ -133,6 +135,8 @@ export interface InternalJob {
   field: JobField;
   region: Region;
   scope: string;
+  experience?: string | null; // ניסיון נדרש — גלוי לציבור
+  salary?: string | null; // שכר מוצע — פנימי בלבד
   status: JobStatus;
   openedAt: string;
   closedAt: string | null;
@@ -311,6 +315,17 @@ export interface Contact {
   inquiry_type: InquiryType;
   message: string;
   resumePath: string | null;
+  // פרטים מובְנים מפניית מעסיק — null/undefined לפניות מועמד/כללי
+  email?: string | null;
+  companyName?: string | null;
+  businessNumber?: string | null;
+  companyLocation?: string | null;
+  jobTitle?: string | null;
+  field?: JobField | null;
+  region?: Region | null;
+  scope?: string | null;
+  experience?: string | null;
+  salary?: string | null;
   createdAt: string;
   updatedAt: string;
 }

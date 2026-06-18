@@ -7,7 +7,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "לוח משרות — דער שטעלע",
+  title: "לוח משרות",
+  description:
+    "משרות פתוחות בכל הארץ לציבור החרדי — לוגיסטיקה, מנהלה, מכירות, חינוך, טכנולוגיה וחשבונאות. כל המשרות מועברות דרך הצוות, בדיסקרטיות מלאה.",
+  alternates: { canonical: "/jobs" },
 };
 
 // הסינון מתבצע ב-backend לפי ה-query params; נטען טרי בכל בקשה.
@@ -28,6 +31,7 @@ const JOBS_CONTENT = {
 interface SearchParams {
   field?: string;
   region?: string;
+  experience?: string;
 }
 
 export default async function JobsPage({
@@ -39,6 +43,7 @@ export default async function JobsPage({
     getPublicJobs({
       field: searchParams.field as JobField | undefined,
       region: searchParams.region as Region | undefined,
+      experience: searchParams.experience,
     }),
     getRegions(),
   ]);

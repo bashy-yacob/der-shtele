@@ -3,7 +3,12 @@ import Link from "next/link";
 import { SITE_CONTENT } from "@/lib/constants";
 import { Card, SectionHeading } from "@/components/ui";
 
-export const metadata: Metadata = { title: "תנאי העבודה איתנו — למעסיקים" };
+export const metadata: Metadata = {
+  title: "תנאי העבודה איתנו — למעסיקים",
+  description:
+    "תנאי העבודה עם דער שטעלע — מודל עמלה בתשלום רק על תוצאה, ערבות שלושה חודשים, ומה נשאר חסוי. שקיפות מלאה לפני שמתחילים.",
+  alternates: { canonical: "/employers/terms" },
+};
 
 const TERMS = SITE_CONTENT.employers.terms;
 

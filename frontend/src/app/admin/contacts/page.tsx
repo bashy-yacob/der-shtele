@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { listContacts } from "@/lib/admin-api";
-import type { Contact, JobField } from "@/types";
+import type { Contact } from "@/types";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import {
   Loading,
@@ -15,40 +15,49 @@ import { Card, Button } from "@/components/ui";
 import { INQUIRY_TYPE_LABELS, FIELD_LABELS } from "@/lib/labels";
 import { formatDate } from "@/lib/utils";
 
-// טופס פניית המעסיק (employers/contact) דוחס את פרטי המשרה להודעה מובנית.
-// כאן מפענחים אותה בחזרה כדי לטעון מראש את טופס יצירת המשרה.
-function parseEmployerInquiry(message: string) {
-  const line = (label: string) => {
-    const m = message.match(new RegExp(`^${label}:\\s*(.+)$`, "m"));
-    return m ? m[1].trim() : "";
-  };
-  const fieldLabel = line("תחום");
-  const field =
-    (Object.entries(FIELD_LABELS).find(([, v]) => v === fieldLabel)?.[0] as
-      | JobField
-      | undefined) ?? "";
-  const parts = message.split("תיאור המשרה:");
-  return {
-    company: line("חברה"),
-    field,
-    region: line("אזור"),
-    scope: line("היקף"),
-    description: parts.length > 1 ? parts[1].trim() : "",
-  };
-}
-
-// בונה קישור לטופס "משרה חדשה" עם הפרטים שאפשר לחלץ מהפנייה.
+// בונה קישור לטופס "משרה חדשה" עם כל פרטי הפנייה המובְנים — טעינה מראש מלאה,
+// בלי פענוח טקסט. הצוות מגיע לטופס כשהכל כבר ממולא.
 function buildJobLink(c: Contact): string {
-  const p = parseEmployerInquiry(c.message);
   const params = new URLSearchParams();
   params.set("contactName", c.name);
   params.set("phone", c.phone);
-  if (p.company) params.set("company", p.company);
-  if (p.field) params.set("field", p.field);
-  if (p.region) params.set("region", p.region);
-  if (p.scope) params.set("scope", p.scope);
-  if (p.description) params.set("description", p.description);
+  if (c.companyName) params.set("company", c.companyName);
+  if (c.email) params.set("email", c.email);
+  if (c.businessNumber) params.set("businessNumber", c.businessNumber);
+  if (c.companyLocation) params.set("address", c.companyLocation);
+  if (c.jobTitle) params.set("title", c.jobTitle);
+  if (c.field) params.set("field", c.field);
+  if (c.region) params.set("region", c.region);
+  if (c.scope) params.set("scope", c.scope);
+  if (c.experience) params.set("experience", c.experience);
+  if (c.salary) params.set("salary", c.salary);
+  if (c.message) params.set("description", c.message);
   return `/admin/jobs/new?${params.toString()}`;
+}
+
+// שורת פרט — מוצגת רק אם יש ערך.
+function Detail({
+  label,
+  value,
+  href,
+}: {
+  label: string;
+  value?: string | null;
+  href?: string;
+}) {
+  if (!value) return null;
+  return (
+    <div className="flex gap-2 text-sm">
+      <span className="text-ink-400 shrink-0">{label}:</span>
+      {href ? (
+        <a href={href} className="text-navy-600 hover:underline" dir="ltr">
+          {value}
+        </a>
+      ) : (
+        <span className="text-ink-800 font-medium">{value}</span>
+      )}
+    </div>
+  );
 }
 
 export default function ContactsPage() {
@@ -105,18 +114,52 @@ export default function ContactsPage() {
                 </span>
               </div>
 
-              <p className="text-sm text-ink-700 whitespace-pre-line leading-relaxed">
-                {c.message}
-              </p>
+              {c.inquiry_type === "employer" ? (
+                <>
+                  {/* פרטים מובְנים — כל מה שהצוות צריך לפתיחת המשרה */}
+                  <div className="grid sm:grid-cols-2 gap-x-6 gap-y-1.5 rounded-xl bg-sand-50 border border-sand-200 p-3">
+                    <Detail label="חברה" value={c.companyName} />
+                    <Detail label="ח.פ / עוסק" value={c.businessNumber} />
+                    <Detail label="מיקום" value={c.companyLocation} />
+                    <Detail
+                      label="מייל"
+                      value={c.email}
+                      href={c.email ? `mailto:${c.email}` : undefined}
+                    />
+                    <Detail label="תפקיד" value={c.jobTitle} />
+                    <Detail
+                      label="תחום"
+                      value={c.field ? FIELD_LABELS[c.field] : undefined}
+                    />
+                    <Detail label="אזור" value={c.region} />
+                    <Detail label="היקף" value={c.scope} />
+                    <Detail label="ניסיון נדרש" value={c.experience} />
+                    <Detail label="טווח שכר" value={c.salary} />
+                  </div>
 
-              {c.inquiry_type === "employer" && (
-                <div className="pt-1">
-                  <Link href={buildJobLink(c)}>
-                    <Button size="sm" variant="outline">
-                      צור משרה מפנייה זו ←
-                    </Button>
-                  </Link>
-                </div>
+                  {c.message && (
+                    <div>
+                      <p className="text-xs text-ink-400 mb-1">
+                        תיאור המשרה והדרישות:
+                      </p>
+                      <p className="text-sm text-ink-700 whitespace-pre-line leading-relaxed">
+                        {c.message}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="pt-1">
+                    <Link href={buildJobLink(c)}>
+                      <Button size="sm" variant="outline">
+                        צור משרה מפנייה זו ←
+                      </Button>
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-ink-700 whitespace-pre-line leading-relaxed">
+                  {c.message}
+                </p>
               )}
             </Card>
           ))}

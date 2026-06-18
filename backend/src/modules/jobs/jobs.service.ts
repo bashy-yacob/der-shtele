@@ -6,7 +6,7 @@ import { UpdateJobDto } from "./dto/update-job.dto";
 import { QueryJobsDto } from "./dto/query-jobs.dto";
 import { assertJobTransition } from "../../common/status-machine/status-machine";
 
-// השדות הציבוריים בלבד — לעולם לא חושפים employer / descriptionInternal
+// השדות הציבוריים בלבד — לעולם לא חושפים employer / descriptionInternal / salary
 const PUBLIC_SELECT = {
   id: true,
   title: true,
@@ -14,6 +14,7 @@ const PUBLIC_SELECT = {
   field: true,
   region: true,
   scope: true,
+  experience: true, // ניסיון נדרש — גלוי לציבור (שכר נשאר פנימי)
   openedAt: true,
 } satisfies Prisma.JobSelect;
 
@@ -28,6 +29,7 @@ export class JobsService {
         status: "active",
         ...(query.field && { field: query.field }),
         ...(query.region && { region: query.region }),
+        ...(query.experience && { experience: query.experience }),
       },
       select: PUBLIC_SELECT,
       orderBy: { openedAt: "desc" },

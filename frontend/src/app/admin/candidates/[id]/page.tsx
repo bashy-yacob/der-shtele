@@ -32,6 +32,8 @@ import {
 import { CANDIDATE_TRANSITIONS } from "@/lib/status-machine";
 import { formatDate, formatDateTime, formatCurrency } from "@/lib/utils";
 
+const CURRENT_YEAR = new Date().getFullYear();
+
 export default function CandidateDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
@@ -384,6 +386,14 @@ function ContactCard({ c }: { c: CandidateDetail }) {
       <Row label="טלפון" value={c.phone} />
       <Row label="מייל" value={c.email} />
       <Row label="עיר" value={c.city || "—"} />
+      <Row
+        label="שנת לידה"
+        value={
+          c.birthYear
+            ? `${c.birthYear} (גיל ${CURRENT_YEAR - c.birthYear})`
+            : "—"
+        }
+      />
 
       <div className="pt-2 border-t border-sand-100">
         <p className="text-sm font-semibold text-ink-700 mb-1">קורות חיים</p>
@@ -557,15 +567,12 @@ function PlacementsCard({ c }: { c: CandidateDetail }) {
                 {p.job?.title ?? "משרה"}
               </p>
               <p className="text-xs text-ink-400">
-                {p.employer?.companyName ?? "—"} · גויס{" "}
-                {formatDate(p.placedAt)}
+                {p.employer?.companyName ?? "—"} · גויס {formatDate(p.placedAt)}
               </p>
             </div>
             <div className="text-end shrink-0">
               <p className="font-semibold text-ink-900">
-                {p.commissionAmount
-                  ? formatCurrency(p.commissionAmount)
-                  : "—"}
+                {p.commissionAmount ? formatCurrency(p.commissionAmount) : "—"}
               </p>
               <div className="flex gap-1 justify-end mt-1">
                 <StatusBadge

@@ -1,6 +1,11 @@
 import { notFound } from "next/navigation";
 import { getPublicJob } from "@/lib/api";
-import { FIELD_LABELS, regionLabel } from "@/lib/constants";
+import {
+  FIELD_LABELS,
+  regionLabel,
+  SITE_NAME,
+  SITE_URL,
+} from "@/lib/constants";
 import type { Metadata } from "next";
 import Link from "next/link";
 import ApplicationForm from "@/components/forms/ApplicationForm";
@@ -12,7 +17,19 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const job = await getPublicJob(params.id);
-  return { title: job?.title ?? "משרה" };
+  if (!job) return { title: "משרה" };
+  return {
+    title: job.title,
+    description: job.description.slice(0, 160),
+    alternates: { canonical: `/jobs/${job.id}` },
+  };
+}
+
+// scope חופשי ('מלאה' | 'חלקית' | 'גמיש') → ערך employmentType תקני של schema.org
+function employmentType(scope: string): string {
+  if (scope.includes("מלא")) return "FULL_TIME";
+  if (scope.includes("חלק")) return "PART_TIME";
+  return "OTHER";
 }
 
 export default async function JobPage({ params }: Props) {
@@ -22,8 +39,41 @@ export default async function JobPage({ params }: Props) {
   // Anonymize company name
   const companyLabel = `ארגון ב${regionLabel(job.region)}`;
 
+  // Structured data — מאפשר הופעה ב"גוגל למשרות" (Google Jobs).
+  // המעסיק האמיתי חסוי; הסוכנות עצמה רשומה כ-hiringOrganization (היא המפרסמת).
+  const jobPostingLd = {
+    "@context": "https://schema.org",
+    "@type": "JobPosting",
+    title: job.title,
+    description: job.description,
+    datePosted: new Date(job.createdAt).toISOString(),
+    employmentType: employmentType(job.scope),
+    industry: FIELD_LABELS[job.field],
+    ...(job.experience ? { experienceRequirements: job.experience } : {}),
+    url: `${SITE_URL}/jobs/${job.id}`,
+    directApply: false,
+    hiringOrganization: {
+      "@type": "Organization",
+      name: SITE_NAME,
+      sameAs: SITE_URL,
+    },
+    jobLocation: {
+      "@type": "Place",
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: regionLabel(job.region),
+        addressCountry: "IL",
+      },
+    },
+    applicantLocationRequirements: { "@type": "Country", name: "ישראל" },
+  };
+
   return (
     <main className="bg-sand-100 min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jobPostingLd) }}
+      />
       <div className="max-w-4xl mx-auto px-4 py-16">
         <Link
           href="/jobs"
@@ -55,6 +105,9 @@ export default async function JobPage({ params }: Props) {
                 <Tag label="תחום" value={FIELD_LABELS[job.field]} />
                 <Tag label="אזור" value={regionLabel(job.region)} />
                 <Tag label="היקף" value={job.scope} />
+                {job.experience && (
+                  <Tag label="ניסיון נדרש" value={job.experience} />
+                )}
               </div>
             </div>
 
@@ -69,7 +122,11 @@ export default async function JobPage({ params }: Props) {
                 דרישות
               </h3>
               <ul className="list-disc list-inside text-ink-700 space-y-2 text-sm">
-                <li>ניסיון קודם בתחום הרלוונטי</li>
+                <li>
+                  {job.experience
+                    ? `ניסיון נדרש: ${job.experience}`
+                    : "ניסיון קודם בתחום הרלוונטי"}
+                </li>
                 <li>יכולות תקשורת טובות</li>
                 <li>זמינות למשרה בהיקף הנדרש</li>
               </ul>

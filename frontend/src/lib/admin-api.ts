@@ -120,6 +120,8 @@ export const createJob = (body: {
   field: JobField;
   region: Region;
   scope: string;
+  experience?: string;
+  salary?: string;
 }) => adminFetch<InternalJob>("jobs", { method: "POST", body });
 export const updateJob = (
   id: string,
@@ -130,6 +132,8 @@ export const updateJob = (
     field: JobField;
     region: Region;
     scope: string;
+    experience: string;
+    salary: string;
     status: JobStatus;
   }>,
 ) => adminFetch<InternalJob>(`jobs/${id}`, { method: "PATCH", body });

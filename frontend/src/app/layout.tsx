@@ -6,7 +6,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { GlobalReminderAlert } from "@/components/admin/GlobalReminderAlert";
 import { AuthProvider } from "@/hooks/useAuth";
-import { SITE_NAME, SITE_TAGLINE } from "@/lib/constants";
+import { SITE_NAME, SITE_DESCRIPTION, SITE_URL } from "@/lib/constants";
 
 // Heebo — גוף וממשק
 const heebo = Heebo({
@@ -25,12 +25,15 @@ const frankRuhl = Frank_Ruhl_Libre({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: SITE_NAME,
     template: `%s | ${SITE_NAME}`,
   },
-  description: SITE_TAGLINE,
-  // אין מדיה חברתית — פרטיות
+  description: SITE_DESCRIPTION,
+  // מאפשר אינדוקס מלא; דפים פרטיים נחסמים ב-robots.ts
+  robots: { index: true, follow: true },
+  // אין מדיה חברתית — פרטיות (ללא Open Graph בכוונה)
 };
 
 export default function RootLayout({

@@ -74,6 +74,14 @@ export const INQUIRY_TYPE_LABELS: Record<InquiryType, string> = {
 
 export const SCOPE_OPTIONS = ["מלאה", "חלקית", "גמיש"] as const;
 
+/** ניסיון נדרש — תואם את פילטר הסינון בלוח המשרות (איפיון 4.3). מקור אמת אחד. */
+export const EXPERIENCE_OPTIONS = [
+  "ללא ניסיון",
+  "שנה ומעלה",
+  "3 שנים ומעלה",
+  "5 שנים ומעלה",
+] as const;
+
 /** צבע badge לפי סטטוס — גוונים שמרניים מתוך מערכת העיצוב. */
 export const STATUS_TONE: Record<string, string> = {
   // candidate

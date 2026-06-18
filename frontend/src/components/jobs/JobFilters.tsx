@@ -1,11 +1,17 @@
 import Link from "next/link";
 import { FIELD_LABELS, buildCityOptions } from "@/lib/constants";
+import { EXPERIENCE_OPTIONS } from "@/lib/labels";
 
 interface JobFiltersProps {
-  current: { field?: string; region?: string };
+  current: { field?: string; region?: string; experience?: string };
   /** ערים קיימות מהשרת — נמזגות עם ברירות-המחדל. */
   regions?: string[];
 }
+
+// אפשרויות ניסיון כ-Record (ערך=תווית) ל-Select הגנרי.
+const EXPERIENCE_FILTER_OPTIONS = Object.fromEntries(
+  EXPERIENCE_OPTIONS.map((e) => [e, e]),
+);
 
 /** טופס סינון משרות (GET — query params). */
 export function JobFilters({ current, regions = [] }: JobFiltersProps) {
@@ -14,7 +20,7 @@ export function JobFilters({ current, regions = [] }: JobFiltersProps) {
     buildCityOptions(regions).map((c) => [c, c]),
   );
   return (
-    <form className="grid grid-cols-1 md:grid-cols-3 gap-5 items-end">
+    <form className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 items-end">
       <Select
         name="field"
         label="תחום מקצועי"
@@ -26,6 +32,12 @@ export function JobFilters({ current, regions = [] }: JobFiltersProps) {
         label="אזור מגורים"
         options={cityOptions}
         current={current.region}
+      />
+      <Select
+        name="experience"
+        label="ניסיון נדרש"
+        options={EXPERIENCE_FILTER_OPTIONS}
+        current={current.experience}
       />
       <div className="flex gap-2">
         <button

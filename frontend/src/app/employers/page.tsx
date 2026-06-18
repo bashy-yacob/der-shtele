@@ -3,7 +3,12 @@ import Link from "next/link";
 import { SITE_CONTENT } from "@/lib/constants";
 import { Card, SectionHeading } from "@/components/ui";
 
-export const metadata: Metadata = { title: "למעסיקים" };
+export const metadata: Metadata = {
+  title: "למעסיקים",
+  description:
+    "מחפשים עובד? דער שטעלע מסננת, מתאימה ומציגה מועמדים מהציבור החרדי. תשלום רק על תוצאה, ערבות שלושה חודשים ודיסקרטיות מלאה.",
+  alternates: { canonical: "/employers" },
+};
 
 const EMP = SITE_CONTENT.employers;
 

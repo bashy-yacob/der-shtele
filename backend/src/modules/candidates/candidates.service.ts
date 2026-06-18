@@ -32,14 +32,33 @@ export class CandidatesService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException("משתמש לא נמצא");
 
+    // הגשה למשרה ספציפית — הטופס לא מבקש תחום/אזור; נגזרים מהמשרה עצמה.
+    let field = dto.field;
+    let region = dto.region;
+    if (dto.jobId && (!field || !region)) {
+      const job = await this.prisma.job.findUnique({
+        where: { id: dto.jobId },
+        select: { field: true, region: true },
+      });
+      if (job) {
+        field = field ?? job.field;
+        region = region ?? job.region;
+      }
+    }
+    if (!field || !region) {
+      throw new BadRequestException("חסר תחום או אזור למועמדות");
+    }
+
     const data = {
       fullName: dto.fullName,
       phone: dto.phone,
       email: dto.email,
       city: dto.city ?? "",
-      field: dto.field,
-      region: dto.region,
+      field,
+      region,
       notes: dto.notes,
+      // עדכון רק כשנמסר — הגשה חוזרת בלי שנת לידה לא מוחקת ערך קיים.
+      ...(dto.birthYear != null ? { birthYear: dto.birthYear } : {}),
       ...(dto.cvPath ? { cvUrl: dto.cvPath, cvUploadedAt: new Date() } : {}),
     };
 

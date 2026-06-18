@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getPublicJobs } from "@/lib/api";
 import { JobCard } from "@/components/jobs/JobCard";
@@ -5,6 +6,32 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { SkylineMotif } from "@/components/ui/SkylineMotif";
 import { Reveal } from "@/components/ui/Reveal";
 import { CountUp } from "@/components/ui/CountUp";
+import {
+  SITE_NAME,
+  SITE_DESCRIPTION,
+  SITE_URL,
+  CONTACT_INFO,
+} from "@/lib/constants";
+
+export const metadata: Metadata = {
+  // כותרת מלאה לעמוד הבית (עוקפת את תבנית ה-"%s | דער שטעלע")
+  title: { absolute: `${SITE_NAME} — סוכנות השמה לציבור החרדי` },
+  description: SITE_DESCRIPTION,
+  alternates: { canonical: "/" },
+};
+
+// Structured data — מזהה את האתר כסוכנות השמה (Google Knowledge Graph / Rich Results).
+const ORGANIZATION_LD = {
+  "@context": "https://schema.org",
+  "@type": "EmploymentAgency",
+  name: SITE_NAME,
+  url: SITE_URL,
+  description: SITE_DESCRIPTION,
+  email: CONTACT_INFO.email,
+  logo: `${SITE_URL}/logo.svg`,
+  areaServed: { "@type": "Country", name: "ישראל" },
+  knowsLanguage: ["he"],
+};
 
 const CONTENT = {
   hero: {
@@ -100,6 +127,10 @@ export default async function HomePage() {
 
   return (
     <div dir="rtl">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_LD) }}
+      />
       {/* ======== HERO ======== */}
       <section className="relative overflow-hidden bg-sand-100 border-b border-sand-200">
         {/* מוטיב קו-רקיע עדין שמרחף קלות */}

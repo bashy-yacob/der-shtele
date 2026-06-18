@@ -2,7 +2,12 @@ import type { Metadata } from "next";
 import { SITE_CONTENT } from "@/lib/constants";
 import { Card, SectionHeading } from "@/components/ui";
 
-export const metadata: Metadata = { title: "אודות" };
+export const metadata: Metadata = {
+  title: "אודות",
+  description:
+    "אודות דער שטעלע — סוכנות השמה שנבנתה מתוך הציבור החרדי ובשבילו. מכירים את הציבור, שומרים על צניעות ופרטיות, ומלווים כל גיוס באופן אישי.",
+  alternates: { canonical: "/about" },
+};
 
 export default function AboutPage() {
   return (

@@ -32,6 +32,7 @@ interface RawPublicJob {
   field: JobField;
   region: Region;
   scope: string;
+  experience?: string | null;
   openedAt: string;
 }
 
@@ -44,6 +45,7 @@ function toPublicJob(raw: RawPublicJob): PublicJob {
     field: raw.field,
     region: raw.region,
     scope: raw.scope,
+    experience: raw.experience ?? null,
     createdAt: raw.openedAt,
   };
 }
@@ -51,6 +53,7 @@ function toPublicJob(raw: RawPublicJob): PublicJob {
 export interface JobsFilter {
   field?: JobField;
   region?: Region;
+  experience?: string;
 }
 
 /** לוח המשרות הציבורי. נכשל בעדינות — מחזיר [] אם ה-backend לא זמין. */
@@ -60,6 +63,7 @@ export async function getPublicJobs(
   const params = new URLSearchParams();
   if (filter.field) params.set("field", filter.field);
   if (filter.region) params.set("region", filter.region);
+  if (filter.experience) params.set("experience", filter.experience);
 
   try {
     const res = await fetch(`${BASE_URL}/api/jobs?${params.toString()}`, {

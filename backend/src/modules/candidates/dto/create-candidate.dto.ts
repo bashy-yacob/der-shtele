@@ -1,13 +1,18 @@
 import {
   IsEmail,
   IsEnum,
+  IsInt,
   IsOptional,
   IsString,
   Matches,
+  Max,
+  Min,
   MinLength,
 } from "class-validator";
-import { Transform } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import { JobField } from "@prisma/client";
+
+const CURRENT_YEAR = new Date().getFullYear();
 
 /** טופס הגשת מועמדות מהאתר הציבורי */
 export class CreateCandidateDto {
@@ -29,12 +34,23 @@ export class CreateCandidateDto {
   @IsString()
   city?: string;
 
+  // בהגשה למשרה ספציפית תחום/אזור נגזרים מהמשרה בצד שרת — לכן אופציונליים בטופס.
+  @IsOptional()
   @IsEnum(JobField)
-  field!: JobField;
+  field?: JobField;
 
+  @IsOptional()
   @IsString()
   @MinLength(1)
-  region!: string; // עיר/אזור — טקסט חופשי
+  region?: string; // עיר/אזור — טקסט חופשי
+
+  // שנת לידה (אופציונלי)
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1920, { message: "שנת לידה לא תקינה" })
+  @Max(CURRENT_YEAR, { message: "שנת לידה לא תקינה" })
+  birthYear?: number;
 
   @IsOptional()
   @IsString()

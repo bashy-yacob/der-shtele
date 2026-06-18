@@ -52,6 +52,17 @@ export function buildCityOptions(fromServer: string[] = []): string[] {
 // ---- שם האתר ----
 export const SITE_NAME = "דער שטעלע";
 export const SITE_TAGLINE = "מוצאים לך את המשרה הנכונה";
+
+// כתובת הבסיס של האתר (לקנוניקל, sitemap, robots ו-JSON-LD).
+// ניתן לעקוף ב-NEXT_PUBLIC_SITE_URL (למשל לדומיין מותאם בעתיד).
+export const SITE_URL = (
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://der-shtele.vercel.app"
+).replace(/\/+$/, "");
+
+// תיאור מטא ברירת-מחדל (snippet בתוצאות חיפוש).
+export const SITE_DESCRIPTION =
+  "דער שטעלע — סוכנות השמה לציבור החרדי בישראל. שולחים קורות חיים, והצוות שלנו מסנן, מתאים ומציג אתכם למעסיקים. כל פנייה עוברת דרך הצוות, בדיסקרטיות מלאה.";
+
 export const SITE_SUBTITLE =
   "סוכנות השמה מקצועית לציבור החרדי בישראל. אנחנו מטפלים בכל הפרטים - אתם עובדים בעבודה.";
 
@@ -274,7 +285,7 @@ export const SITE_CONTENT = {
     contactForm: {
       title: "פנייה ושליחת משרה",
       subtitle:
-        "מלאו את פרטי המשרה ונחזור אליכם להשלמת התהליך. הפרטים נשמרים אצל הצוות בלבד.",
+        "מלאו את פרטי החברה והמשרה ונחזור אליכם להשלמת התהליך. הפרטים נשמרים אצל הצוות בלבד.",
       success: "תודה! קיבלנו את פרטי המשרה. הצוות יחזור אליכם בהקדם.",
       note: "הפרטים נשמרים אצל הצוות בלבד. אין מענה בשבת וביום טוב.",
     },

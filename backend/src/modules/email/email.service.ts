@@ -25,20 +25,33 @@ export class EmailService {
   private readonly enabled: boolean;
 
   constructor(private readonly config: ConfigService) {
-    this.from = this.config.get<string>('SMTP_USER', 'no-reply@dershtele.co.il');
-    this.teamEmail = this.config.get<string>('TEAM_EMAIL', this.from);
+    // שם המשתמש להתחברות ל-SMTP. ב-Gmail זו כתובת המייל; ב-Resend זה המחרוזת
+    // הקבועה 'resend' (וה-API key נכנס כסיסמה).
+    const user = this.config.get<string>('SMTP_USER', 'no-reply@dershtele.co.il');
+
+    // כתובת השולח (From) נפרדת משם המשתמש: ב-Resend ה-From חייב להיות כתובת
+    // מאומתת (onboarding@resend.dev בבדיקה, או noreply@dershtele.co.il אחרי
+    // אימות דומיין) — שונה משם המשתמש 'resend'. ברירת מחדל: ליפול חזרה ל-SMTP_USER
+    // כך שהגדרת Gmail (user == from) ממשיכה לעבוד בלי MAIL_FROM.
+    const fromAddress = this.config.get<string>('MAIL_FROM', user);
+    const fromName = this.config.get<string>('MAIL_FROM_NAME', '');
+    this.from = fromName ? `${fromName} <${fromAddress}>` : fromAddress;
+    this.teamEmail = this.config.get<string>('TEAM_EMAIL', fromAddress);
 
     const pass = this.config.get<string>('SMTP_PASS', '');
     // SMTP נחשב "מוגדר" רק כשיש סיסמה. בלי זה לא מנסים להתחבר כלל — אחרת כל
-    // שליחה נתקעת בהמתנה ל-timeout מול Gmail. fail-soft, כמו שהאיפיון מבטיח.
+    // שליחה נתקעת בהמתנה ל-timeout מול השרת. fail-soft, כמו שהאיפיון מבטיח.
     this.enabled = Boolean(pass);
 
+    const port = this.config.get<number>('SMTP_PORT', 587);
     this.transporter = nodemailer.createTransport({
       host: this.config.get<string>('SMTP_HOST', 'smtp.gmail.com'),
-      port: this.config.get<number>('SMTP_PORT', 587),
-      secure: false,
+      port,
+      // 465 = SMTPS (TLS מיידי); 587/2587 = STARTTLS. גם Gmail וגם Resend
+      // תומכים ב-587, אז ברירת המחדל לא מוצפנת-מיידית אלא משדרגת ל-TLS.
+      secure: port === 465,
       auth: {
-        user: this.from,
+        user,
         pass,
       },
       // רשת ביטחון: גם אם מוגדר אך השרת לא מגיב — להיכשל מהר ולא לתקוע את הבקשה.

@@ -42,6 +42,7 @@ import {
   JOB_STATUS_LABELS,
   CANDIDATE_STATUS_LABELS,
   SCOPE_OPTIONS,
+  EXPERIENCE_OPTIONS,
 } from "@/lib/labels";
 import { JOB_TRANSITIONS, CANDIDATE_TRANSITIONS } from "@/lib/status-machine";
 import { formatDate } from "@/lib/utils";
@@ -114,6 +115,8 @@ function EditCard({
     field: job.field as JobField,
     region: job.region as Region,
     scope: job.scope,
+    experience: job.experience ?? "",
+    salary: job.salary ?? "",
   });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -183,6 +186,25 @@ function EditCard({
             </option>
           ))}
         </Select>
+      </div>
+      <div className="grid md:grid-cols-2 gap-3">
+        <Select
+          label="ניסיון נדרש (גלוי באתר)"
+          value={form.experience}
+          onChange={(e) => set("experience")(e.target.value)}
+        >
+          <option value="">— ללא ציון —</option>
+          {EXPERIENCE_OPTIONS.map((x) => (
+            <option key={x} value={x}>
+              {x}
+            </option>
+          ))}
+        </Select>
+        <Input
+          label="טווח שכר מוצע (פנימי — לא עולה לאתר)"
+          value={form.salary}
+          onChange={(e) => set("salary")(e.target.value)}
+        />
       </div>
       <div className="rounded-xl border border-olive-300 bg-olive-50 p-3">
         <Textarea

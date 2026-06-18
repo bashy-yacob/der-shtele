@@ -30,6 +30,7 @@ export function JobCard({ job }: JobCardProps) {
         <Tag>{FIELD_LABELS[job.field]}</Tag>
         <Tag>{regionLabel(job.region)}</Tag>
         <Tag>{job.scope}</Tag>
+        {job.experience && <Tag>{job.experience}</Tag>}
       </div>
 
       <Link

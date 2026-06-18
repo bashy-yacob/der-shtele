@@ -10,4 +10,8 @@ export class QueryJobsDto {
   @IsOptional()
   @IsString()
   region?: string; // עיר/אזור — טקסט חופשי
+
+  @IsOptional()
+  @IsString()
+  experience?: string; // ניסיון נדרש — סינון לפי הערך המדויק
 }
