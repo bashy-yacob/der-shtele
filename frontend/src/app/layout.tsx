@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Heebo, Frank_Ruhl_Libre } from "next/font/google";
 import "@/styles/globals.css";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ConstructionBanner } from "@/components/layout/ConstructionBanner";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -52,6 +53,7 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
           <Footer />
         </AuthProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
