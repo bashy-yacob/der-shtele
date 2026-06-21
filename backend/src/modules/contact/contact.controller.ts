@@ -2,21 +2,24 @@ import {
   Body,
   Controller,
   Get,
+  Param,
+  Patch,
   Post,
   UploadedFile,
   UseGuards,
   UseInterceptors,
-} from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { ContactService } from './contact.service';
-import { CreateContactDto } from './dto/create-contact.dto';
-import { Public } from '../../common/decorators/public.decorator';
-import { Roles } from '../../common/decorators/roles.decorator';
-import { RolesGuard } from '../../common/guards/roles.guard';
-import { StorageService } from '../../common/storage/storage.service';
-import { resumeUploadOptions } from '../../common/storage/resume-upload.options';
+} from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { ContactService } from "./contact.service";
+import { CreateContactDto } from "./dto/create-contact.dto";
+import { UpdateContactHandledDto } from "./dto/update-contact-handled.dto";
+import { Public } from "../../common/decorators/public.decorator";
+import { Roles } from "../../common/decorators/roles.decorator";
+import { RolesGuard } from "../../common/guards/roles.guard";
+import { StorageService } from "../../common/storage/storage.service";
+import { resumeUploadOptions } from "../../common/storage/resume-upload.options";
 
-@Controller('contact')
+@Controller("contact")
 export class ContactController {
   constructor(
     private readonly contactService: ContactService,
@@ -26,7 +29,7 @@ export class ContactController {
   /** טופס צור קשר — multipart עם קו"ח אופציונלי. */
   @Public()
   @Post()
-  @UseInterceptors(FileInterceptor('resume', resumeUploadOptions))
+  @UseInterceptors(FileInterceptor("resume", resumeUploadOptions))
   async create(
     @Body() dto: CreateContactDto,
     @UploadedFile() file?: Express.Multer.File,
@@ -38,8 +41,16 @@ export class ContactController {
 
   @Get()
   @UseGuards(RolesGuard)
-  @Roles('staff', 'admin')
+  @Roles("staff", "admin")
   findAll() {
     return this.contactService.findAll();
+  }
+
+  /** סימון פנייה כטופלה / ביטול הסימון — צוות בלבד. */
+  @Patch(":id/handled")
+  @UseGuards(RolesGuard)
+  @Roles("staff", "admin")
+  setHandled(@Param("id") id: string, @Body() dto: UpdateContactHandledDto) {
+    return this.contactService.setHandled(id, dto.handled);
   }
 }

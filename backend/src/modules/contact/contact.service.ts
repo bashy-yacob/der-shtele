@@ -107,4 +107,12 @@ export class ContactService {
   findAll() {
     return this.prisma.contact.findMany({ orderBy: { createdAt: "desc" } });
   }
+
+  /** סימון פנייה כטופלה (חותמת זמן) או ביטול הסימון. מחזיר את הפנייה המעודכנת. */
+  setHandled(id: string, handled: boolean) {
+    return this.prisma.contact.update({
+      where: { id },
+      data: { handledAt: handled ? new Date() : null },
+    });
+  }
 }

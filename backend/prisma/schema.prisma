@@ -177,6 +177,9 @@ model Contact {
   experience      String?   // ניסיון נדרש
   salary          String?   // טווח שכר מוצע — פנימי בלבד
 
+  // מעקב טיפול הצוות — null = טרם טופל; מסומן = טופל (חותמת הזמן בה סומן).
+  handledAt    DateTime?
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

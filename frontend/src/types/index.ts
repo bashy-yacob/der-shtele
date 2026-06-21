@@ -122,6 +122,7 @@ export interface Employer {
   contactEmail: string;
   notes: string | null; // אמינות, העדפות, הערות
   createdAt: string;
+  _count?: { jobs: number }; // מספר המשרות של המעסיק — מאוכלס ברשימת המעסיקים
 }
 
 /** משרה — גרסה פנימית מלאה */
@@ -326,6 +327,8 @@ export interface Contact {
   scope?: string | null;
   experience?: string | null;
   salary?: string | null;
+  // טיפול הצוות — null = טרם טופל; חותמת זמן = טופל
+  handledAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }

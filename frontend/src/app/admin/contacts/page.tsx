@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { listContacts } from "@/lib/admin-api";
-import type { Contact } from "@/types";
+import { listContacts, setContactHandled } from "@/lib/admin-api";
+import type { Contact, InquiryType } from "@/types";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import {
   Loading,
@@ -11,9 +11,12 @@ import {
   EmptyState,
   PageHeader,
 } from "@/components/admin/Feedback";
-import { Card, Button } from "@/components/ui";
+import { Card, Button, Select } from "@/components/ui";
 import { INQUIRY_TYPE_LABELS, FIELD_LABELS } from "@/lib/labels";
 import { formatDate } from "@/lib/utils";
+
+// מצב סינון "טופל" — כל הפניות / רק שטופלו / רק שטרם טופלו.
+type HandledFilter = "all" | "handled" | "open";
 
 // בונה קישור לטופס "משרה חדשה" עם כל פרטי הפנייה המובְנים — טעינה מראש מלאה,
 // בלי פענוח טקסט. הצוות מגיע לטופס כשהכל כבר ממולא.
@@ -65,6 +68,10 @@ export default function ContactsPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
+  const [typeFilter, setTypeFilter] = useState<InquiryType | "">("");
+  const [handledFilter, setHandledFilter] = useState<HandledFilter>("all");
+  const [busyId, setBusyId] = useState<string | null>(null);
+
   useEffect(() => {
     listContacts()
       .then(setContacts)
@@ -72,12 +79,70 @@ export default function ContactsPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  // סימון/ביטול "טופל" — עדכון אופטימי של ה-state המקומי לאחר אישור השרת.
+  async function toggleHandled(c: Contact) {
+    setBusyId(c.id);
+    setError("");
+    try {
+      const updated = await setContactHandled(c.id, !c.handledAt);
+      setContacts((prev) =>
+        prev.map((x) =>
+          x.id === c.id ? { ...x, handledAt: updated.handledAt } : x,
+        ),
+      );
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  const openCount = useMemo(
+    () => contacts.filter((c) => !c.handledAt).length,
+    [contacts],
+  );
+
+  const filtered = useMemo(
+    () =>
+      contacts.filter((c) => {
+        if (typeFilter && c.inquiry_type !== typeFilter) return false;
+        if (handledFilter === "handled" && !c.handledAt) return false;
+        if (handledFilter === "open" && c.handledAt) return false;
+        return true;
+      }),
+    [contacts, typeFilter, handledFilter],
+  );
+
   return (
     <div>
       <PageHeader
         title="פניות נכנסות"
-        subtitle={`${contacts.length} פניות מטופס "צור קשר" ומטופס המעסיקים`}
+        subtitle={`${contacts.length} פניות מטופס "צור קשר" ומטופס המעסיקים · ${openCount} ממתינות לטיפול`}
       />
+
+      <Card className="mb-6">
+        <div className="grid sm:grid-cols-2 gap-3">
+          <Select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value as InquiryType | "")}
+          >
+            <option value="">כל סוגי הפניות</option>
+            {Object.entries(INQUIRY_TYPE_LABELS).map(([k, v]) => (
+              <option key={k} value={k}>
+                {v}
+              </option>
+            ))}
+          </Select>
+          <Select
+            value={handledFilter}
+            onChange={(e) => setHandledFilter(e.target.value as HandledFilter)}
+          >
+            <option value="all">טופלו ולא טופלו</option>
+            <option value="open">ממתינות לטיפול</option>
+            <option value="handled">טופלו</option>
+          </Select>
+        </div>
+      </Card>
 
       {loading ? (
         <Loading />
@@ -85,10 +150,15 @@ export default function ContactsPage() {
         <ErrorNote message={error} />
       ) : contacts.length === 0 ? (
         <EmptyState message="עדיין אין פניות." />
+      ) : filtered.length === 0 ? (
+        <EmptyState message="לא נמצאו פניות התואמות לסינון." />
       ) : (
         <div className="space-y-3">
-          {contacts.map((c) => (
-            <Card key={c.id} className="space-y-3">
+          {filtered.map((c) => (
+            <Card
+              key={c.id}
+              className={`space-y-3 ${c.handledAt ? "opacity-70" : ""}`}
+            >
               <div className="flex items-start justify-between gap-3 flex-wrap">
                 <div className="flex items-center gap-2 flex-wrap">
                   <StatusBadge
@@ -106,6 +176,11 @@ export default function ContactsPage() {
                   {c.resumePath && (
                     <span className="text-xs text-olive-700 bg-olive-50 border border-olive-200 rounded-full px-2 py-0.5">
                       צורפו קו״ח
+                    </span>
+                  )}
+                  {c.handledAt && (
+                    <span className="text-xs text-olive-700 bg-olive-100 border border-olive-200 rounded-full px-2 py-0.5">
+                      ✓ טופל
                     </span>
                   )}
                 </div>
@@ -147,20 +222,35 @@ export default function ContactsPage() {
                       </p>
                     </div>
                   )}
-
-                  <div className="pt-1">
-                    <Link href={buildJobLink(c)}>
-                      <Button size="sm" variant="outline">
-                        צור משרה מפנייה זו ←
-                      </Button>
-                    </Link>
-                  </div>
                 </>
               ) : (
                 <p className="text-sm text-ink-700 whitespace-pre-line leading-relaxed">
                   {c.message}
                 </p>
               )}
+
+              {/* פעולות הצוות — יצירת משרה (למעסיק) וסימון טיפול */}
+              <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-sand-100">
+                {c.inquiry_type === "employer" && (
+                  <Link href={buildJobLink(c)}>
+                    <Button size="sm" variant="outline">
+                      צור משרה מפנייה זו ←
+                    </Button>
+                  </Link>
+                )}
+                <Button
+                  size="sm"
+                  variant={c.handledAt ? "ghost" : "secondary"}
+                  disabled={busyId === c.id}
+                  onClick={() => toggleHandled(c)}
+                >
+                  {busyId === c.id
+                    ? "מעדכן…"
+                    : c.handledAt
+                      ? "סמן כלא טופל"
+                      : "סמן כטופל ✓"}
+                </Button>
+              </div>
             </Card>
           ))}
         </div>

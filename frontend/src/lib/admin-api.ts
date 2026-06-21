@@ -67,6 +67,12 @@ export const getDashboard = () =>
 // ---- פניות (טופס "צור קשר" + פניות מעסיקים) ----
 // GET /api/contact — staff/admin בלבד. הפניות נשמרות בטבלת contacts ומיון יורד לפי תאריך.
 export const listContacts = () => adminFetch<Contact[]>("contact");
+/** סימון פנייה כטופלה / ביטול — מחזיר את הפנייה המעודכנת. */
+export const setContactHandled = (id: string, handled: boolean) =>
+  adminFetch<Contact>(`contact/${id}/handled`, {
+    method: "PATCH",
+    body: { handled },
+  });
 
 // ---- מועמדים ----
 export const listCandidates = () =>
