@@ -22,6 +22,7 @@ import type {
   Region,
   Reminder,
   Subscriber,
+  Testimonial,
 } from "@/types";
 
 const TOKEN_KEY = "ds_token";
@@ -227,3 +228,27 @@ export const sendMailing = (body: {
     method: "POST",
     body,
   });
+
+// ---- המלצות לקוחות ----
+// כל ההמלצות (כולל לא-מפורסמות) — לניהול הצוות.
+export const listTestimonials = () =>
+  adminFetch<Testimonial[]>("testimonials/admin/all");
+export const createTestimonial = (body: {
+  authorName: string;
+  quote: string;
+  authorRole?: string;
+  published?: boolean;
+  order?: number;
+}) => adminFetch<Testimonial>("testimonials", { method: "POST", body });
+export const updateTestimonial = (
+  id: string,
+  body: Partial<{
+    authorName: string;
+    authorRole: string;
+    quote: string;
+    published: boolean;
+    order: number;
+  }>,
+) => adminFetch<Testimonial>(`testimonials/${id}`, { method: "PATCH", body });
+export const deleteTestimonial = (id: string) =>
+  adminFetch<{ ok: true }>(`testimonials/${id}`, { method: "DELETE" });

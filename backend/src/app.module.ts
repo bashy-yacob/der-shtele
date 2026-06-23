@@ -20,6 +20,7 @@ import { EmailModule } from "./modules/email/email.module";
 import { DashboardModule } from "./modules/dashboard/dashboard.module";
 import { MailingModule } from "./modules/mailing/mailing.module";
 import { SavedJobsModule } from "./modules/saved-jobs/saved-jobs.module";
+import { TestimonialsModule } from "./modules/testimonials/testimonials.module";
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { SavedJobsModule } from "./modules/saved-jobs/saved-jobs.module";
     DashboardModule,
     MailingModule,
     SavedJobsModule,
+    TestimonialsModule,
   ],
   controllers: [AppController],
   providers: [

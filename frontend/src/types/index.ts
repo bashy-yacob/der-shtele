@@ -333,6 +333,28 @@ export interface Contact {
   updatedAt: string;
 }
 
+// ----------------------------------------------------------------
+// המלצות לקוחות — מוצגות בדף הבית (קרוסלה), מנוהלות מהדשבורד
+// ----------------------------------------------------------------
+
+/** המלצת לקוח מלאה — כפי שהצוות רואה ומנהל בדשבורד */
+export interface Testimonial {
+  id: string;
+  authorName: string; // שם פרטי / ראשי תיבות
+  authorRole?: string | null; // תיאור / הקשר
+  quote: string;
+  published: boolean;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** המלצה ציבורית — תת-הקבוצה המוצגת באתר (ללא שדות ניהול) */
+export type PublicTestimonial = Pick<
+  Testimonial,
+  "id" | "authorName" | "authorRole" | "quote"
+>;
+
 export interface ApiResponse<T = void> {
   success: boolean;
   data?: T;

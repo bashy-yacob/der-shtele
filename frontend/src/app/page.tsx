@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getPublicJobs } from "@/lib/api";
+import { getPublicJobs, getPublishedTestimonials } from "@/lib/api";
 import { JobCard } from "@/components/jobs/JobCard";
+import { TestimonialsCarousel } from "@/components/marketing/TestimonialsCarousel";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { SkylineMotif } from "@/components/ui/SkylineMotif";
 import { Reveal } from "@/components/ui/Reveal";
@@ -115,7 +116,10 @@ const CONTENT = {
 };
 
 export default async function HomePage() {
-  const jobs = await getPublicJobs();
+  const [jobs, testimonials] = await Promise.all([
+    getPublicJobs(),
+    getPublishedTestimonials(),
+  ]);
   const latest = jobs.slice(0, 4);
 
   const stats = [
@@ -337,8 +341,27 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* ======== המלצות לקוחות ======== */}
+      {testimonials.length > 0 && (
+        <section className="bg-white border-t border-sand-200 py-20 px-4">
+          <div className="max-w-3xl mx-auto">
+            <Reveal>
+              <SectionHeading
+                eyebrow="ממליצים עלינו"
+                title="מה אומרים מי שכבר עברו דרכנו"
+                subtitle="כמה מילים ממועמדים וממעסיקים שליווינו — בשמירה על פרטיותם."
+                className="mb-12"
+              />
+            </Reveal>
+            <Reveal>
+              <TestimonialsCarousel items={testimonials} />
+            </Reveal>
+          </div>
+        </section>
+      )}
+
       {/* ======== שאלות נפוצות ======== */}
-      <section className="bg-white border-t border-sand-200 py-20 px-4">
+      <section className="bg-sand-50 border-t border-sand-200 py-20 px-4">
         <div className="max-w-3xl mx-auto">
           <Reveal>
             <SectionHeading

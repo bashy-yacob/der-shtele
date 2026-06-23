@@ -2,7 +2,12 @@
 // ה-frontend לא ניגש ל-DB ישירות — הכל עובר דרך כאן.
 // בצד שרת משתמשים ב-BACKEND_API_URL; בצד לקוח ב-NEXT_PUBLIC_API_URL.
 
-import type { PublicJob, JobField, Region } from "@/types";
+import type {
+  PublicJob,
+  JobField,
+  Region,
+  PublicTestimonial,
+} from "@/types";
 
 // מוריד סלאש מיותר בסוף הכתובת כדי שלא ייווצר `//api/...`
 const BASE_URL = (
@@ -110,4 +115,16 @@ export async function submitApplication(
     body: JSON.stringify(body),
   });
   await unwrap<unknown>(res);
+}
+
+/** המלצות לקוחות מפורסמות — לדף הבית. נכשל בעדינות → [] אם אין תקשורת. */
+export async function getPublishedTestimonials(): Promise<PublicTestimonial[]> {
+  try {
+    const res = await fetch(`${BASE_URL}/api/testimonials`, {
+      next: { revalidate: 60 },
+    });
+    return await unwrap<PublicTestimonial[]>(res);
+  } catch {
+    return [];
+  }
 }

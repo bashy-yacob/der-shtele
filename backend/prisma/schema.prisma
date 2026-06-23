@@ -375,3 +375,23 @@ model Reminder {
 
   @@map("reminders")
 }
+
+// ----------------------------------------------------------------
+// המלצות לקוחות — מוצגות בדף הבית (קרוסלה), מנוהלות מהדשבורד.
+// צניעות ופרטיות: authorName הוא שם פרטי / ראשי תיבות בלבד — לא שם מלא;
+// אין שדה תמונה (כלל "ללא תמונות אנשים").
+// ----------------------------------------------------------------
+
+model Testimonial {
+  id          String   @id @default(cuid())
+  authorName  String   // שם פרטי / ראשי תיבות (למשל "י.כ.")
+  authorRole  String?  // תיאור / הקשר ("מועמד שהושם", "מנהל גיוס בבני ברק")
+  quote       String   // גוף ההמלצה
+  published   Boolean  @default(true) // האם מוצגת באתר הציבורי
+  order       Int      @default(0)    // סדר תצוגה — עולה (קטן קודם)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("testimonials")
+}

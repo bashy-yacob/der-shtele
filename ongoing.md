@@ -35,6 +35,11 @@
 - **תזכורות** (`/admin/reminders`) — רשימה, יצירה, סימון כטופל.
 - **רשימת תפוצה** (`/admin/mailing`) — מנויים + סינון, שליחה ידנית (חסומה בשבת),
   ייצוא CSV.
+- **המלצות לקוחות** (`/admin/testimonials`) — ניהול מלא (הוספה/עריכה/פרסום-הסתרה/
+  מחיקה + סדר תצוגה). מוצגות בדף הבית בקרוסלה עדינה (`TestimonialsCarousel`,
+  ללא תמונות אנשים, מכבדת `prefers-reduced-motion`). API: `testimonials` —
+  `GET` ציבורי (מפורסמות בלבד) ו-`admin/all`+CRUD לצוות. ⚠️ דורש הרצת מיגרציה
+  ידנית בפרודקשן: `npx prisma migrate deploy` (טבלת `testimonials`).
 
 ## מה נבדק ועבר ✅
 ראה `QA-REPORT.md` המלא. בקצרה: tsc (×2), lint (×2), build (×2) — נקיים;

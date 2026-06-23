@@ -17,6 +17,7 @@ const ADMIN_NAV = [
   { href: "/admin/commissions", label: "עמלות" },
   { href: "/admin/reminders", label: "תזכורות" },
   { href: "/admin/mailing", label: "רשימת תפוצה" },
+  { href: "/admin/testimonials", label: "המלצות" },
 ];
 
 const ADMIN_ROLES = ["staff", "admin"];
