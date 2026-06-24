@@ -1,17 +1,22 @@
-import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { AppModule } from './app.module';
-import { TransformInterceptor } from './common/interceptors/transform.interceptor';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { NestFactory } from "@nestjs/core";
+import { ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { AppModule } from "./app.module";
+import { TransformInterceptor } from "./common/interceptors/transform.interceptor";
+import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const config = app.get(ConfigService);
 
-  // CORS — רק ל-frontend (לא לדומיינים זרים)
+  // CORS — allowlist מתוך FRONTEND_ORIGIN (מופרד בפסיקים). בלי הגדרה נופלים
+  // ל-localhost לפיתוח בלבד; בפרוד מגדירים את הדומיין/ים המורשים (SEC-9).
+  const allowedOrigins = (config.get<string>("FRONTEND_ORIGIN") ?? "")
+    .split(",")
+    .map((o) => o.trim())
+    .filter(Boolean);
   app.enableCors({
-    origin: config.get<string>('FRONTEND_ORIGIN', 'http://localhost:3000'),
+    origin: allowedOrigins.length ? allowedOrigins : ["http://localhost:3000"],
     credentials: true,
   });
 
@@ -29,9 +34,9 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
 
   // כל ה-API תחת /api, אך השורש ובדיקת הבריאות נשארים מחוץ ל-prefix
-  app.setGlobalPrefix('api', { exclude: ['/', 'health'] });
+  app.setGlobalPrefix("api", { exclude: ["/", "health"] });
 
-  const port = config.get<number>('PORT', 4000);
+  const port = config.get<number>("PORT", 4000);
   await app.listen(port);
   // eslint-disable-next-line no-console
   console.log(`🚀 דער שטעלע backend רץ על http://localhost:${port}/api`);

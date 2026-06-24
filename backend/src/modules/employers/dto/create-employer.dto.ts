@@ -1,4 +1,4 @@
-import { IsOptional, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsOptional, IsString, MinLength } from "class-validator";
 
 export class CreateEmployerDto {
   @IsString()
@@ -19,7 +19,7 @@ export class CreateEmployerDto {
   @IsString()
   contactPhone!: string;
 
-  @IsString()
+  @IsEmail({}, { message: "כתובת אימייל לא תקינה" })
   contactEmail!: string;
 
   @IsOptional()

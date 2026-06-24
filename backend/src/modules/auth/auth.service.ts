@@ -18,10 +18,15 @@ import { UpdateMeDto } from "./dto/update-me.dto";
 import { ChangePasswordDto } from "./dto/change-password.dto";
 import { JwtPayload } from "./jwt.strategy";
 
+/** עלות ה-hashing של bcrypt. 12 סבבים — איזון אבטחה/ביצועים (SEC-10). */
+const BCRYPT_ROUNDS = 12;
+
 @Injectable()
 export class AuthService {
   /** קליינט Google OAuth — מאתחל פעם אחת עם ה-redirect URI הקבוע. */
   private readonly googleClient: OAuth2Client;
+  /** hash דמה לקיזוז תזמון ב-login — מונע user-enumeration (SEC-7). */
+  private readonly dummyHash: string;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -34,6 +39,8 @@ export class AuthService {
       config.get<string>("GOOGLE_CLIENT_SECRET"),
       config.get<string>("GOOGLE_CALLBACK_URL"),
     );
+    // מחושב פעם אחת באתחול — bcrypt.compare מולו לוקח זמן זהה לבדיקה אמיתית.
+    this.dummyHash = bcrypt.hashSync("timing-equalizer", BCRYPT_ROUNDS);
   }
 
   async register(dto: RegisterDto) {
@@ -44,7 +51,7 @@ export class AuthService {
       throw new ConflictException("כתובת אימייל זו כבר רשומה");
     }
 
-    const passwordHash = await bcrypt.hash(dto.password, 10);
+    const passwordHash = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
     const verificationToken = randomBytes(32).toString("hex");
     const user = await this.prisma.user.create({
       data: {
@@ -104,12 +111,11 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
-    // passwordHash יכול להיות null למשתמש שנוצר רק דרך Google — אז אין כניסה בסיסמה.
-    if (
-      !user ||
-      !user.passwordHash ||
-      !(await bcrypt.compare(dto.password, user.passwordHash))
-    ) {
+    // קיזוז תזמון (SEC-7): מריצים bcrypt.compare תמיד — גם כשאין משתמש או
+    // שאין לו סיסמה (Google בלבד) — כדי שזמן התגובה לא יסגיר אם המייל רשום.
+    const hashToCompare = user?.passwordHash ?? this.dummyHash;
+    const passwordOk = await bcrypt.compare(dto.password, hashToCompare);
+    if (!user || !user.passwordHash || !passwordOk) {
       throw new UnauthorizedException("אימייל או סיסמה שגויים");
     }
     return this.issueToken(user);
@@ -277,7 +283,7 @@ export class AuthService {
       throw new BadRequestException("הסיסמה החדשה זהה לנוכחית");
     }
 
-    const passwordHash = await bcrypt.hash(dto.newPassword, 10);
+    const passwordHash = await bcrypt.hash(dto.newPassword, BCRYPT_ROUNDS);
     await this.prisma.user.update({
       where: { id: userId },
       data: { passwordHash },
