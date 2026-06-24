@@ -35,6 +35,7 @@ enum JobField {
 // בעת יצירת משרה/מועמד. רשימת הברירה נגזרת מהערכים הקיימים ב-DB.
 
 enum JobStatus {
+  pending // ממתינה לאישור הצוות (משרה שמעסיק פרסם דרך הפורטל)
   active
   paused
   closed
@@ -81,6 +82,7 @@ enum PlacementEventType {
 
 enum UserRole {
   candidate    // מועמד — אזור אישי
+  employer     // מעסיק — פורטל ייעודי (משויך ל-Employer)
   staff        // נציג צוות — CRM
   admin        // מנהל מערכת
 }
@@ -130,6 +132,10 @@ model User {
   candidateId    String?    @unique
   candidate      Candidate? @relation(fields: [candidateId], references: [id])
 
+  // קישור למעסיק (אם זה משתמש פורטל מעסיקים, role=employer)
+  employerId     String?
+  employer       Employer?  @relation(fields: [employerId], references: [id], onDelete: SetNull)
+
   // משרות שהמשתמש שמר ללב — להגשה מאוחר יותר
   savedJobs      SavedJob[]
 
@@ -155,6 +161,7 @@ model Employer {
 
   jobs           Job[]
   placements     Placement[]
+  portalUsers    User[]   // משתמשי פורטל המשויכים למעסיק הזה (role=employer)
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt

@@ -11,6 +11,7 @@ import {
 import { EmployersService } from './employers.service';
 import { CreateEmployerDto } from './dto/create-employer.dto';
 import { UpdateEmployerDto } from './dto/update-employer.dto';
+import { CreatePortalUserDto } from './dto/create-portal-user.dto';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
 
@@ -34,6 +35,15 @@ export class EmployersController {
   @Post()
   create(@Body() dto: CreateEmployerDto) {
     return this.employersService.create(dto);
+  }
+
+  /** הפקת פרטי כניסה לפורטל המעסיק (סעיף 6). */
+  @Post(':id/portal-user')
+  createPortalUser(
+    @Param('id') id: string,
+    @Body() dto: CreatePortalUserDto,
+  ) {
+    return this.employersService.createPortalUser(id, dto);
   }
 
   @Patch(':id')

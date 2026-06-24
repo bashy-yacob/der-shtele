@@ -256,6 +256,12 @@ function StatusCard({
   return (
     <Card className="space-y-3">
       <h2 className="text-lg font-display text-ink-900">סטטוס ופרסום</h2>
+      {job.status === "pending" && (
+        <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2">
+          ⏳ משרה זו פורסמה על ידי מעסיק וממתינה לאישור. לחצו &quot;פרסם
+          באתר&quot; כדי לאשר אותה.
+        </p>
+      )}
       <p className="text-sm text-ink-500">
         סטטוס נוכחי:{" "}
         <span className="font-semibold text-ink-900">

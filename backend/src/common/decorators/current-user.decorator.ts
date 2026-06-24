@@ -6,6 +6,7 @@ export interface AuthUser {
   fullName: string;
   role: string;
   candidateId: string | null;
+  employerId: string | null;
 }
 
 /** מחלץ את המשתמש המחובר מתוך הבקשה (מוזרק ע"י JwtStrategy). */

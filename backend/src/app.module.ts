@@ -24,6 +24,7 @@ import { MailingModule } from "./modules/mailing/mailing.module";
 import { SavedJobsModule } from "./modules/saved-jobs/saved-jobs.module";
 import { TestimonialsModule } from "./modules/testimonials/testimonials.module";
 import { TasksModule } from "./modules/tasks/tasks.module";
+import { PortalModule } from "./modules/portal/portal.module";
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { TasksModule } from "./modules/tasks/tasks.module";
     SavedJobsModule,
     TestimonialsModule,
     TasksModule,
+    PortalModule,
   ],
   controllers: [AppController],
   providers: [

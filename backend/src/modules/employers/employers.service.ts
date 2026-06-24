@@ -1,7 +1,13 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
+import * as bcrypt from "bcryptjs";
 import { PrismaService } from "../../prisma/prisma.service";
 import { CreateEmployerDto } from "./dto/create-employer.dto";
 import { UpdateEmployerDto } from "./dto/update-employer.dto";
+import { CreatePortalUserDto } from "./dto/create-portal-user.dto";
 
 /** מעסיקים — פנימי לחלוטין, לעולם לא חשוף לאתר הציבורי. */
 @Injectable()
@@ -19,10 +25,41 @@ export class EmployersService {
   async findOne(id: string) {
     const employer = await this.prisma.employer.findUnique({
       where: { id },
-      include: { jobs: true },
+      include: {
+        jobs: true,
+        // משתמשי פורטל קיימים — כדי שהצוות יראה אם הופקו פרטי כניסה.
+        portalUsers: { select: { id: true, email: true, createdAt: true } },
+      },
     });
     if (!employer) throw new NotFoundException("מעסיק לא נמצא");
     return employer;
+  }
+
+  /**
+   * יצירת משתמש פורטל למעסיק (סעיף 6) — הצוות מפיק פרטי כניסה.
+   * המשתמש נוצר עם role=employer, מקושר ל-Employer, ומסומן מאומת (יצירת צוות).
+   */
+  async createPortalUser(employerId: string, dto: CreatePortalUserDto) {
+    const employer = await this.findOne(employerId);
+
+    const existing = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
+    if (existing) throw new ConflictException("כתובת אימייל זו כבר רשומה");
+
+    const passwordHash = await bcrypt.hash(dto.password, 12);
+    const user = await this.prisma.user.create({
+      data: {
+        email: dto.email,
+        passwordHash,
+        fullName: dto.fullName?.trim() || employer.contactName,
+        role: "employer",
+        employerId,
+        emailVerified: true, // נוצר ע"י הצוות — אין צורך באימות מייל
+      },
+      select: { id: true, email: true, fullName: true },
+    });
+    return user;
   }
 
   create(dto: CreateEmployerDto) {
