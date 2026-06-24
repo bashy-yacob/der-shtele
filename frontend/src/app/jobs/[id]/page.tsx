@@ -72,7 +72,10 @@ export default async function JobPage({ params }: Props) {
     <main className="bg-sand-100 min-h-screen">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jobPostingLd) }}
+        // escape של < מונע "בריחה" מתגית ה-script (למשל </script> בכותרת משרה)
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jobPostingLd).replace(/</g, "\\u003c"),
+        }}
       />
       <div className="max-w-4xl mx-auto px-4 py-16">
         <Link

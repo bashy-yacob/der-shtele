@@ -2,11 +2,11 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
-} from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { PrismaService } from '../../prisma/prisma.service';
-import { CreateApplicationDto } from './dto/create-application.dto';
-import { UpdateApplicationDto } from './dto/update-application.dto';
+} from "@nestjs/common";
+import { Prisma } from "@prisma/client";
+import { PrismaService } from "../../prisma/prisma.service";
+import { CreateApplicationDto } from "./dto/create-application.dto";
+import { UpdateApplicationDto } from "./dto/update-application.dto";
 
 /** Applications = JobPresentation — הצגת מועמד למשרה ספציפית. */
 @Injectable()
@@ -16,10 +16,11 @@ export class ApplicationsService {
   findAll() {
     return this.prisma.jobPresentation.findMany({
       include: {
-        candidate: { select: { id: true, fullName: true, phone: true } },
+        // ללא phone — מודל התיווך אוסר חשיפת פרטי קשר של מועמד (MSC-8).
+        candidate: { select: { id: true, fullName: true } },
         job: { select: { id: true, title: true } },
       },
-      orderBy: { presentedAt: 'desc' },
+      orderBy: { presentedAt: "desc" },
     });
   }
 
@@ -28,7 +29,7 @@ export class ApplicationsService {
       where: { id },
       include: { candidate: true, job: true },
     });
-    if (!presentation) throw new NotFoundException('הצגה לא נמצאה');
+    if (!presentation) throw new NotFoundException("הצגה לא נמצאה");
     return presentation;
   }
 
@@ -39,9 +40,9 @@ export class ApplicationsService {
       // @@unique([jobId, candidateId]) — מועמד לא יוצג פעמיים לאותה משרה
       if (
         err instanceof Prisma.PrismaClientKnownRequestError &&
-        err.code === 'P2002'
+        err.code === "P2002"
       ) {
-        throw new ConflictException('המועמד כבר הוצג למשרה זו');
+        throw new ConflictException("המועמד כבר הוצג למשרה זו");
       }
       throw err;
     }
