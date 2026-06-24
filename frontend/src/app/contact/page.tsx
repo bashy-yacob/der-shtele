@@ -42,6 +42,8 @@ const contactSchema = z.object({
       "פורמט קובץ לא נתמך (רק PDF או Word)",
     )
     .optional(),
+  // הסכמה לקבלת עדכונים — אופציונלי (חוק הספאם). הפנייה נשלחת בכל מקרה.
+  optInMarketing: z.boolean().optional(),
 });
 
 type ContactFormData = z.infer<typeof contactSchema>;
@@ -96,6 +98,7 @@ export default function ContactPage() {
       if (data.resume && data.resume.length > 0) {
         formData.append("resume", data.resume[0]);
       }
+      formData.append("optInMarketing", data.optInMarketing ? "true" : "false");
 
       const response = await fetch("/api/contact", {
         method: "POST",
@@ -302,6 +305,19 @@ export default function ContactPage() {
                       </p>
                     )}
                   </div>
+
+                  {/* הסכמת דיוור — אופציונלי (חוק הספאם) */}
+                  <label className="flex items-start gap-2.5 cursor-pointer text-sm text-ink-700">
+                    <input
+                      {...register("optInMarketing")}
+                      type="checkbox"
+                      className="mt-0.5 accent-navy-600"
+                    />
+                    <span className="leading-relaxed">
+                      אני מאשר/ת לקבל עדכונים על משרות ותוכן רלוונטי במייל. ניתן
+                      לבטל בכל עת.
+                    </span>
+                  </label>
 
                   <Button
                     type="submit"

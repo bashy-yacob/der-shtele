@@ -27,7 +27,7 @@ import {
   PLACEMENT_STATUS_LABELS,
 } from "@/lib/labels";
 import { formatCurrency, formatDate, daysUntil } from "@/lib/utils";
-import { isCommissionDue, isCollectibleNow } from "@/lib/commission";
+import { effectiveCommissionStatus, isCollectibleNow } from "@/lib/commission";
 
 export default function CommissionsPage() {
   const { user } = useAuth();
@@ -163,15 +163,18 @@ export default function CommissionsPage() {
             </thead>
             <tbody className="divide-y divide-sand-100">
               {rows.map((p) => {
-                const due = isCommissionDue(p.status, p.commissionStatus);
+                // הסטטוס האפקטיבי — מקדם not_due→due אם הערבות כבר עברה
+                const status = effectiveCommissionStatus(
+                  p.status,
+                  p.commissionStatus,
+                  p.guaranteeEndsAt,
+                );
                 const collectible = isCollectibleNow(
                   p.status,
                   p.commissionStatus,
                   p.guaranteeEndsAt,
                 );
-                const settled =
-                  p.commissionStatus === "paid" ||
-                  p.commissionStatus === "partial_refund";
+                const settled = status === "paid" || status === "partial_refund";
                 const days = daysUntil(p.guaranteeEndsAt);
                 const approaching =
                   !settled && !collectible && days > 0 && days <= 7;
@@ -242,8 +245,8 @@ export default function CommissionsPage() {
                       </td>
                       <td className="px-4 py-3">
                         <StatusBadge
-                          status={p.commissionStatus}
-                          label={COMMISSION_STATUS_LABELS[p.commissionStatus]}
+                          status={status}
+                          label={COMMISSION_STATUS_LABELS[status]}
                         />
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
@@ -288,7 +291,7 @@ export default function CommissionsPage() {
                               חשבונית
                             </Button>
                           </Link>
-                          {due && p.commissionStatus === "pending" && (
+                          {collectible && status === "due" && (
                             <Button
                               size="sm"
                               variant="outline"
@@ -297,7 +300,7 @@ export default function CommissionsPage() {
                               סמן כחויב
                             </Button>
                           )}
-                          {due && (
+                          {collectible && (
                             <Button
                               size="sm"
                               variant="secondary"

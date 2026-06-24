@@ -53,6 +53,23 @@ export class CandidatesController {
     return this.candidatesService.getMyApplications(user.userId);
   }
 
+  /** מצב הקו"ח של המשתמש המחובר — קיים? + קישור הורדה (אזור אישי). */
+  @Get("me/cv")
+  myCv(@CurrentUser() user: AuthUser) {
+    return this.candidatesService.getMyCv(user.userId);
+  }
+
+  /** החלפת הקו"ח מהפרופיל (multipart). דורש פרופיל מועמד קיים. */
+  @Post("me/cv")
+  @UseInterceptors(FileInterceptor("resume", resumeUploadOptions))
+  async replaceMyCv(
+    @CurrentUser() user: AuthUser,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    const path = await this.storage.uploadResume(file);
+    return this.candidatesService.setMyCv(user.userId, path);
+  }
+
   // ---- CRM (צוות) ----
 
   @Get()

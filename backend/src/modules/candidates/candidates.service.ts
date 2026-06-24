@@ -154,6 +154,14 @@ export class CandidatesService {
             events: { orderBy: { createdAt: "asc" } },
           },
         },
+        // הסכמת מייל לצרכי ציות (סעיף 7.2) — מהמשתמש המקושר.
+        user: {
+          select: {
+            optInMarketing: true,
+            optInAt: true,
+            emailVerified: true,
+          },
+        },
       },
     });
     if (!candidate) throw new NotFoundException("מועמד לא נמצא");
@@ -181,7 +189,8 @@ export class CandidatesService {
 
   async update(id: string, dto: UpdateCandidateDto) {
     const candidate = await this.findOne(id);
-    if (dto.status && dto.status !== candidate.status) {
+    const statusChanged = !!dto.status && dto.status !== candidate.status;
+    if (statusChanged) {
       // גיוס לא מתבצע כאן — הוא דורש יצירת Placement (משרה + סכום עמלה).
       // לכן המעבר ל-hired נחסם בעדכון רגיל ומופנה ל-markHired.
       if (dto.status === "hired") {
@@ -189,9 +198,22 @@ export class CandidatesService {
           'סימון כגויס מתבצע דרך פעולת "סמן כגויס" (בחירת משרה + סכום עמלה), לא דרך עדכון סטטוס',
         );
       }
-      assertCandidateTransition(candidate.status, dto.status);
+      assertCandidateTransition(candidate.status, dto.status!);
     }
-    return this.prisma.candidate.update({ where: { id }, data: dto });
+
+    const updated = await this.prisma.candidate.update({
+      where: { id },
+      data: dto,
+    });
+
+    // עדכון סטטוס למועמד (סעיף 8.2) — הודעת שירות. כשל מייל לא מפיל את העדכון.
+    if (statusChanged && candidate.email) {
+      this.email
+        .sendStatusUpdate(candidate.email, candidate.fullName, dto.status!)
+        .catch(() => undefined);
+    }
+
+    return updated;
   }
 
   /**
@@ -217,7 +239,7 @@ export class CandidatesService {
 
     const job = await this.prisma.job.findUnique({
       where: { id: dto.jobId },
-      select: { id: true, employerId: true },
+      select: { id: true, employerId: true, title: true },
     });
     if (!job) throw new NotFoundException("המשרה לא נמצאה");
 
@@ -265,7 +287,49 @@ export class CandidatesService {
       });
     });
 
+    // ברכה על הגיוס — הודעת שירות. כשל מייל לא מפיל את הפעולה.
+    if (candidate.email) {
+      this.email
+        .sendHiredCongrats(candidate.email, candidate.fullName, job.title)
+        .catch(() => undefined);
+    }
+
     return this.findOne(id);
+  }
+
+  /** מצב הקו"ח של המשתמש המחובר (אזור אישי) — קיים? + תאריך + קישור הורדה. */
+  async getMyCv(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user?.candidateId) return { hasCv: false as const };
+    const candidate = await this.prisma.candidate.findUnique({
+      where: { id: user.candidateId },
+      select: { cvUrl: true, cvUploadedAt: true },
+    });
+    if (!candidate?.cvUrl) return { hasCv: false as const };
+    const url = await this.storage.getSignedUrl(candidate.cvUrl);
+    return {
+      hasCv: true as const,
+      cvUploadedAt: candidate.cvUploadedAt,
+      url,
+    };
+  }
+
+  /**
+   * החלפת הקו"ח של המשתמש המחובר מהפרופיל.
+   * דורש פרופיל מועמד קיים — הוא נוצר בהגשת המועמדות הראשונה.
+   */
+  async setMyCv(userId: string, cvPath: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user?.candidateId) {
+      throw new BadRequestException(
+        "קורות החיים יתווספו לפרופיל בהגשת המועמדות הראשונה",
+      );
+    }
+    await this.prisma.candidate.update({
+      where: { id: user.candidateId },
+      data: { cvUrl: cvPath, cvUploadedAt: new Date() },
+    });
+    return { ok: true };
   }
 
   /** signed URL זמני לצפייה בקו"ח (צוות בלבד). */

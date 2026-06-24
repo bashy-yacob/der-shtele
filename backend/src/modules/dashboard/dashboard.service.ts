@@ -92,13 +92,16 @@ export class DashboardService {
           commissionAmount: true,
           commissionStatus: true,
           status: true,
+          guaranteeEndsAt: true,
         },
       }),
     ]);
 
-    // סכום עמלות פתוחות (בשקלים) — לפי לוגיקת isCommissionDue הקיימת
+    // סכום עמלות פתוחות (בשקלים) — רק עמלות שכבר ניתנות לגבייה (תום ערבות)
     const pendingCommissions = duePlacements
-      .filter((p) => isCommissionDue(p.status, p.commissionStatus))
+      .filter((p) =>
+        isCommissionDue(p.status, p.commissionStatus, p.guaranteeEndsAt),
+      )
       .reduce((sum, p) => sum + (p.commissionAmount ?? 0), 0);
 
     return {

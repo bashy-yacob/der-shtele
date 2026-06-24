@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -34,9 +34,9 @@ const applicationSchema = z.object({
       .optional(),
   ),
   notes: z.string().optional(),
+  // קו"ח אופציונלי בסכימה — החובה נאכפת ב-onSubmit לפי "השתמש בקיים".
   resume: z
     .any()
-    .refine((f) => f && f.length > 0, "יש לצרף קורות חיים")
     .refine(
       (f) => !f?.[0] || f[0].size <= 5 * 1024 * 1024,
       "קובץ גדול מדי (עד 5MB)",
@@ -44,7 +44,8 @@ const applicationSchema = z.object({
     .refine(
       (f) => !f?.[0] || ALLOWED_CV_TYPES.includes(f[0].type),
       "פורמט קובץ לא נתמך (רק PDF או Word)",
-    ),
+    )
+    .optional(),
 });
 
 type ApplicationFormData = z.infer<typeof applicationSchema>;
@@ -62,6 +63,9 @@ export default function ApplicationForm({
   const pathname = usePathname();
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // האם למשתמש כבר יש קו"ח בפרופיל — מאפשר "השתמש בקו"ח הקיים" (סעיף 5).
+  const [hasExistingCv, setHasExistingCv] = useState(false);
+  const [useExisting, setUseExisting] = useState(false);
   const {
     register,
     handleSubmit,
@@ -71,25 +75,51 @@ export default function ApplicationForm({
     resolver: zodResolver(applicationSchema),
   });
 
+  // בודק אם קיים קו"ח בפרופיל; אם כן — ברירת המחדל היא להשתמש בו.
+  useEffect(() => {
+    if (!user) return;
+    fetch("/api/candidates/me/cv", {
+      headers: { Authorization: `Bearer ${getToken() ?? ""}` },
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((res) => {
+        const has = Boolean(res?.data?.hasCv);
+        setHasExistingCv(has);
+        setUseExisting(has);
+      })
+      .catch(() => undefined);
+  }, [user, getToken]);
+
   const onSubmit = async (data: ApplicationFormData) => {
     try {
       setError(null);
       const authHeader = `Bearer ${getToken() ?? ""}`;
+      const fileList = data.resume as FileList | undefined;
+      const hasNewFile = !!fileList && fileList.length > 0;
 
-      // שלב 1: העלאת קו"ח דרך ה-proxy → קבלת path לאחסון
-      const fileList = data.resume as FileList;
-      const fd = new FormData();
-      fd.append("resume", fileList[0]);
-      const upRes = await fetch("/api/candidates/resume", {
-        method: "POST",
-        headers: { Authorization: authHeader },
-        body: fd,
-      });
-      if (!upRes.ok) throw new Error("שגיאה בהעלאת קורות החיים");
-      const upJson = await upRes.json();
-      const cvPath = upJson?.data?.path ?? upJson?.path;
+      // חובת קו"ח: או שמשתמשים בקיים, או שמעלים חדש.
+      if (!useExisting && !hasNewFile) {
+        setError("יש לצרף קורות חיים, או לבחור להשתמש בקו\"ח הקיים בפרופיל.");
+        return;
+      }
 
-      // שלב 2: שליחת ההגשה עם הנתיב (בלי ה-FileList — ה-API דוחה שדות לא מוכרים)
+      // שלב 1: העלאת קו"ח חדש (אם נבחר) → קבלת path. אחרת — נשמר הקיים בצד שרת.
+      let cvPath: string | undefined;
+      if (!useExisting && hasNewFile) {
+        const fd = new FormData();
+        fd.append("resume", fileList![0]);
+        const upRes = await fetch("/api/candidates/resume", {
+          method: "POST",
+          headers: { Authorization: authHeader },
+          body: fd,
+        });
+        if (!upRes.ok) throw new Error("שגיאה בהעלאת קורות החיים");
+        const upJson = await upRes.json();
+        cvPath = upJson?.data?.path ?? upJson?.path;
+      }
+
+      // שלב 2: שליחת ההגשה (בלי ה-FileList — ה-API דוחה שדות לא מוכרים).
+      // בלי cvPath ה-backend שומר על הקו"ח הקיים בפרופיל.
       const response = await fetch("/api/candidates", {
         method: "POST",
         headers: {
@@ -104,7 +134,7 @@ export default function ApplicationForm({
           ...(data.birthYear != null ? { birthYear: data.birthYear } : {}),
           notes: data.notes,
           jobId,
-          cvPath,
+          ...(cvPath ? { cvPath } : {}),
         }),
       });
 
@@ -234,13 +264,44 @@ export default function ApplicationForm({
           >
             קורות חיים (PDF או Word) *
           </label>
-          <input
-            {...register("resume")}
-            type="file"
-            id="resume"
-            accept=".pdf,.doc,.docx"
-            className="w-full text-sm text-ink-500 file:ml-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-olive-100 file:text-olive-700 hover:file:bg-olive-200 cursor-pointer"
-          />
+
+          {/* אם יש קו"ח בפרופיל — אפשרות להשתמש בו בלי העלאה חוזרת (סעיף 5). */}
+          {hasExistingCv && (
+            <div className="mb-3 space-y-1.5 text-sm">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="cvChoice"
+                  checked={useExisting}
+                  onChange={() => setUseExisting(true)}
+                  className="accent-olive-600"
+                />
+                <span className="text-ink-700">
+                  השתמש בקורות החיים השמורים בפרופיל
+                </span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="cvChoice"
+                  checked={!useExisting}
+                  onChange={() => setUseExisting(false)}
+                  className="accent-olive-600"
+                />
+                <span className="text-ink-700">העלאת קובץ חדש</span>
+              </label>
+            </div>
+          )}
+
+          {!useExisting && (
+            <input
+              {...register("resume")}
+              type="file"
+              id="resume"
+              accept=".pdf,.doc,.docx"
+              className="w-full text-sm text-ink-500 file:ml-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-olive-100 file:text-olive-700 hover:file:bg-olive-200 cursor-pointer"
+            />
+          )}
           {errors.resume && (
             <p className="text-red-600 text-xs mt-1">
               {String(errors.resume.message ?? "")}

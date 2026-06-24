@@ -46,7 +46,8 @@ export type PlacementStatus =
   | "cancelled"; // בוטל (החזר חלקי אם בתוך ערבות)
 
 export type CommissionStatus =
-  | "pending" // ממתין לתשלום
+  | "not_due" // טרם לגבייה — בתוך תקופת הערבות
+  | "due" // לגבייה — הערבות הסתיימה בהצלחה
   | "invoiced" // חשבונית נשלחה
   | "paid" // שולם
   | "partial_refund"; // החזר חלקי (ערבות)
@@ -165,6 +166,7 @@ export type PlacementEventType =
   | "guarantee" // נכנס לתקופת ערבות
   | "completed" // הגיוס הושלם
   | "cancelled" // הגיוס בוטל
+  | "commission_due" // העמלה נכנסה לגבייה (תום ערבות)
   | "commission_invoiced" // נשלחה חשבונית
   | "commission_paid" // העמלה שולמה
   | "commission_refunded" // החזר חלקי
@@ -264,6 +266,12 @@ export interface CandidateDetail extends Candidate {
   callLogs: CallLog[];
   presentations: PresentationWithJob[];
   placements: Placement[];
+  // הסכמת מייל לצרכי ציות (סעיף 7.2) — מהמשתמש המקושר, null אם אין משתמש.
+  user?: {
+    optInMarketing: boolean;
+    optInAt: string | null;
+    emailVerified: boolean;
+  } | null;
 }
 
 /** הצגת מועמד למשרה — עם פרטי המועמד (לעמוד המשרה) */

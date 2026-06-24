@@ -58,10 +58,11 @@ enum PlacementStatus {
 }
 
 enum CommissionStatus {
-  pending
-  invoiced
-  paid
-  partial_refund
+  not_due        // טרם לגבייה — בתוך תקופת הערבות (ברירת מחדל בגיוס)
+  due            // לגבייה — הערבות הסתיימה בהצלחה
+  invoiced       // נשלחה חשבונית
+  paid           // שולם
+  partial_refund // החזר חלקי (ביטול בתוך ערבות)
 }
 
 // סוגי פעולות בלוג הגיוס (placement_events) — היסטוריה מלאה לכל גיוס
@@ -71,6 +72,7 @@ enum PlacementEventType {
   guarantee           // נכנס לתקופת ערבות
   completed           // הגיוס הושלם (ערבות עברה)
   cancelled           // הגיוס בוטל
+  commission_due      // העמלה נכנסה לגבייה (תום ערבות)
   commission_invoiced // נשלחה חשבונית
   commission_paid     // העמלה שולמה
   commission_refunded // החזר חלקי למעסיק
@@ -105,6 +107,11 @@ model User {
   authProvider   AuthProvider @default(local)
   googleId       String?      @unique // ה-"sub" של Google — מזהה יציב
   profilePicture String?      // נשמר אך לא מוצג (כלל "ללא תמונות אנשים")
+
+  // אימות כתובת מייל (סעיף 3.1). משתמשי Google מאומתים אוטומטית.
+  emailVerified      Boolean   @default(false)
+  verificationToken  String?   @unique // טוקן חד-פעמי לאימות; null אחרי אימות
+  verificationSentAt DateTime?
 
   // opt-in חובה בהרשמה — הסכמה לקבלת עדכונים
   optInMarketing Boolean    @default(false)
@@ -179,6 +186,11 @@ model Contact {
 
   // מעקב טיפול הצוות — null = טרם טופל; מסומן = טופל (חותמת הזמן בה סומן).
   handledAt    DateTime?
+
+  // הסכמה לקבלת עדכונים/תוכן שיווקי (חוק הספאם) — אופציונלי בטופס צור-קשר.
+  // optInAt נשמר רק אם המשתמש סימן הסכמה (תאריך + שעה — חובה לפי החוק).
+  optInMarketing Boolean   @default(false)
+  optInAt        DateTime?
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -323,7 +335,7 @@ model Placement {
   status           PlacementStatus @default(pending)
 
   commissionAmount Float?          // בשקלים
-  commissionStatus CommissionStatus @default(pending)
+  commissionStatus CommissionStatus @default(not_due)
 
   notes            String?
 

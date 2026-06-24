@@ -28,6 +28,7 @@ export interface AuthUser extends ProfileFields {
   fullName: string;
   role: string;
   optInMarketing?: boolean;
+  emailVerified?: boolean;
   // לתזכורת ה-opt-in החודשית (משתמשי Google שלא אישרו דיוור)
   optInPromptedAt?: string | null;
   authProvider?: string;
@@ -93,6 +94,7 @@ function useAuthState(): AuthContextValue {
             fullName: res.data.fullName ?? "",
             role: res.data.role,
             optInMarketing: res.data.optInMarketing,
+            emailVerified: res.data.emailVerified,
             phone: res.data.phone ?? null,
             city: res.data.city ?? null,
             preferredField: res.data.preferredField ?? null,

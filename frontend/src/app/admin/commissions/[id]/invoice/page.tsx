@@ -9,6 +9,7 @@ import { Loading, ErrorNote, EmptyState } from "@/components/admin/Feedback";
 import { Button } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { COMMISSION_STATUS_LABELS } from "@/lib/labels";
+import { buildInvoiceNumber, effectiveCommissionStatus } from "@/lib/commission";
 
 export default function InvoicePage() {
   const { id } = useParams<{ id: string }>();
@@ -31,6 +32,18 @@ export default function InvoicePage() {
   const vat = Math.round(amount * 0.17);
   const total = amount + vat;
 
+  // מספר חשבונית יציב + תאריך ההפקה (אירוע "חשבונית נשלחה" אם קיים, אחרת היום).
+  const invoiceNo = buildInvoiceNumber(p.id);
+  const invoicedEvent = p.events?.find(
+    (e) => e.type === "commission_invoiced",
+  );
+  const invoiceDate = invoicedEvent?.createdAt ?? new Date();
+  const status = effectiveCommissionStatus(
+    p.status,
+    p.commissionStatus,
+    p.guaranteeEndsAt,
+  );
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4 print:hidden">
@@ -51,8 +64,8 @@ export default function InvoicePage() {
           </div>
           <div className="text-start">
             <p className="text-lg font-bold text-ink-900">חשבון עמלה</p>
-            <p className="text-xs text-ink-400">מס׳ {p.id.slice(-8)}</p>
-            <p className="text-xs text-ink-400">{formatDate(new Date())}</p>
+            <p className="text-xs text-ink-400">מס׳ {invoiceNo}</p>
+            <p className="text-xs text-ink-400">{formatDate(invoiceDate)}</p>
           </div>
         </div>
 
@@ -98,7 +111,7 @@ export default function InvoicePage() {
 
         <div className="flex items-center justify-between text-sm border-t border-sand-200 pt-4">
           <span className="text-ink-500">
-            סטטוס: {COMMISSION_STATUS_LABELS[p.commissionStatus]}
+            סטטוס: {COMMISSION_STATUS_LABELS[status]}
           </span>
           <span className="text-ink-400 text-xs">
             תשלום: העברה בנקאית / כרטיס אשראי
