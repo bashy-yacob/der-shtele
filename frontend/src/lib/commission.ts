@@ -3,31 +3,46 @@
 import type { CommissionStatus, PlacementStatus } from "@/types";
 
 const EARNED: PlacementStatus[] = ["confirmed", "guarantee", "completed"];
-const SETTLED: CommissionStatus[] = ["paid", "partial_refund"];
-
-/** האם העמלה אמורה להיגבות (הגיוס אושר וטרם שולמה)? */
-export function isCommissionDue(
-  placementStatus: PlacementStatus,
-  commissionStatus: CommissionStatus,
-): boolean {
-  return (
-    EARNED.includes(placementStatus) && !SETTLED.includes(commissionStatus)
-  );
-}
 
 /** האם תקופת הערבות (3 חודשים ≈ 90 יום) הסתיימה? אז ניתן לגבות בפועל. */
 export function isGuaranteeOver(guaranteeEndsAt: string | Date): boolean {
   return new Date() >= new Date(guaranteeEndsAt);
 }
 
-/** עמלה שניתן לגבות עכשיו: מגיעה + עברה תקופת הערבות. */
+/**
+ * הסטטוס האפקטיבי: מקדם not_due → due כשהערבות הסתיימה והגיוס תקף — גם אם
+ * הקרון היומי בצד שרת טרם רץ. מקביל ל-effectiveCommissionStatus בבק.
+ */
+export function effectiveCommissionStatus(
+  placementStatus: PlacementStatus,
+  commissionStatus: CommissionStatus,
+  guaranteeEndsAt: string | Date,
+): CommissionStatus {
+  if (
+    commissionStatus === "not_due" &&
+    EARNED.includes(placementStatus) &&
+    isGuaranteeOver(guaranteeEndsAt)
+  ) {
+    return "due";
+  }
+  return commissionStatus;
+}
+
+/** מספר חשבונית דטרמיניסטי לגיוס — מקביל ל-buildInvoiceNumber בבק. */
+export function buildInvoiceNumber(placementId: string): string {
+  return `INV-${placementId.slice(-8).toUpperCase()}`;
+}
+
+/** עמלה שניתן לגבות עכשיו: הערבות הסתיימה והכסף עדיין חייב (due/invoiced). */
 export function isCollectibleNow(
   placementStatus: PlacementStatus,
   commissionStatus: CommissionStatus,
   guaranteeEndsAt: string | Date,
 ): boolean {
-  return (
-    isCommissionDue(placementStatus, commissionStatus) &&
-    isGuaranteeOver(guaranteeEndsAt)
+  const eff = effectiveCommissionStatus(
+    placementStatus,
+    commissionStatus,
+    guaranteeEndsAt,
   );
+  return eff === "due" || eff === "invoiced";
 }

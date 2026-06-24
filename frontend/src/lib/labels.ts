@@ -47,7 +47,8 @@ export const PLACEMENT_STATUS_LABELS: Record<PlacementStatus, string> = {
 };
 
 export const COMMISSION_STATUS_LABELS: Record<CommissionStatus, string> = {
-  pending: "ממתין לתשלום",
+  not_due: "בתקופת ערבות",
+  due: "לגבייה",
   invoiced: "חשבונית נשלחה",
   paid: "שולם",
   partial_refund: "החזר חלקי",
@@ -60,6 +61,7 @@ export const PLACEMENT_EVENT_LABELS: Record<PlacementEventType, string> = {
   guarantee: "נכנס לתקופת ערבות",
   completed: "הגיוס הושלם",
   cancelled: "הגיוס בוטל",
+  commission_due: "העמלה נכנסה לגבייה",
   commission_invoiced: "נשלחה חשבונית",
   commission_paid: "העמלה שולמה",
   commission_refunded: "החזר חלקי למעסיק",
@@ -100,6 +102,8 @@ export const STATUS_TONE: Record<string, string> = {
   guarantee: "bg-sand-200 text-ink-700",
   completed: "bg-olive-500 text-white",
   cancelled: "bg-red-100 text-red-700",
+  not_due: "bg-sand-200 text-ink-700",
+  due: "bg-amber-100 text-amber-800",
   invoiced: "bg-navy-50 text-navy-700",
   paid: "bg-olive-500 text-white",
   partial_refund: "bg-red-100 text-red-700",

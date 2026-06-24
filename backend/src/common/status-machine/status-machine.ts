@@ -4,6 +4,7 @@
 import { BadRequestException } from '@nestjs/common';
 import {
   CandidateStatus,
+  CommissionStatus,
   JobStatus,
   PlacementStatus,
 } from '@prisma/client';
@@ -82,5 +83,37 @@ export function assertPlacementTransition(
 ): void {
   if (!canTransitionPlacement(from, to)) {
     throw new BadRequestException(`מעבר סטטוס לא חוקי לגיוס: ${from} → ${to}`);
+  }
+}
+
+// ----------------------------------------------------------------
+// עמלה (Commission) — חוק ברזל: not_due → due → invoiced → paid.
+// אסור לדלג ל-invoiced/paid לפני שהעמלה הפכה ל-due (תום הערבות).
+// partial_refund — מצב סופי שמגיע מביטול גיוס בערבות (לא מהמסך הזה).
+// ----------------------------------------------------------------
+
+const COMMISSION_TRANSITIONS: Record<CommissionStatus, CommissionStatus[]> = {
+  not_due: ['due', 'partial_refund'],
+  due: ['invoiced', 'paid', 'partial_refund'],
+  invoiced: ['paid', 'partial_refund'],
+  paid: [], // סופי
+  partial_refund: [], // סופי
+};
+
+export function canTransitionCommission(
+  from: CommissionStatus,
+  to: CommissionStatus,
+): boolean {
+  return from === to || COMMISSION_TRANSITIONS[from].includes(to);
+}
+
+export function assertCommissionTransition(
+  from: CommissionStatus,
+  to: CommissionStatus,
+): void {
+  if (!canTransitionCommission(from, to)) {
+    throw new BadRequestException(
+      `מעבר סטטוס עמלה לא חוקי: ${from} → ${to}`,
+    );
   }
 }

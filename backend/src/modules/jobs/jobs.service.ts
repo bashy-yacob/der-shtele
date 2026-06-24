@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "../../prisma/prisma.service";
 import { CreateJobDto } from "./dto/create-job.dto";
 import { UpdateJobDto } from "./dto/update-job.dto";
 import { QueryJobsDto } from "./dto/query-jobs.dto";
 import { assertJobTransition } from "../../common/status-machine/status-machine";
+import { MailingService } from "../mailing/mailing.service";
 
 // השדות הציבוריים בלבד — לעולם לא חושפים employer / descriptionInternal / salary
 const PUBLIC_SELECT = {
@@ -20,7 +21,12 @@ const PUBLIC_SELECT = {
 
 @Injectable()
 export class JobsService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(JobsService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mailing: MailingService,
+  ) {}
 
   /** לוח המשרות הציבורי — רק משרות פעילות, שדות ציבוריים בלבד. */
   findPublic(query: QueryJobsDto) {
@@ -97,8 +103,16 @@ export class JobsService {
     return job;
   }
 
-  create(dto: CreateJobDto) {
-    return this.prisma.job.create({ data: dto });
+  async create(dto: CreateJobDto) {
+    const job = await this.prisma.job.create({ data: dto });
+    // דיוור "משרה חדשה רלוונטית" למנויים מתאימים — רק למשרה פעילה.
+    // fire-and-forget: כשל בדיוור לא מפיל את יצירת המשרה.
+    if (job.status === "active") {
+      this.mailing
+        .notifyNewJob(job)
+        .catch((err) => this.logger.error("כשל בדיוור משרה חדשה", err));
+    }
+    return job;
   }
 
   async update(id: string, dto: UpdateJobDto) {

@@ -18,6 +18,7 @@ const EVENT_TONE: Record<PlacementEventType, string> = {
   guarantee: "bg-sand-400",
   completed: "bg-olive-500",
   cancelled: "bg-red-500",
+  commission_due: "bg-amber-500",
   commission_invoiced: "bg-navy-500",
   commission_paid: "bg-olive-500",
   commission_refunded: "bg-red-500",

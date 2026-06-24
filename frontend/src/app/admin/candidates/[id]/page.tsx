@@ -420,6 +420,28 @@ function ContactCard({ c }: { c: CandidateDetail }) {
           <p className="text-sm text-ink-400">לא הועלו קורות חיים</p>
         )}
       </div>
+
+      {/* הסכמת מייל — לצרכי ציות לחוק הספאם (סעיף 7.2) */}
+      <div className="pt-2 border-t border-sand-100">
+        <p className="text-sm font-semibold text-ink-700 mb-1">הסכמת דיוור</p>
+        {c.user ? (
+          c.user.optInMarketing ? (
+            <p className="text-sm text-olive-700">
+              ✓ הסכים/ה לדיוור
+              {c.user.optInAt && (
+                <span className="text-ink-400">
+                  {" "}
+                  · {formatDate(c.user.optInAt)}
+                </span>
+              )}
+            </p>
+          ) : (
+            <p className="text-sm text-ink-400">לא הסכים/ה לדיוור</p>
+          )
+        ) : (
+          <p className="text-sm text-ink-400">אין חשבון משתמש מקושר</p>
+        )}
+      </div>
     </Card>
   );
 }

@@ -32,6 +32,9 @@ export class ContactService {
         inquiry_type: dto.inquiry_type,
         message: dto.message,
         resumePath,
+        // הסכמת דיוור (חוק הספאם) — תאריך נשמר רק אם הוסכם.
+        optInMarketing: dto.optInMarketing ?? false,
+        optInAt: dto.optInMarketing ? new Date() : null,
         // פרטים מובְנים — נשמרים גם כשהם undefined (Prisma מתעלם), כך שפניות
         // מועמד/כללי לא נפגעות, ופניית מעסיק נשמרת מלאה ומובְנת.
         email: dto.email,

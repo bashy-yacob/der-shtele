@@ -1,4 +1,5 @@
 import {
+  IsBoolean,
   IsEmail,
   IsEnum,
   IsOptional,
@@ -88,4 +89,10 @@ export class CreateContactDto {
   @Transform(emptyToUndefined)
   @IsString()
   salary?: string;
+
+  // הסכמה לקבלת עדכונים/תוכן שיווקי (חוק הספאם). מגיע כמחרוזת מ-FormData.
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === "true")
+  @IsBoolean()
+  optInMarketing?: boolean;
 }

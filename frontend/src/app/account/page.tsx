@@ -5,6 +5,8 @@ import { Card } from "@/components/ui/Card";
 import { Button, Input, Select, CityCombobox } from "@/components/ui";
 import { useAuth } from "@/hooks/useAuth";
 import { FIELD_LABELS, buildCityOptions } from "@/lib/constants";
+import { EmailVerificationBanner } from "@/components/account/EmailVerificationBanner";
+import { MyCvCard } from "@/components/account/MyCvCard";
 import type { JobField } from "@/types";
 
 export default function AccountProfilePage() {
@@ -72,6 +74,8 @@ export default function AccountProfilePage() {
   return (
     <div className="space-y-6">
       <h1 className="font-display text-2xl text-ink-900">הפרופיל שלי</h1>
+
+      <EmailVerificationBanner />
 
       {/* פרטי חשבון — לקריאה בלבד */}
       <Card className="space-y-3">
@@ -148,6 +152,9 @@ export default function AccountProfilePage() {
           </p>
         )}
       </Card>
+
+      {/* קורות חיים בפרופיל — הצגה + החלפה */}
+      <MyCvCard />
     </div>
   );
 }

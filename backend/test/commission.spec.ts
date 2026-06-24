@@ -4,9 +4,14 @@ import {
   calcGuaranteeEnd,
   isGuaranteeOver,
   isCommissionDue,
+  effectiveCommissionStatus,
   deriveCommissionStatus,
   calcPartialRefund,
 } from "../src/common/commission/commission";
+import {
+  assertCommissionTransition,
+  canTransitionCommission,
+} from "../src/common/status-machine/status-machine";
 
 describe("commission — ערבות 3 חודשים", () => {
   it("תקופת הערבות היא 3 חודשים", () => {
@@ -27,24 +32,63 @@ describe("commission — ערבות 3 חודשים", () => {
   });
 });
 
-describe("isCommissionDue — מתי עמלה מגיעה", () => {
-  it("גיוס שאושר וטרם שולם — מגיעה", () => {
-    expect(isCommissionDue("confirmed", "pending")).toBe(true);
-    expect(isCommissionDue("guarantee", "invoiced")).toBe(true);
-    expect(isCommissionDue("completed", "pending")).toBe(true);
+describe("effectiveCommissionStatus — קידום not_due→due בתום ערבות", () => {
+  const guaranteeEnd = new Date("2026-04-15T00:00:00Z");
+  const inGuarantee = new Date("2026-02-01T00:00:00Z");
+  const afterGuarantee = new Date("2026-05-01T00:00:00Z");
+
+  it("גיוס תקף + הערבות הסתיימה → מקדם ל-due", () => {
+    expect(
+      effectiveCommissionStatus("confirmed", "not_due", guaranteeEnd, afterGuarantee),
+    ).toBe("due");
   });
 
-  it("גיוס שטרם אושר (pending) — לא מגיעה (לא גובים ביום הגיוס)", () => {
-    expect(isCommissionDue("pending", "pending")).toBe(false);
+  it("הערבות עוד לא הסתיימה → נשאר not_due (לא גובים ביום הגיוס)", () => {
+    expect(
+      effectiveCommissionStatus("confirmed", "not_due", guaranteeEnd, inGuarantee),
+    ).toBe("not_due");
+  });
+
+  it("סטטוס סופי (paid) → לא משתנה", () => {
+    expect(
+      effectiveCommissionStatus("completed", "paid", guaranteeEnd, afterGuarantee),
+    ).toBe("paid");
+  });
+});
+
+describe("isCommissionDue — עמלה ניתנת לגבייה רק אחרי הערבות", () => {
+  const guaranteeEnd = new Date("2026-04-15T00:00:00Z");
+  const inGuarantee = new Date("2026-02-01T00:00:00Z");
+  const afterGuarantee = new Date("2026-05-01T00:00:00Z");
+
+  it("חוק ברזל: ביום הגיוס (בתוך ערבות) — לא מגיעה", () => {
+    expect(
+      isCommissionDue("confirmed", "not_due", guaranteeEnd, inGuarantee),
+    ).toBe(false);
+  });
+
+  it("לאחר תום הערבות — מגיעה", () => {
+    expect(
+      isCommissionDue("confirmed", "not_due", guaranteeEnd, afterGuarantee),
+    ).toBe(true);
+    expect(
+      isCommissionDue("completed", "invoiced", guaranteeEnd, afterGuarantee),
+    ).toBe(true);
   });
 
   it("עמלה ששולמה או הוחזרה — לא מגיעה שוב", () => {
-    expect(isCommissionDue("completed", "paid")).toBe(false);
-    expect(isCommissionDue("guarantee", "partial_refund")).toBe(false);
+    expect(
+      isCommissionDue("completed", "paid", guaranteeEnd, afterGuarantee),
+    ).toBe(false);
+    expect(
+      isCommissionDue("guarantee", "partial_refund", guaranteeEnd, afterGuarantee),
+    ).toBe(false);
   });
 
   it("גיוס שבוטל — לא מגיעה", () => {
-    expect(isCommissionDue("cancelled", "pending")).toBe(false);
+    expect(
+      isCommissionDue("cancelled", "not_due", guaranteeEnd, afterGuarantee),
+    ).toBe(false);
   });
 });
 
@@ -54,7 +98,7 @@ describe("deriveCommissionStatus — גזירת סטטוס לפי מצב הגי�
   it("ביטול בתוך תקופת הערבות → החזר חלקי", () => {
     const now = new Date("2026-02-01T00:00:00Z"); // בתוך הערבות
     expect(
-      deriveCommissionStatus("cancelled", "pending", guaranteeEnd, now),
+      deriveCommissionStatus("cancelled", "not_due", guaranteeEnd, now),
     ).toBe("partial_refund");
   });
 
@@ -65,11 +109,41 @@ describe("deriveCommissionStatus — גזירת סטטוס לפי מצב הגי�
     );
   });
 
-  it("גיוס פעיל → שומר על הסטטוס הקיים", () => {
+  it("גיוס פעיל בתוך הערבות → נשאר not_due", () => {
     const now = new Date("2026-02-01T00:00:00Z");
     expect(
-      deriveCommissionStatus("guarantee", "pending", guaranteeEnd, now),
-    ).toBe("pending");
+      deriveCommissionStatus("guarantee", "not_due", guaranteeEnd, now),
+    ).toBe("not_due");
+  });
+
+  it("גיוס שהושלם לאחר הערבות → מקדם ל-due", () => {
+    const now = new Date("2026-05-01T00:00:00Z");
+    expect(
+      deriveCommissionStatus("completed", "not_due", guaranteeEnd, now),
+    ).toBe("due");
+  });
+});
+
+describe("assertCommissionTransition — חוק ברזל על מעברי עמלה", () => {
+  it("מסלול תקין: not_due → due → invoiced → paid", () => {
+    expect(canTransitionCommission("not_due", "due")).toBe(true);
+    expect(canTransitionCommission("due", "invoiced")).toBe(true);
+    expect(canTransitionCommission("invoiced", "paid")).toBe(true);
+    expect(canTransitionCommission("due", "paid")).toBe(true);
+  });
+
+  it("אסור לדלג מ-not_due ישר ל-paid/invoiced", () => {
+    expect(() => assertCommissionTransition("not_due", "paid")).toThrow();
+    expect(() => assertCommissionTransition("not_due", "invoiced")).toThrow();
+  });
+
+  it("סטטוס סופי (paid) — אין ממנו מעבר", () => {
+    expect(() => assertCommissionTransition("paid", "due")).toThrow();
+    expect(canTransitionCommission("partial_refund", "paid")).toBe(false);
+  });
+
+  it("מעבר לאותו סטטוס — מותר (idempotent)", () => {
+    expect(canTransitionCommission("due", "due")).toBe(true);
   });
 });
 

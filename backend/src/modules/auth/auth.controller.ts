@@ -5,6 +5,7 @@ import { LoginDto } from "./dto/login.dto";
 import { GoogleLoginDto } from "./dto/google-login.dto";
 import { UpdateMeDto } from "./dto/update-me.dto";
 import { ChangePasswordDto } from "./dto/change-password.dto";
+import { VerifyEmailDto } from "./dto/verify-email.dto";
 import { Public } from "../../common/decorators/public.decorator";
 import {
   CurrentUser,
@@ -32,6 +33,19 @@ export class AuthController {
   @Post("google")
   loginWithGoogle(@Body() dto: GoogleLoginDto) {
     return this.authService.loginWithGoogle(dto.code);
+  }
+
+  /** אימות כתובת מייל לפי טוקן מהקישור במייל (סעיף 3.1). */
+  @Public()
+  @Post("verify")
+  verifyEmail(@Body() dto: VerifyEmailDto) {
+    return this.authService.verifyEmail(dto.token);
+  }
+
+  /** שליחה חוזרת של מייל האימות למשתמש המחובר. */
+  @Post("me/resend-verification")
+  resendVerification(@CurrentUser() user: AuthUser) {
+    return this.authService.resendVerification(user.userId);
   }
 
   /** מחזיר את המשתמש המחובר (דורש token תקין) — כולל העדפת דיוור עדכנית. */

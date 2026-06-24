@@ -1,10 +1,12 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
+import { ScheduleModule } from "@nestjs/schedule";
 import { APP_GUARD } from "@nestjs/core";
 
 import { AppController } from "./app.controller";
 import { PrismaModule } from "./prisma/prisma.module";
 import { StorageModule } from "./common/storage/storage.module";
+import { ShabbatModule } from "./common/shabbat/shabbat.module";
 import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
 
 import { JobsModule } from "./modules/jobs/jobs.module";
@@ -21,12 +23,15 @@ import { DashboardModule } from "./modules/dashboard/dashboard.module";
 import { MailingModule } from "./modules/mailing/mailing.module";
 import { SavedJobsModule } from "./modules/saved-jobs/saved-jobs.module";
 import { TestimonialsModule } from "./modules/testimonials/testimonials.module";
+import { TasksModule } from "./modules/tasks/tasks.module";
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ScheduleModule.forRoot(),
     PrismaModule,
     StorageModule,
+    ShabbatModule,
     EmailModule,
     AuthModule,
     JobsModule,
@@ -41,6 +46,7 @@ import { TestimonialsModule } from "./modules/testimonials/testimonials.module";
     MailingModule,
     SavedJobsModule,
     TestimonialsModule,
+    TasksModule,
   ],
   controllers: [AppController],
   providers: [

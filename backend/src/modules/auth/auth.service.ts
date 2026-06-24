@@ -9,7 +9,9 @@ import { JwtService } from "@nestjs/jwt";
 import { Prisma } from "@prisma/client";
 import { OAuth2Client } from "google-auth-library";
 import * as bcrypt from "bcryptjs";
+import { randomBytes } from "crypto";
 import { PrismaService } from "../../prisma/prisma.service";
+import { EmailService } from "../email/email.service";
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
 import { UpdateMeDto } from "./dto/update-me.dto";
@@ -25,6 +27,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
+    private readonly email: EmailService,
   ) {
     this.googleClient = new OAuth2Client(
       config.get<string>("GOOGLE_CLIENT_ID"),
@@ -42,6 +45,7 @@ export class AuthService {
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
+    const verificationToken = randomBytes(32).toString("hex");
     const user = await this.prisma.user.create({
       data: {
         email: dto.email,
@@ -50,10 +54,50 @@ export class AuthService {
         role: "candidate",
         optInMarketing: dto.optInMarketing,
         optInAt: dto.optInMarketing ? new Date() : null,
+        verificationToken,
+        verificationSentAt: new Date(),
       },
     });
 
+    // מייל אימות כתובת (סעיף 3.1) — כשל מייל לא מפיל את ההרשמה.
+    this.email
+      .sendVerificationEmail(user.email, user.fullName, verificationToken)
+      .catch(() => undefined);
+
     return this.issueToken(user);
+  }
+
+  /** אימות כתובת מייל לפי טוקן חד-פעמי מהקישור במייל. */
+  async verifyEmail(token: string) {
+    if (!token) throw new BadRequestException("טוקן אימות חסר");
+    const user = await this.prisma.user.findUnique({
+      where: { verificationToken: token },
+    });
+    if (!user) {
+      throw new BadRequestException("קישור האימות אינו תקף או שכבר נוצל");
+    }
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { emailVerified: true, verificationToken: null },
+    });
+    return { message: "כתובת המייל אומתה בהצלחה" };
+  }
+
+  /** שליחה חוזרת של מייל האימות למשתמש המחובר. */
+  async resendVerification(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException("משתמש לא נמצא");
+    if (user.emailVerified) return { message: "כתובת המייל כבר מאומתת" };
+
+    const verificationToken = randomBytes(32).toString("hex");
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { verificationToken, verificationSentAt: new Date() },
+    });
+    this.email
+      .sendVerificationEmail(user.email, user.fullName, verificationToken)
+      .catch(() => undefined);
+    return { message: "מייל אימות נשלח שוב" };
   }
 
   async login(dto: LoginDto) {
@@ -120,6 +164,8 @@ export class AuthService {
           data: {
             googleId,
             profilePicture: byEmail.profilePicture ?? picture,
+            // Google אימתה בעלות על האימייל — מסמנים מאומת.
+            emailVerified: true,
           },
         });
       } else {
@@ -135,6 +181,7 @@ export class AuthService {
             role: "candidate",
             optInMarketing: false,
             optInAt: null,
+            emailVerified: true, // Google אימתה את האימייל
           },
         });
       }
@@ -153,6 +200,7 @@ export class AuthService {
       fullName: user.fullName,
       role: user.role,
       optInMarketing: user.optInMarketing,
+      emailVerified: user.emailVerified,
       // פרטי פרופיל לדיוור מותאם אישית
       phone: user.phone,
       city: user.city,

@@ -1,5 +1,21 @@
 # סקירת קוד מלאה — ממצאים ורשימת תיקונים
 
+> ## עדכון 2026-06-24 — שלבים 1–3 לסגירת פערי האיפיון (טרם נפרס)
+> בוצעו במסגרת תוכנית סגירת הפערים מול spec-v3.1. הקוד עובר `tsc`+`build`+46 טסטים (בק) ו-`build` נקי (פרונט). **טרם נפרס; טרם הורצה המיגרציה.**
+> - **עמלות (COM-1..5):** ✅ enum חדש `not_due→due→invoiced→paid`; `isCommissionDue`/`effectiveCommissionStatus` מקדמים ל-due רק בתום ערבות; `assertCommissionTransition` חוסם `paid`/`invoiced` לפני תום הערבות; `calcGuaranteeEnd` עם clamp לסוף חודש.
+> - **שבת/חג (SHB-1,3):** ✅ `ShabbatService` מול Hebcal API (חלונות הדלקה→הבדלה, כולל יו"ט) עם fallback להיוריסטיקה; email+mailing+תזכורות עוברים דרכו.
+> - **מיילים אוטומטיים (סעיף 8.2):** ✅ עדכון סטטוס למועמד, ברכת גיוס, אימות מייל, דיוור משרה חדשה למנויים; ✅ `TasksService` (cron יומי + טריגר ידני `POST /tasks/run-daily` עם `TASKS_SECRET`): קידום עמלות ל-due + תזכורת גבייה 90 יום + דייג'סט שיחות/תזכורות לצוות.
+> - **אימות מייל (3.1):** ✅ `User.emailVerified/verificationToken`; שליחה בהרשמה; `POST /auth/verify` + `/auth/me/resend-verification`; עמוד `/auth/verify` + באנר באזור האישי. Google→מאומת אוטומטית.
+> - **opt-in צור-קשר (MSC-7):** ✅ `Contact.optInMarketing/optInAt` + צ'קבוקס בטופס.
+> - **הסכמת מייל באדמין (7.2):** ✅ מוצגת בכרטיס המועמד.
+> - **קו"ח בפרופיל + שימוש חוזר (5):** ✅ `GET/POST /candidates/me/cv`; כרטיס בפרופיל + אפשרות "השתמש בקו"ח הקיים" בטופס ההגשה.
+> - **חשבונית (7.4):** ✅ מספר חשבונית דטרמיניסטי נרשם בלוג במעבר ל-invoiced; עמוד החשבונית מציג מספר+תאריך יציבים.
+> - **SMTP:** ✅ EmailService מוכן ל-Resend; `docs/email-resend-setup.md`. ⏳ דורש מפתח API.
+> - **מיגרציה:** `prisma/migrations/20260624120000_phase1to3_commission_verify_optin` — להריץ `migrate deploy` **אחרי** פריסת הקוד.
+> - **לא נכלל (נדחה במכוון):** פורטל מעסיקים + role `employer` + `JobStatus: pending` (שלב 4).
+
+
+
 > נוצר ב-2026-06-15 מתוך סקירת קוד על כל הפרויקט (6 סוכני סקירה מקבילים + אימות ידני).
 > סטטוס: `CONFIRMED` = אומת עם trigger ברור · `PLAUSIBLE` = מנגנון אמיתי, trigger לא ודאי.
 > סמן `[x]` כשממצא תוקן. אל תיגע בלוגיקת עמלות / schema / Shabbat ללא אישור מפורש (ראה CLAUDE.md).
