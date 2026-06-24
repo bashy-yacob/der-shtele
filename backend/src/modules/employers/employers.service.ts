@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { CreateEmployerDto } from './dto/create-employer.dto';
-import { UpdateEmployerDto } from './dto/update-employer.dto';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
+import { CreateEmployerDto } from "./dto/create-employer.dto";
+import { UpdateEmployerDto } from "./dto/update-employer.dto";
 
 /** מעסיקים — פנימי לחלוטין, לעולם לא חשוף לאתר הציבורי. */
 @Injectable()
@@ -9,7 +9,11 @@ export class EmployersService {
   constructor(private readonly prisma: PrismaService) {}
 
   findAll() {
-    return this.prisma.employer.findMany({ orderBy: { createdAt: 'desc' } });
+    // _count.jobs — מספר המשרות של כל מעסיק, לתצוגה בכרטיס בדשבורד.
+    return this.prisma.employer.findMany({
+      orderBy: { createdAt: "desc" },
+      include: { _count: { select: { jobs: true } } },
+    });
   }
 
   async findOne(id: string) {
@@ -17,7 +21,7 @@ export class EmployersService {
       where: { id },
       include: { jobs: true },
     });
-    if (!employer) throw new NotFoundException('מעסיק לא נמצא');
+    if (!employer) throw new NotFoundException("מעסיק לא נמצא");
     return employer;
   }
 

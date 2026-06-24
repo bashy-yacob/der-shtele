@@ -51,6 +51,7 @@ export default function JobsListPage() {
             <thead className="bg-sand-50 text-ink-500">
               <tr>
                 <th className="px-4 py-3 text-start font-semibold">תפקיד</th>
+                <th className="px-4 py-3 text-start font-semibold">מעסיק</th>
                 <th className="px-4 py-3 text-start font-semibold">תחום</th>
                 <th className="px-4 py-3 text-start font-semibold">אזור</th>
                 <th className="px-4 py-3 text-start font-semibold">סטטוס</th>
@@ -67,6 +68,9 @@ export default function JobsListPage() {
                     >
                       {j.title}
                     </Link>
+                  </td>
+                  <td className="px-4 py-3 text-ink-700">
+                    {j.employer?.companyName ?? "—"}
                   </td>
                   <td className="px-4 py-3 text-ink-700">
                     {FIELD_LABELS[j.field]}

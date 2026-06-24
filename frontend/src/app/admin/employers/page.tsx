@@ -68,6 +68,9 @@ export default function EmployersPage() {
                   {formatDate(e.createdAt)}
                 </span>
               </div>
+              <span className="inline-block rounded-full bg-navy-50 px-2.5 py-0.5 text-xs font-semibold text-navy-600">
+                {e._count?.jobs ?? 0} {e._count?.jobs === 1 ? "משרה" : "משרות"}
+              </span>
               <p className="text-sm text-ink-700">
                 איש קשר: {e.contactName} · {e.contactPhone}
               </p>
