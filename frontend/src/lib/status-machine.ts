@@ -12,6 +12,7 @@ export const CANDIDATE_TRANSITIONS: Record<CandidateStatus, CandidateStatus[]> =
   };
 
 export const JOB_TRANSITIONS: Record<JobStatus, JobStatus[]> = {
+  pending: ["active", "closed"], // אישור הצוות → active; דחייה → closed
   active: ["paused", "closed", "filled"],
   paused: ["active", "closed"],
   closed: [],

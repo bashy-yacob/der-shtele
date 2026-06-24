@@ -205,6 +205,7 @@ export class AuthService {
       email: user.email,
       fullName: user.fullName,
       role: user.role,
+      employerId: user.employerId,
       optInMarketing: user.optInMarketing,
       emailVerified: user.emailVerified,
       // פרטי פרופיל לדיוור מותאם אישית
@@ -297,6 +298,7 @@ export class AuthService {
     role: string;
     fullName: string;
     candidateId: string | null;
+    employerId: string | null;
   }) {
     const payload: JwtPayload = {
       sub: user.id,
@@ -304,6 +306,7 @@ export class AuthService {
       fullName: user.fullName,
       role: user.role,
       candidateId: user.candidateId,
+      employerId: user.employerId,
     };
     return {
       accessToken: this.jwt.sign(payload),

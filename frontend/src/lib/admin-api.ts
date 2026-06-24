@@ -112,6 +112,16 @@ export const createEmployer = (body: {
   notes?: string;
 }) => adminFetch<Employer>("employers", { method: "POST", body });
 
+/** הפקת פרטי כניסה לפורטל המעסיק (סעיף 6). */
+export const createPortalUser = (
+  employerId: string,
+  body: { email: string; password: string; fullName?: string },
+) =>
+  adminFetch<{ id: string; email: string; fullName: string }>(
+    `employers/${employerId}/portal-user`,
+    { method: "POST", body },
+  );
+
 // ---- ערים/אזורים ----
 // רשימת הערים הקיימות (משרות+מועמדים) — להזנת רשימות הבחירה בטפסים.
 export const listRegions = () => adminFetch<string[]>("jobs/regions");

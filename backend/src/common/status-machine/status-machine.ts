@@ -42,6 +42,7 @@ export function assertCandidateTransition(
 // ----------------------------------------------------------------
 
 const JOB_TRANSITIONS: Record<JobStatus, JobStatus[]> = {
+  pending: ['active', 'closed'], // אישור צוות → active; דחייה → closed
   active: ['paused', 'closed', 'filled'],
   paused: ['active', 'closed'],
   closed: [], // סופי

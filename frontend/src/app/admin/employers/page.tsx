@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { listEmployers, createEmployer } from "@/lib/admin-api";
+import {
+  listEmployers,
+  createEmployer,
+  createPortalUser,
+} from "@/lib/admin-api";
 import type { Employer } from "@/types";
 import {
   Loading,
@@ -84,8 +88,78 @@ export default function EmployersPage() {
                   {e.notes}
                 </p>
               )}
+              <PortalCredentials employer={e} />
             </Card>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** הפקת פרטי כניסה לפורטל המעסיק (סעיף 6) — הצוות בוחר מייל+סיסמה ומוסר למעסיק. */
+function PortalCredentials({ employer }: { employer: Employer }) {
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState(employer.contactEmail ?? "");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const [done, setDone] = useState<string | null>(null);
+
+  const submit = async () => {
+    setErr("");
+    if (!email || password.length < 8) {
+      setErr("נדרש מייל וסיסמה באורך 8 תווים לפחות");
+      return;
+    }
+    setBusy(true);
+    try {
+      const user = await createPortalUser(employer.id, { email, password });
+      setDone(user.email);
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="pt-2 border-t border-sand-100">
+      {done ? (
+        <p className="text-sm text-olive-700 bg-olive-50 rounded-lg p-2">
+          ✓ נוצר משתמש פורטל: <b>{done}</b>. מסרו למעסיק את המייל והסיסמה +
+          קישור ל-/portal/login.
+        </p>
+      ) : !open ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="text-sm font-semibold text-navy-600 hover:underline"
+        >
+          הפקת פרטי כניסה לפורטל ←
+        </button>
+      ) : (
+        <div className="space-y-2">
+          <Input
+            label="מייל לכניסה"
+            type="email"
+            value={email}
+            onChange={(ev) => setEmail(ev.target.value)}
+          />
+          <Input
+            label="סיסמה (8 תווים לפחות)"
+            value={password}
+            onChange={(ev) => setPassword(ev.target.value)}
+          />
+          {err && <ErrorNote message={err} />}
+          <div className="flex gap-2">
+            <Button size="sm" onClick={submit} disabled={busy}>
+              {busy ? "יוצר..." : "יצירת משתמש"}
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
+              ביטול
+            </Button>
+          </div>
         </div>
       )}
     </div>

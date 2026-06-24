@@ -24,6 +24,7 @@ export const FIELD_LABELS: Record<JobField, string> = {
 };
 
 export const JOB_STATUS_LABELS: Record<JobStatus, string> = {
+  pending: "ממתינה לאישור",
   active: "פעילה",
   paused: "מושהית",
   closed: "סגורה",
@@ -93,6 +94,7 @@ export const STATUS_TONE: Record<string, string> = {
   hired: "bg-olive-500 text-white",
   not_suitable: "bg-sand-100 text-ink-500",
   // job
+  pending: "bg-amber-100 text-amber-800",
   active: "bg-olive-100 text-olive-700",
   paused: "bg-sand-200 text-ink-700",
   closed: "bg-sand-100 text-ink-500",

@@ -141,6 +141,115 @@ async function main() {
     if (before === 0) created += 1;
   }
 
+  // ---- משתמש פורטל למעסיק A (להדגמת פורטל המעסיקים, שלב 4) ----
+  // ⚠️ חשבון דמו — להחליף סיסמה / למחוק לפני שימוש אמיתי. ניתן לדרוס דרך
+  // SEED_EMPLOYER_PASSWORD. עם role=employer ו-employerId, נכנס ב-/portal/login.
+  const employerPassword =
+    process.env.SEED_EMPLOYER_PASSWORD ?? "DerShtele!2026";
+  const employerEmail = "employer@dershtele.co.il";
+  await prisma.user.upsert({
+    where: { email: employerEmail },
+    update: { employerId: employerA.id, role: "employer", emailVerified: true },
+    create: {
+      email: employerEmail,
+      fullName: employerA.contactName,
+      passwordHash: await bcrypt.hash(employerPassword, 12),
+      role: "employer",
+      employerId: employerA.id,
+      emailVerified: true,
+    },
+  });
+
+  // ---- משרה ממתינה לאישור (הדגמת זרימת האישור בפורטל ובאדמין) ----
+  await ensureJob({
+    employerId: employerA.id,
+    title: "נהג/ת חלוקה",
+    descriptionPublic:
+      "חברת לוגיסטיקה מחפשת נהג/ת חלוקה אחראי/ת לאזור המרכז. שעות נוחות, תנאים טובים ואווירה משפחתית.",
+    descriptionInternal: "רישיון עד 12 טון. עבודה יומית, יציאה מבני ברק.",
+    field: "logistics",
+    region: "בני ברק",
+    scope: "משרה מלאה",
+    status: "pending",
+  });
+
+  // ---- מועמדים מודגמים + הצגות + גיוס עם עמלה (הדגמת תצוגת הפורטל) ----
+  const demoJob = await prisma.job.findFirst({
+    where: { employerId: employerA.id, title: "מנהל לוגיסטיקה" },
+  });
+  if (demoJob) {
+    const ensureCandidate = async (data: Prisma.CandidateCreateInput) => {
+      const found = await prisma.candidate.findFirst({
+        where: { email: data.email },
+      });
+      return found ?? prisma.candidate.create({ data });
+    };
+    const ensurePresentation = async (
+      candidateId: string,
+      status: "presented" | "hired",
+    ) => {
+      const found = await prisma.jobPresentation.findFirst({
+        where: { jobId: demoJob.id, candidateId },
+      });
+      if (!found) {
+        await prisma.jobPresentation.create({
+          data: { jobId: demoJob.id, candidateId, status },
+        });
+      }
+    };
+
+    // מועמד שגויס — מציג גיוס + עמלה לגבייה.
+    const hired = await ensureCandidate({
+      fullName: "דוד לוי",
+      phone: "0500000001",
+      email: "candidate1.demo@example.com",
+      field: "logistics",
+      region: "בני ברק",
+      status: "hired",
+    });
+    await ensurePresentation(hired.id, "hired");
+
+    // מועמד שהוצג בלבד — מציג סטטוס "הוצג".
+    const presented = await ensureCandidate({
+      fullName: "משה ישראלי",
+      phone: "0500000002",
+      email: "candidate2.demo@example.com",
+      field: "logistics",
+      region: "בני ברק",
+      status: "presented",
+    });
+    await ensurePresentation(presented.id, "presented");
+
+    // גיוס + עמלה — placedAt לפני ~120 יום ⇒ הערבות עברה ⇒ העמלה "לגבייה".
+    const existingPlacement = await prisma.placement.findFirst({
+      where: {
+        jobId: demoJob.id,
+        candidateId: hired.id,
+        status: { not: "cancelled" },
+      },
+    });
+    if (!existingPlacement) {
+      const placedAt = new Date(Date.now() - 1000 * 60 * 60 * 24 * 120);
+      const guaranteeEndsAt = new Date(placedAt);
+      guaranteeEndsAt.setMonth(guaranteeEndsAt.getMonth() + 3);
+      await prisma.placement.create({
+        data: {
+          jobId: demoJob.id,
+          candidateId: hired.id,
+          employerId: employerA.id,
+          placedAt,
+          guaranteeEndsAt,
+          status: "completed",
+          commissionAmount: 9000,
+          commissionStatus: "due",
+          events: {
+            create: { type: "created", note: "גיוס דמו · עמלה ₪9,000" },
+          },
+        },
+      });
+    }
+  }
+
   // ---- המלצות לקוחות (דף הבית) ----
   // נזרעות רק אם הטבלה ריקה — כדי לא לדרוס/לשכפל המלצות שהצוות הוסיף מהדשבורד.
   // שמות פרטיים / ראשי תיבות בלבד (צניעות ופרטיות).
@@ -175,7 +284,8 @@ async function main() {
   // eslint-disable-next-line no-console
   console.log(
     `✅ Seed הושלם — admin: ${adminEmail} (הסיסמה מ-SEED_ADMIN_PASSWORD) · ` +
-      `משרות חדשות שנוצרו: ${created}/${jobs.length} (קיימות דולגו)`,
+      `משרות חדשות שנוצרו: ${created}/${jobs.length} (קיימות דולגו)\n` +
+      `👔 פורטל מעסיק (דמו): ${employerEmail} / ${employerPassword} → /portal/login`,
   );
 }
 
