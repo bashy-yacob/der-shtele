@@ -38,6 +38,15 @@ export default function EmployersPage() {
               {EMP.hero.buttonSecondary}
             </Link>
           </div>
+          <p className="text-sm text-ink-500 mt-6">
+            כבר יש לכם חשבון?{" "}
+            <Link
+              href="/portal/login"
+              className="font-semibold text-navy-600 hover:underline"
+            >
+              כניסה לפורטל המעסיקים ←
+            </Link>
+          </p>
         </div>
       </section>
 
