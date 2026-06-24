@@ -1,20 +1,24 @@
 # סקירת קוד מלאה — ממצאים ורשימת תיקונים
 
-> ## עדכון 2026-06-24 — שלבים 1–3 לסגירת פערי האיפיון (טרם נפרס)
-> בוצעו במסגרת תוכנית סגירת הפערים מול spec-v3.1. הקוד עובר `tsc`+`build`+46 טסטים (בק) ו-`build` נקי (פרונט). **טרם נפרס; טרם הורצה המיגרציה.**
-> - **עמלות (COM-1..5):** ✅ enum חדש `not_due→due→invoiced→paid`; `isCommissionDue`/`effectiveCommissionStatus` מקדמים ל-due רק בתום ערבות; `assertCommissionTransition` חוסם `paid`/`invoiced` לפני תום הערבות; `calcGuaranteeEnd` עם clamp לסוף חודש.
-> - **שבת/חג (SHB-1,3):** ✅ `ShabbatService` מול Hebcal API (חלונות הדלקה→הבדלה, כולל יו"ט) עם fallback להיוריסטיקה; email+mailing+תזכורות עוברים דרכו.
-> - **מיילים אוטומטיים (סעיף 8.2):** ✅ עדכון סטטוס למועמד, ברכת גיוס, אימות מייל, דיוור משרה חדשה למנויים; ✅ `TasksService` (cron יומי + טריגר ידני `POST /tasks/run-daily` עם `TASKS_SECRET`): קידום עמלות ל-due + תזכורת גבייה 90 יום + דייג'סט שיחות/תזכורות לצוות.
-> - **אימות מייל (3.1):** ✅ `User.emailVerified/verificationToken`; שליחה בהרשמה; `POST /auth/verify` + `/auth/me/resend-verification`; עמוד `/auth/verify` + באנר באזור האישי. Google→מאומת אוטומטית.
-> - **opt-in צור-קשר (MSC-7):** ✅ `Contact.optInMarketing/optInAt` + צ'קבוקס בטופס.
-> - **הסכמת מייל באדמין (7.2):** ✅ מוצגת בכרטיס המועמד.
-> - **קו"ח בפרופיל + שימוש חוזר (5):** ✅ `GET/POST /candidates/me/cv`; כרטיס בפרופיל + אפשרות "השתמש בקו"ח הקיים" בטופס ההגשה.
-> - **חשבונית (7.4):** ✅ מספר חשבונית דטרמיניסטי נרשם בלוג במעבר ל-invoiced; עמוד החשבונית מציג מספר+תאריך יציבים.
-> - **SMTP:** ✅ EmailService מוכן ל-Resend; `docs/email-resend-setup.md`. ⏳ דורש מפתח API.
-> - **מיגרציה:** `prisma/migrations/20260624120000_phase1to3_commission_verify_optin` — להריץ `migrate deploy` **אחרי** פריסת הקוד.
-> - **לא נכלל (נדחה במכוון):** פורטל מעסיקים + role `employer` + `JobStatus: pending` (שלב 4).
-
-
+> ## עדכון 2026-06-24 — כל 4 שלבי האיפיון הושלמו, נפרסו וחיים ✅
+>
+> נבדק end-to-end על ה-live. מיגרציות הוחלו עד `20260624140000`. הרשימה המקורית למטה נשמרת כהיסטוריה.
+>
+> **שלבים 1–3 (סגירת פערי האיפיון):**
+>
+> - **עמלות (COM-1..5):** ✅ enum `not_due→due→invoiced→paid`; `due` רק בתום ערבות; `assertCommissionTransition` חוסם `paid`/`invoiced` מוקדם; `calcGuaranteeEnd` clamp לסוף חודש.
+> - **שבת/חג (SHB-1,3):** ✅ `ShabbatService` מול Hebcal API + fallback היוריסטי.
+> - **מיילים (8.2):** ✅ אימות מייל (`/auth/verify`), עדכון סטטוס, ברכת גיוס, דיוור משרה חדשה; `TasksService` cron יומי + `POST /tasks/run-daily` (`TASKS_SECRET`) לקידום עמלות + תזכורת 90 יום + דייג'סט. ⚠️ SMTP/Resend עדיין לא מוגדר → fail-soft (log בלבד).
+> - **opt-in צור-קשר (MSC-7):** ✅ · **הסכמת מייל באדמין (7.2):** ✅ · **קו"ח בפרופיל + שימוש חוזר (5):** ✅ · **חשבונית (7.4):** ✅ מספר דטרמיניסטי בלוג.
+>
+> **שלב 4 — פורטל מעסיקים (JOB-1 כלול):**
+>
+> - ✅ role `employer` (`User.employerId`→Employer); `/portal/login`; פרסום משרה→`pending`→אישור צוות (`pending→active`)→עולה לאתר; מעסיק רואה מועמדים בשם מקוצר + סטטוס בלבד (ללא פרטי קשר); יצירת משתמש פורטל מהאדמין; עמלות/תקשורת בפורטל.
+>
+> **הקשחות (מהרשימה למטה):**
+>
+> - ✅ **SEC-7** (קיזוז תזמון login), **SEC-9** (CORS allowlist), **SEC-10** (bcrypt 12), **MSC-6** (`@IsEmail` למעסיק), **MSC-8** (הסרת phone מ-applications), JSON-LD escaped, אינדקסי `candidates` (DAT-2 חלקי).
+> - **נדחה במכוון** (סיכון על DB חי / refactor גדול / תלוי SMTP): DAT-1 (rename cvUrl), DAT-3/5 (FK), DAT-2 `@unique` על email (שיתוף מייל משפחתי נפוץ), SEC-6 (cookie HttpOnly), SEC-8 (RolesGuard גלובלי), SHB-4 (תור מיילים).
 
 > נוצר ב-2026-06-15 מתוך סקירת קוד על כל הפרויקט (6 סוכני סקירה מקבילים + אימות ידני).
 > סטטוס: `CONFIRMED` = אומת עם trigger ברור · `PLAUSIBLE` = מנגנון אמיתי, trigger לא ודאי.
@@ -48,6 +52,7 @@
   - הערה: בדיקת magic-bytes (תוכן אמיתי מול MIME) נותרה כשיפור עתידי (דורש ספרייה כמו `file-type`).
 
 ### אבטחה — רמה בינונית
+
 - [ ] **SEC-6 · טוקן ב-`localStorage` חשוף ל-XSS** — `frontend/src/hooks/useAuth.ts:22` · שקול cookie HttpOnly. `PLAUSIBLE`
 - [ ] **SEC-7 · user-enumeration ע"י תזמון ב-login** — `backend/src/modules/auth/auth.service.ts:44` · להריץ bcrypt dummy גם כשאין משתמש. `CONFIRMED`
 - [ ] **SEC-8 · `RolesGuard` לא גלובלי** — `backend/src/app.module.ts:36` · היום מכוסה ידנית בכל controller, אבל כדאי `APP_GUARD` כדי שאי אפשר לשכוח. `PLAUSIBLE`
@@ -97,6 +102,7 @@
 - [x] **V31-6 · `api.ts` + `mockData.ts`** ✅ `RawPublicJob`/`toPublicJob`/`JobsFilter`/`getPublicJobs` נוקו; `GENDER_LABELS` + `Gender` type הוסרו; `mockData.ts` **נמחק** (היה dead code).
 
 **רצף פריסה ל-V31 (חובה לפי הסדר — DB משותף עם prod):**
+
 1. push קוד (frontend+backend ללא gender) → Render+Vercel מפרסמים. הבאדג' נעלם מהאתר מיד; ה-API מפסיק להחזיר gender.
 2. **רק אחרי** שה-deploy הסתיים: `npx prisma migrate deploy` (או הרצת ה-SQL ב-Supabase) — מוחק את העמודות.
 3. בין 1 ל-2: קריאות עובדות; יצירת משרה/מועמד חדשים תיכשל זמנית (העמודה עדיין NOT NULL ב-DB) — לכן להחיל את ה-migration סמוך לפריסה.
@@ -128,7 +134,7 @@
 - [x] **FRM-1 · באג הטלפון: regex דוחה placeholder עם מקפים** `CONFIRMED` ✅ תוקן
   - תוקן: נוצר `phoneSchema` משותף ב-`frontend/src/lib/validations.ts` שמנרמל (מסיר תווים שאינם ספרות) ואז מאמת `^05\d{8}$`. מוחל בשני הטפסים. ה-DTOs בבק (`create-contact`, `create-candidate`) קיבלו `@Transform` שמנרמל לפני `@Matches`. נבדק עם 7 מקרים (כולל `050-0000000` → עובר).
 - [x] **FRM-2 · 3 regex טלפון שונים + `validations.ts` לא מיובא** `CONFIRMED` ✅ תוקן (לטלפון)
-  - תוקן: כל הטפסים מייבאים עכשיו את `phoneSchema` מ-`validations.ts` (regex אחד). שאר הסכמות עדיין inline בכל טופס — מיגרציה מלאה של *כל* הסכמות ל-`validations.ts` נותרה כניקוי אופציונלי קטן.
+  - תוקן: כל הטפסים מייבאים עכשיו את `phoneSchema` מ-`validations.ts` (regex אחד). שאר הסכמות עדיין inline בכל טופס — מיגרציה מלאה של _כל_ הסכמות ל-`validations.ts` נותרה כניקוי אופציונלי קטן.
 - [x] **FRM-3 · טופס ההגשה אין בו העלאת קו"ח (שולח JSON)** `CONFIRMED` ✅ תוקן
   - תוקן: נוסף שדה קו"ח חובה (PDF/Word ≤5MB, ולידציית Zod) ל-`ApplicationForm`. ההגשה דו-שלבית: מעלה את הקובץ ל-proxy חדש `frontend/src/app/api/candidates/resume/route.ts` → מקבל `path` → שולח את ההגשה עם `cvPath`. (ה-blocker של `gender` כבר הוסר ב-V31.)
 - [x] **FRM-4 · דף apply לא חוסם לפי auth** `CONFIRMED` ✅ תוקן
@@ -137,6 +143,7 @@
   - תוקן: נוסף `PATCH /api/auth/me` בבק (+ `GET /me` מחזיר עכשיו `optInMarketing` עדכני מה-DB); עמוד ההגדרות טוען את הערך האמיתי ושומר דרך `updateMarketing` ב-`useAuth`. opt-in חדש חותם `optInAt` (חוק הספאם).
 
 ### 🔧 תיקון NetFree (auth proxy) — לא ממוספר אך קריטי
+
 - [x] **קריאות auth דרך proxy server-side** ✅ נפרס ואומת חי
   - היה: `useAuth` קרא לבק ישירות מהדפדפן (`NEXT_PUBLIC_API_URL`) → נחסם ע"י NetFree. עכשיו: proxy routes `/api/auth/{login,register,me}` (same-origin) + `useAuth` קורא דרכם. אומת על ה-prod (login proxy מחזיר את שגיאת ה-auth מהבק).
 - [x] **FRM-6 · `useAuth` ללא בדיקת `res.ok`, `fullName` קשיח `''`** `CONFIRMED` ✅ תוקן
@@ -171,6 +178,7 @@
 ---
 
 ## ✅ מה שנבדק ותקין (לא לבזבז זמן)
+
 - RTL מלא ונכון (`frontend/src/app/layout.tsx:22`), לוגיקת start/end ולא left/right.
 - **אין תמונות אנשים** בשום מקום (אפס `<img>`/`next/image`/`bg-[url]`).
 - אין `dangerouslySetInnerHTML` בשום מקום.
@@ -182,6 +190,7 @@
 ---
 
 ## סדר עדיפויות מומלץ
+
 1. **SEC-1, SEC-3** — תיקון נקי בלי schema ובלי לוגיקה עסקית. להתחיל כאן.
 2. שאר **אבטחה** (SEC-2, SEC-4, SEC-5).
 3. **COM-1..5** (לוגיקת העמלות) — דורש אישור.

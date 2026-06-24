@@ -7,16 +7,22 @@
 
 רכיבים: אתר ציבורי + פורטל מעסיקים + דשבורד מנהלים. צוות פנימי של 2 נציגים.
 
-## מצב נוכחי (עודכן 2026-06-16)
+## מצב נוכחי (עודכן 2026-06-24)
 
-- **Frontend↔Backend מחוברים:** הפרונט נקרא מהבק האמיתי דרך `frontend/src/lib/api.ts` + proxy routes ב-`frontend/src/app/api/*` (לא ניגש ל-DB ישירות).
-- **הרצה:** `npm run dev` משורש הריפו מריץ את שניהם (בק `:4000` עם prefix `/api`, פרונט `:3000`). הבק חושף `/` ו-`/health` מחוץ ל-prefix (ל-Render cold-start).
-- **DB:** פרויקט Supabase משותף (ref `osgwcjjbgnkivdrvavlb`) משמש **ישירות לפיתוח ולפרודקשן** — אין Postgres מקומי. seed: 2 משרות, 2 מעסיקים, admin `admin@dershtele.co.il`. ⚠️ סיסמת ה-admin הקיימת עדיין `admin1234` — ה-seed כבר קורא אותה מ-`SEED_ADMIN_PASSWORD` ולא דורס משתמש קיים, אז יש **להחליף ידנית** את הסיסמה החלשה.
-- **פריסה (live):** פרונט ב-**Vercel** (`der-shtele.vercel.app`), בק ב-**Render free** (`der-shtele-backend.onrender.com`), DB+אחסון ב-Supabase. `render.yaml` Blueprint בשורש; push ל-main מפעיל deploy אוטומטי בשניהם. **מיגרציות לא רצות אוטומטית בפריסה** — להריץ ידנית `npx prisma migrate deploy` אחרי שהקוד החדש עלה (DB משותף עם prod — ראה הסדר ב-`docs/code-review-findings.md`).
-- **אבטחה (הוקשח 2026-06-16):** `JWT_SECRET` **חובה** — אין fallback, השרת לא יעלה בלעדיו. שגיאות פנימיות לא דולפות ללקוח; קלט משתמש עובר `escapeHtml` במיילים לצוות; העלאת קו"ח עם `limit`+`fileFilter`.
-- **אחסון קו"ח:** bucket `resumes` ב-Supabase פעיל. ⚠️ קיים fallback מקומי **dev-only** ב-`StorageService` (`backend/uploads/`, resumePath עם קידומת `local/`) — סותר את הכלל "אין אחסון מקומי" למטה; להחליט אם להשאיר ל-dev או להסיר.
-- **תאימות v3.1:** ✅ סינון מגדרי ו-`rabbinicalApproval` **הוסרו לחלוטין** מכל השכבות (frontend, backend, schema, seed) כולל migration שהוחל על ה-DB (2026-06-16).
-- **Pending:** SMTP לא מוגדר (מיילים fail-soft, רק log); auth/login + אזור אדמין עוד לא מחוברים בפרונט (`useAuth` קורא לבק ישירות מהדפדפן — ייחסם ע"י NetFree; להעביר דרך proxy server-side); הגשת מועמדות פתוחה לאנונימי (SEC-4: להסיר `@Public` בתיאום עם חסימת auth בפרונט); opt-out בהגדרות לא פעיל (דורש `PATCH /api/auth/me`). מעקב ממצאי סקירת קוד מלא: `docs/code-review-findings.md`.
+- **כל 4 שלבי האיפיון בנויים, פרוסים וחיים** ✅ — אתר ציבורי, אזור מועמד, דשבורד מנהלים (CRM), ופורטל מעסיקים. נבדק end-to-end על ה-live.
+- **Frontend↔Backend מחוברים:** הפרונט נקרא מהבק דרך proxy routes ב-`frontend/src/app/api/*` (same-origin, לא נחסם ע"י NetFree; לא ניגש ל-DB ישירות). גם auth (login/register/me/verify) ופורטל (`/api/portal/*`) עוברים דרך proxy.
+- **הרצה:** `npm run dev` משורש הריפו מריץ את שניהם (בק `:4000` prefix `/api`, פרונט `:3000`). `/` ו-`/health` מחוץ ל-prefix (Render cold-start).
+- **DB:** Supabase משותף (ref `osgwcjjbgnkivdrvavlb`) **לפיתוח ולפרודקשן יחד** — אין Postgres מקומי. מיגרציות **לא רצות אוטומטית** — להריץ `npx prisma migrate deploy` (הבק "לפני" ה-DB עד שזה רץ; לפרוס קוד ואז מיד migrate). אחרונה שהוחלה: `20260624140000`. ⚠️ סיסמת admin עדיין `admin1234`, ומשתמש פורטל דמו `employer@dershtele.co.il` / `DerShtele!2026` — **חלשות בכוונה עד סוף הפיתוח**, להחליף לפני שימוש אמיתי.
+- **פריסה (live):** פרונט Vercel (`der-shtele.vercel.app`), בק Render free (`der-shtele-backend.onrender.com`), DB+אחסון Supabase. `render.yaml` בשורש; push ל-main → deploy אוטומטי בשניהם.
+- **שלב 4 — פורטל מעסיקים:** role `employer` משויך ל-Employer (`User.employerId`); כניסה נפרדת `/portal/login`; פרסום משרה → `pending` → אישור הצוות (`pending→active` ב-StatusCard) → עולה לאתר; המעסיק רואה מועמדים שהוצגו בשם מקוצר + סטטוס בלבד (**ללא פרטי קשר** — מודל התיווך). יצירת משתמש פורטל מהאדמין (`POST /employers/:id/portal-user`).
+- **עמלות:** מודל `not_due→due→invoiced→paid` נאכף בבק — `due` רק בתום 3 חודשי ערבות; `assertCommissionTransition` חוסם `paid`/`invoiced` מוקדם. קרון יומי מקדם ל-`due` + יוצר תזכורת גבייה.
+- **שבת/חג:** `ShabbatService` מול **Hebcal API** (חלונות הדלקה→הבדלה כולל יו"ט) + fallback היוריסטי. email/mailing/תזכורות עוברים דרכו.
+- **מיילים:** נבנו אישור הרשמה/הגשה, אימות כתובת (`/auth/verify`), עדכון סטטוס, ברכת גיוס, דיוור משרה חדשה, דייג'סט צוות. `TasksService` cron יומי + `POST /tasks/run-daily` (header `TASKS_SECRET`, מופעל ע"י cron חיצוני כי Render free נרדם). ⚠️ **SMTP/Resend לא מוגדר עדיין** (אין דומיין) → כל המיילים רק נכתבים ללוג (fail-soft). **זה הפער התפקודי היחיד שנותר.**
+- **ציות:** opt-in חובה בהרשמה + opt-out פעיל (`PATCH /api/auth/me`); opt-in בצור-קשר; הסכמת מייל מוצגת בכרטיס המועמד; קו"ח בפרופיל + "השתמש בקו"ח הקיים".
+- **אבטחה (הוקשח):** `JWT_SECRET` חובה (getOrThrow); שגיאות פנימיות לא דולפות; `escapeHtml` בקלט; קו"ח עם limit+fileFilter; login עם קיזוז תזמון (SEC-7); bcrypt 12 (SEC-10); CORS allowlist (SEC-9); הגשת מועמדות מחייבת auth (SEC-4 בוצע); JSON-LD escaped.
+- **אחסון קו"ח:** bucket `resumes` ב-Supabase. ⚠️ קיים fallback מקומי **dev-only** ב-`StorageService`.
+- **תאימות v3.1:** ✅ סינון מגדרי ו-`rabbinicalApproval` הוסרו לחלוטין מכל השכבות (כולל migration).
+- **Pending יחיד:** SMTP/Resend (ממתין לדומיין אישי). מעקב ממצאי סקירת קוד מלא: `docs/code-review-findings.md`.
 
 ## סטאק טכנולוגי
 
