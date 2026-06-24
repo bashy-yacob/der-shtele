@@ -285,6 +285,10 @@ model Candidate {
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
 
+  // אינדקסים לסינון ה-CRM/דיוור לפי תחום/אזור/סטטוס (DAT-2).
+  @@index([field])
+  @@index([region])
+  @@index([status])
   @@map("candidates")
 }
 
