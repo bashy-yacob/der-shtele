@@ -18,6 +18,7 @@ const ADMIN_NAV = [
   { href: "/admin/reminders", label: "תזכורות" },
   { href: "/admin/mailing", label: "רשימת תפוצה" },
   { href: "/admin/testimonials", label: "המלצות" },
+  { href: "/admin/advertisements", label: "פרסומות" },
 ];
 
 const ADMIN_ROLES = ["staff", "admin"];

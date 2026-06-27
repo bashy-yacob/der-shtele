@@ -101,6 +101,32 @@ enum AuthProvider {
 }
 
 // ----------------------------------------------------------------
+// שלב ד — פרסומות בתשלום (באנרי חסות + משרות ממומנות)
+// ----------------------------------------------------------------
+
+// מיקום הצגת מודעת חסות באתר
+enum AdPlacement {
+  homepage  // פס חסות בדף הבית
+  jobs_list // אזור בלוח המשרות
+  footer    // כותרת תחתונה
+}
+
+// מחזור חיים של מודעה — מוצגת רק כש-active (וגם paid + בתוך חלון תאריכים)
+enum AdStatus {
+  draft           // טיוטה — לא מוצגת
+  pending_payment // אושר תוכן, ממתין לתשלום
+  active          // משולם + מאושר — מועמד להצגה
+  paused          // הושהה ידנית
+  expired         // עבר endDate
+}
+
+// סטטוס תשלום — נאכף כשער prepaid (גם למודעות וגם למשרות ממומנות)
+enum AdPaymentStatus {
+  unpaid
+  paid
+}
+
+// ----------------------------------------------------------------
 // שלב ב — משתמשים (auth)
 // ----------------------------------------------------------------
 
@@ -242,6 +268,13 @@ model Job {
   status                JobStatus @default(active)
   openedAt              DateTime  @default(now())
   closedAt              DateTime?
+
+  // קידום משרה בתשלום (Featured) — שער תשלום-מראש כמו עמלות. המשרה עולה לראש
+  // הלוח רק כש-featuredPaymentStatus=paid וגם now <= featuredUntil.
+  featuredUntil         DateTime?
+  featuredPaymentStatus AdPaymentStatus @default(unpaid)
+  featuredPaidAt        DateTime?
+  featuredPrice         Float?    // מחיר מוסכם — פנימי
 
   presentations         JobPresentation[]
   placements            Placement[]
@@ -431,4 +464,45 @@ model Testimonial {
   updatedAt   DateTime @updatedAt
 
   @@map("testimonials")
+}
+
+// ----------------------------------------------------------------
+// שלב ד — מודעות חסות בתשלום (מנוהלות מהדשבורד, מוצגות באתר הציבורי)
+// תשלום מראש (prepaid): מודעה מוצגת רק כש-status=active + paymentStatus=paid
+// ובתוך חלון התאריכים. כלל ברזל: ללא תמונות אנשים; כל מודעה מאושרת ע"י הצוות.
+// פרטי המפרסם (שם/טלפון/מייל/מחיר) הם פנימיים — לעולם לא בתגובה הציבורית.
+// ----------------------------------------------------------------
+
+model Advertisement {
+  id             String          @id @default(cuid())
+
+  // --- מפרסם (שדות שטוחים — אין מודל Advertiser נפרד ב-MVP) ---
+  advertiserName String          // שם המפרסם (עסק / אדם) — פנימי
+  contactPhone   String          // פנימי — גבייה/יצירת קשר
+  contactEmail   String?         // פנימי
+
+  // --- תוכן המודעה ---
+  title          String
+  body           String?         // טקסט קצר — ללא הבטחות מטעות
+  imagePath      String?         // נתיב ב-bucket ציבורי 'ads' (לא URL). ללא תמונות אנשים.
+  linkUrl        String?         // יעד בלחיצה (אופציונלי)
+
+  // --- מיקום ותצוגה ---
+  placement      AdPlacement
+  order          Int             @default(0) // סדר בתוך אותו placement (קטן קודם)
+
+  // --- מחזור חיים + שער תשלום-מראש ---
+  status         AdStatus        @default(draft)
+  paymentStatus  AdPaymentStatus @default(unpaid)
+  paidAt         DateTime?
+  agreedPrice    Float?          // מחיר מוסכם בש"ח — פנימי
+
+  startDate      DateTime?       // null = מתחיל מיד עם הפעלה
+  endDate        DateTime?       // null = ללא תפוגה
+
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([placement, status])
+  @@map("advertisements")
 }

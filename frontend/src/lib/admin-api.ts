@@ -3,6 +3,9 @@
 "use client";
 
 import type {
+  Advertisement,
+  AdPlacement,
+  AdPaymentStatus,
   Candidate,
   CandidateDetail,
   CandidateListItem,
@@ -163,6 +166,10 @@ export const updateJob = (
     experience: string;
     salary: string;
     status: JobStatus;
+    // קידום בתשלום (Featured) — prepaid נאכף בבק
+    featuredUntil: string | null;
+    featuredPaymentStatus: AdPaymentStatus;
+    featuredPrice: number;
   }>,
 ) => adminFetch<InternalJob>(`jobs/${id}`, { method: "PATCH", body });
 
@@ -273,3 +280,54 @@ export const updateTestimonial = (
 ) => adminFetch<Testimonial>(`testimonials/${id}`, { method: "PATCH", body });
 export const deleteTestimonial = (id: string) =>
   adminFetch<{ ok: true }>(`testimonials/${id}`, { method: "DELETE" });
+
+// ---- פרסומות (מודעות חסות) ----
+// כל השדות הכספיים/פנימיים נשלחים רק לצוות. שער prepaid נאכף בבק.
+export interface AdInput {
+  advertiserName: string;
+  contactPhone: string;
+  contactEmail?: string;
+  title: string;
+  body?: string;
+  imagePath?: string;
+  linkUrl?: string;
+  placement: AdPlacement;
+  order?: number;
+  status?: Advertisement["status"];
+  paymentStatus?: AdPaymentStatus;
+  agreedPrice?: number;
+  startDate?: string;
+  endDate?: string;
+}
+
+export const listAds = () =>
+  adminFetch<Advertisement[]>("advertisements/admin/all");
+export const createAd = (body: AdInput) =>
+  adminFetch<Advertisement>("advertisements", { method: "POST", body });
+export const updateAd = (id: string, body: Partial<AdInput>) =>
+  adminFetch<Advertisement>(`advertisements/${id}`, { method: "PATCH", body });
+export const deleteAd = (id: string) =>
+  adminFetch<{ ok: true }>(`advertisements/${id}`, { method: "DELETE" });
+
+/** העלאת תמונת באנר (multipart) — דרך route ייעודי כי הפרוקסי הגנרי מעביר JSON בלבד. */
+export async function uploadAdImage(file: File): Promise<{ path: string }> {
+  const t = token();
+  const form = new FormData();
+  form.append("image", file);
+  const res = await fetch("/api/admin/ads-image", {
+    method: "POST",
+    headers: t ? { Authorization: `Bearer ${t}` } : {},
+    body: form,
+  });
+  const json = (await res.json().catch(() => null)) as {
+    success: boolean;
+    data?: { path: string };
+    error?: string;
+  } | null;
+  if (res.status === 401) throw new Error("נדרשת התחברות מחדש");
+  if (res.status === 403) throw new Error("אין לך הרשאה לפעולה זו");
+  if (!res.ok || !json?.success) {
+    throw new Error(json?.error ?? "שגיאה בהעלאת התמונה");
+  }
+  return json.data as { path: string };
+}

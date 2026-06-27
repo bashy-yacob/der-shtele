@@ -5,12 +5,112 @@ import * as nodemailer from "nodemailer";
 import { ShabbatService } from "../../common/shabbat/shabbat.service";
 import { escapeHtml } from "../../common/util/escape-html";
 
-/** עוטף גוף מייל בתבנית RTL אחידה. הטקסט כבר חייב להיות escaped. */
-function rtlEmail(bodyHtml: string): string {
-  return `<div dir="rtl" style="font-family:Arial,sans-serif;line-height:1.6;color:#1f2937">
-    ${bodyHtml}
-    <p style="margin-top:24px">בברכה,<br/>צוות דער שטעלע</p>
-  </div>`;
+/**
+ * צבעי המותג — תואמים ל-`frontend/tailwind.config.js` (navy / olive / sand / ink).
+ * "חם אך מקצועי": navy ראשי, olive אקסנט, sand נייטרלים חמים, ink לטקסט.
+ */
+const BRAND = {
+  navy: "#1F3A5F", // ראשי — header, כותרות, כפתור primary
+  navyDark: "#122238", // footer
+  olive: "#74803F", // אקסנט — נקודת ה-wordmark, כפתור CTA, קישורים
+  oliveLight: "#ADB67F",
+  sandBg: "#F7F2E7", // רקע הדף
+  sandBorder: "#EFE7D5", // גבולות
+  sandSoft: "#C9B894", // טקסט על רקע כהה
+  inkHeading: "#211E18", // כותרות
+  inkBody: "#4A4439", // גוף
+  inkMuted: "#8C8475", // משני
+  white: "#FFFFFF",
+} as const;
+
+interface EmailLayoutOptions {
+  /** כותרת H1 בראש הכרטיס (navy, סריף). */
+  heading?: string;
+  /** טקסט preheader נסתר — התצוגה המקדימה בתיבת הדואר. */
+  preheader?: string;
+  /** שורת ה-footer מתחת לשורת המותג; ברירת מחדל = פרטי קשר. `null` מסתיר. */
+  footerNote?: string | null;
+  /** משפט סיום; ברירת מחדל "בברכה, צוות דער שטעלע". `null` למיילים פנימיים. */
+  closing?: string | null;
+}
+
+/**
+ * כפתור CTA "חסין" (table-based) בצבעי המותג. `accent`=olive, `primary`=navy.
+ * ה-href וה-label אינם עוברים escape כאן — באחריות הקורא להעביר ערכים בטוחים.
+ */
+function emailButton(
+  href: string,
+  label: string,
+  variant: "primary" | "accent" = "accent",
+): string {
+  const bg = variant === "primary" ? BRAND.navy : BRAND.olive;
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:22px 0">
+    <tr><td align="center" bgcolor="${bg}" style="border-radius:10px">
+      <a href="${href}" style="display:inline-block;padding:13px 30px;font-family:Arial,Heebo,sans-serif;font-size:15px;font-weight:bold;color:${BRAND.white};text-decoration:none;border-radius:10px">${label}</a>
+    </td></tr>
+  </table>`;
+}
+
+/**
+ * עוטף גוף מייל (כבר escaped) בתבנית ממותגת: RTL מלא, header עם ה-wordmark
+ * וצבעי המותג, כרטיס תוכן לבן, ו-footer. table-based לתאימות לקוחות מייל.
+ */
+function brandedEmail(bodyHtml: string, opts: EmailLayoutOptions = {}): string {
+  const {
+    heading,
+    preheader = "",
+    footerNote = `מייל: dershtele@gmail.com · אין מענה בשבת ויום טוב`,
+    closing = "בברכה,<br/>צוות דער שטעלע",
+  } = opts;
+  const year = new Date().getFullYear();
+
+  const headingHtml = heading
+    ? `<h1 style="margin:0 0 16px;font-family:Georgia,'Frank Ruhl Libre',serif;font-size:21px;font-weight:bold;color:${BRAND.navy};text-align:right">${heading}</h1>`
+    : "";
+  const closingHtml = closing
+    ? `<p style="margin:28px 0 0;color:${BRAND.inkHeading}">${closing}</p>`
+    : "";
+  const footerNoteHtml = footerNote
+    ? `<div style="margin-top:6px">${footerNote}</div>`
+    : "";
+
+  return `<!DOCTYPE html>
+<html lang="he" dir="rtl" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta name="color-scheme" content="light"/>
+  <title>דער שטעלע</title>
+</head>
+<body style="margin:0;padding:0;background:${BRAND.sandBg};">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">${preheader}</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${BRAND.sandBg}">
+    <tr><td align="center" style="padding:24px 12px">
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:${BRAND.white};border:1px solid ${BRAND.sandBorder};border-radius:16px;overflow:hidden">
+        <!-- header — wordmark מותגי -->
+        <tr><td dir="rtl" align="right" style="background:${BRAND.navy};padding:22px 28px">
+          <span style="font-family:Georgia,'Frank Ruhl Libre',serif;font-size:24px;font-weight:bold;color:${BRAND.white};letter-spacing:-0.5px">דער שטעלע</span><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${BRAND.olive};margin-right:5px;vertical-align:middle"></span>
+          <div style="font-family:Arial,Heebo,sans-serif;font-size:12px;color:${BRAND.sandSoft};margin-top:5px">מוצאים לך את המשרה הנכונה</div>
+        </td></tr>
+        <!-- content -->
+        <tr><td dir="rtl" align="right" style="padding:30px 28px;font-family:Arial,Heebo,sans-serif;font-size:15px;line-height:1.7;color:${BRAND.inkBody};text-align:right">
+          ${headingHtml}
+          ${bodyHtml}
+          ${closingHtml}
+        </td></tr>
+        <!-- footer -->
+        <tr><td dir="rtl" align="right" style="background:${BRAND.navyDark};padding:20px 28px">
+          <div style="font-family:Arial,Heebo,sans-serif;font-size:12px;color:${BRAND.sandSoft};line-height:1.7">
+            <div>סוכנות השמה מקצועית לציבור החרדי בישראל · כל קשר עובר דרך הצוות</div>
+            ${footerNoteHtml}
+          </div>
+          <div style="font-family:Arial,Heebo,sans-serif;font-size:11px;color:${BRAND.inkMuted};margin-top:10px">© ${year} דער שטעלע · כל הזכויות שמורות</div>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
 }
 
 export interface MailMessage {
@@ -105,12 +205,34 @@ export class EmailService {
     }
   }
 
-  /** התראה לצוות על פנייה/מועמד חדש. */
+  /**
+   * עוטף גוף מייל (פרגמנט HTML שכבר עבר escape) בתבנית הממותגת של דער שטעלע.
+   * חשוף לשירותים אחרים (mailing וכו') כדי לשמור מראה אחיד בכל המיילים.
+   */
+  wrap(bodyHtml: string, opts?: EmailLayoutOptions): string {
+    return brandedEmail(bodyHtml, opts);
+  }
+
+  /** כפתור CTA ממותג (table-based, חסין-לקוחות-מייל). */
+  button(
+    href: string,
+    label: string,
+    variant: "primary" | "accent" = "accent",
+  ): string {
+    return emailButton(href, label, variant);
+  }
+
+  /** התראה לצוות על פנייה/מועמד חדש — ממותגת, ללא משפט סיום ללקוח. */
   async notifyTeam(subject: string, html: string): Promise<void> {
     await this.send({
       to: this.teamEmail,
       subject: `[דער שטעלע] ${subject}`,
-      html,
+      html: brandedEmail(html, {
+        heading: subject,
+        preheader: "התראת צוות — דער שטעלע",
+        closing: null,
+        footerNote: "התראה פנימית · דשבורד הניהול",
+      }),
     });
   }
 
@@ -119,9 +241,13 @@ export class EmailService {
     await this.send({
       to,
       subject: "קיבלנו את פנייתך — דער שטעלע",
-      html: rtlEmail(
-        `<p>שלום ${escapeHtml(fullName)},</p>
-         <p>תודה שפנית אלינו. קיבלנו את פרטיך והצוות שלנו יחזור אליך בהקדם.</p>`,
+      html: brandedEmail(
+        `<p style="margin:0 0 14px">שלום ${escapeHtml(fullName)},</p>
+         <p style="margin:0">תודה שפנית אלינו. קיבלנו את פרטיך והצוות שלנו יחזור אליך בהקדם.</p>`,
+        {
+          heading: "קיבלנו את פנייתך",
+          preheader: "קיבלנו את פרטיך — הצוות יחזור אליך בהקדם.",
+        },
       ),
     });
   }
@@ -156,8 +282,10 @@ export class EmailService {
     await this.send({
       to,
       subject: msg.subject,
-      html: rtlEmail(
-        `<p>שלום ${escapeHtml(fullName)},</p><p>${escapeHtml(msg.body)}</p>`,
+      html: brandedEmail(
+        `<p style="margin:0 0 14px">שלום ${escapeHtml(fullName)},</p>
+         <p style="margin:0">${escapeHtml(msg.body)}</p>`,
+        { heading: "עדכון לגבי מועמדותך", preheader: msg.body },
       ),
     });
   }
@@ -176,13 +304,15 @@ export class EmailService {
     await this.send({
       to,
       subject: "אימות כתובת המייל — דער שטעלע",
-      html: rtlEmail(
-        `<p>שלום ${escapeHtml(fullName)},</p>
-         <p>תודה שנרשמת לדער שטעלע. כדי לאמת את כתובת המייל, יש ללחוץ על הקישור:</p>
-         <p style="margin:16px 0">
-           <a href="${link}" style="color:#1d4ed8;font-weight:bold">אימות כתובת המייל ←</a>
-         </p>
-         <p style="font-size:12px;color:#888">אם לא נרשמת לדער שטעלע, ניתן להתעלם מהודעה זו.</p>`,
+      html: brandedEmail(
+        `<p style="margin:0 0 14px">שלום ${escapeHtml(fullName)},</p>
+         <p style="margin:0">תודה שנרשמת לדער שטעלע. כדי לאמת את כתובת המייל, יש ללחוץ על הכפתור:</p>
+         ${emailButton(link, "אימות כתובת המייל ←", "primary")}
+         <p style="margin:0;font-size:12px;color:${BRAND.inkMuted}">אם לא נרשמת לדער שטעלע, ניתן להתעלם מהודעה זו.</p>`,
+        {
+          heading: "אימות כתובת המייל",
+          preheader: "צעד אחרון — אימות כתובת המייל שלך בדער שטעלע.",
+        },
       ),
     });
   }
@@ -196,9 +326,13 @@ export class EmailService {
     await this.send({
       to,
       subject: "מזל טוב! התקבלת למשרה — דער שטעלע",
-      html: rtlEmail(
-        `<p>שלום ${escapeHtml(fullName)},</p>
-         <p>שמחים לבשר שהתקבלת למשרת <b>${escapeHtml(jobTitle)}</b>. מאחלים לך הצלחה רבה בתפקיד החדש!</p>`,
+      html: brandedEmail(
+        `<p style="margin:0 0 14px">שלום ${escapeHtml(fullName)},</p>
+         <p style="margin:0">שמחים לבשר שהתקבלת למשרת <b style="color:${BRAND.navy}">${escapeHtml(jobTitle)}</b>. מאחלים לך הצלחה רבה בתפקיד החדש!</p>`,
+        {
+          heading: "מזל טוב — התקבלת למשרה!",
+          preheader: `התקבלת למשרת ${jobTitle}. בהצלחה!`,
+        },
       ),
     });
   }
@@ -233,10 +367,14 @@ export class EmailService {
     await this.send({
       to,
       subject: "קיבלנו את בקשת ההצטרפות — דער שטעלע",
-      html: rtlEmail(
-        `<p>שלום ${escapeHtml(contactName)},</p>
-         <p>קיבלנו את בקשת ההצטרפות שלך לפורטל המעסיקים. הצוות יאמת את הפרטים
+      html: brandedEmail(
+        `<p style="margin:0 0 14px">שלום ${escapeHtml(contactName)},</p>
+         <p style="margin:0">קיבלנו את בקשת ההצטרפות שלך לפורטל המעסיקים. הצוות יאמת את הפרטים
          ויאשר את החשבון בהקדם, ונעדכן אותך ברגע שהחשבון יאושר.</p>`,
+        {
+          heading: "קיבלנו את בקשת ההצטרפות",
+          preheader: "הבקשה התקבלה — נעדכן אותך עם אישור החשבון.",
+        },
       ),
     });
   }
@@ -250,13 +388,15 @@ export class EmailService {
     await this.send({
       to,
       subject: "החשבון אושר — אפשר לפרסם משרות — דער שטעלע",
-      html: rtlEmail(
-        `<p>שלום ${escapeHtml(contactName)},</p>
-         <p>שמחים לעדכן שחשבון המעסיק שלך אושר. אפשר להתחבר לפורטל ולפרסם משרות:</p>
-         <p style="margin:16px 0">
-           <a href="${appUrl}/portal/login" style="color:#1d4ed8;font-weight:bold">כניסה לפורטל המעסיקים ←</a>
-         </p>
-         <p>כל משרה שתפרסם תעבור לבדיקה ואישור הצוות לפני שתעלה לאתר.</p>`,
+      html: brandedEmail(
+        `<p style="margin:0 0 14px">שלום ${escapeHtml(contactName)},</p>
+         <p style="margin:0">שמחים לעדכן שחשבון המעסיק שלך אושר. אפשר להתחבר לפורטל ולפרסם משרות:</p>
+         ${emailButton(`${appUrl}/portal/login`, "כניסה לפורטל המעסיקים ←", "primary")}
+         <p style="margin:0">כל משרה שתפרסם תעבור לבדיקה ואישור הצוות לפני שתעלה לאתר.</p>`,
+        {
+          heading: "החשבון אושר ✓",
+          preheader: "אפשר להתחבר לפורטל ולפרסם משרות.",
+        },
       ),
     });
   }
@@ -270,12 +410,16 @@ export class EmailService {
     await this.send({
       to,
       subject: "עדכון לגבי בקשת ההצטרפות — דער שטעלע",
-      html: rtlEmail(
-        `<p>שלום ${escapeHtml(contactName)},</p>
-         <p>לאחר בחינה, לא נוכל לאשר כעת את החשבון.${
+      html: brandedEmail(
+        `<p style="margin:0 0 14px">שלום ${escapeHtml(contactName)},</p>
+         <p style="margin:0 0 14px">לאחר בחינה, לא נוכל לאשר כעת את החשבון.${
            reason ? ` ${escapeHtml(reason)}` : ""
          }</p>
-         <p>לפרטים נוספים ניתן לפנות לצוות.</p>`,
+         <p style="margin:0">לפרטים נוספים ניתן לפנות לצוות.</p>`,
+        {
+          heading: "עדכון לגבי בקשת ההצטרפות",
+          preheader: "עדכון לגבי בקשת ההצטרפות שלך לפורטל המעסיקים.",
+        },
       ),
     });
   }

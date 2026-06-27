@@ -94,6 +94,7 @@ export default function JobDetailPage() {
         </div>
         <div className="space-y-6">
           <StatusCard job={job} onChanged={reload} />
+          <FeaturedCard job={job} onChanged={reload} />
           <EmployerCard job={job} />
         </div>
       </div>
@@ -291,6 +292,115 @@ function StatusCard({
         </div>
       )}
       {err && <ErrorNote message={err} />}
+    </Card>
+  );
+}
+
+function FeaturedCard({
+  job,
+  onChanged,
+}: {
+  job: JobDetail;
+  onChanged: () => void;
+}) {
+  const [until, setUntil] = useState(
+    job.featuredUntil ? job.featuredUntil.slice(0, 10) : "",
+  );
+  const [price, setPrice] = useState(
+    job.featuredPrice != null ? String(job.featuredPrice) : "",
+  );
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const [msg, setMsg] = useState("");
+
+  const paid = job.featuredPaymentStatus === "paid";
+  const active =
+    paid && !!job.featuredUntil && new Date(job.featuredUntil) >= new Date();
+
+  type JobPatch = Parameters<typeof updateJob>[1];
+  const save = async (extra: JobPatch = {}) => {
+    setBusy(true);
+    setErr("");
+    setMsg("");
+    try {
+      await updateJob(job.id, {
+        featuredUntil: until ? new Date(until).toISOString() : null,
+        featuredPrice: price ? Number(price) : undefined,
+        ...extra,
+      });
+      setMsg("נשמר בהצלחה");
+      onChanged();
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card className="space-y-3">
+      <h2 className="text-lg font-display text-ink-900">קידום בתשלום</h2>
+      <p className="text-sm text-ink-500">
+        מצב:{" "}
+        <span className="font-semibold text-ink-900">
+          {active
+            ? "מקודמת — מופיעה בראש הלוח"
+            : paid
+              ? "שולם — מחוץ לחלון התאריכים"
+              : "לא מקודמת"}
+        </span>
+      </p>
+      <Input
+        label="קידום עד תאריך"
+        type="date"
+        value={until}
+        onChange={(e) => setUntil(e.target.value)}
+      />
+      <Input
+        label="מחיר קידום מוסכם (₪ — פנימי)"
+        type="number"
+        value={price}
+        onChange={(e) => setPrice(e.target.value)}
+      />
+      <p className="text-xs text-ink-400">
+        משרה מקודמת מופיעה בראש הלוח רק לאחר תשלום ובתוך חלון התאריכים.
+      </p>
+      {err && <ErrorNote message={err} />}
+      {msg && <SuccessNote message={msg} />}
+      <div className="flex flex-wrap gap-2">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => save()}
+          disabled={busy}
+        >
+          שמירת תאריך/מחיר
+        </Button>
+        {!paid ? (
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => save({ featuredPaymentStatus: "paid" })}
+            disabled={busy}
+          >
+            סימון תשלום כשולם
+          </Button>
+        ) : (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => save({ featuredPaymentStatus: "unpaid" })}
+            disabled={busy}
+          >
+            ביטול סימון תשלום
+          </Button>
+        )}
+      </div>
+      {job.featuredPaidAt && (
+        <p className="text-xs text-ink-400">
+          תשלום סומן: {formatDate(job.featuredPaidAt)}
+        </p>
+      )}
     </Card>
   );
 }

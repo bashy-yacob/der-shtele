@@ -23,6 +23,7 @@ import { DashboardModule } from "./modules/dashboard/dashboard.module";
 import { MailingModule } from "./modules/mailing/mailing.module";
 import { SavedJobsModule } from "./modules/saved-jobs/saved-jobs.module";
 import { TestimonialsModule } from "./modules/testimonials/testimonials.module";
+import { AdvertisementsModule } from "./modules/advertisements/advertisements.module";
 import { TasksModule } from "./modules/tasks/tasks.module";
 import { PortalModule } from "./modules/portal/portal.module";
 
@@ -47,6 +48,7 @@ import { PortalModule } from "./modules/portal/portal.module";
     MailingModule,
     SavedJobsModule,
     TestimonialsModule,
+    AdvertisementsModule,
     TasksModule,
     PortalModule,
   ],
