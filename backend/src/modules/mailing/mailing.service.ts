@@ -60,20 +60,19 @@ export class MailingService {
       .filter(Boolean)
       .map((s) => escapeHtml(String(s)))
       .join(" · ");
-    const html = `<div dir="rtl" style="font-family:Arial,sans-serif;line-height:1.6">
-      <p>שלום,</p>
-      <p>עלתה משרה חדשה שעשויה להתאים לך:</p>
-      <p style="font-size:18px;font-weight:bold;margin:8px 0">${escapeHtml(job.title)}</p>
-      <p style="color:#555">${meta}</p>
-      <p style="margin-top:16px">
-        <a href="${link}" style="color:#1d4ed8">לצפייה בפרטים ולהגשה ←</a>
-      </p>
-      <hr style="margin-top:24px;border:none;border-top:1px solid #eee"/>
-      <p style="font-size:12px;color:#888">
-        קיבלת מייל זה כי נרשמת לעדכונים בדער שטעלע.
-        לביטול קבלת עדכונים — מהאזור האישי באתר.
-      </p>
-    </div>`;
+    const html = this.email.wrap(
+      `<p style="margin:0 0 14px">שלום,</p>
+       <p style="margin:0 0 14px">עלתה משרה חדשה שעשויה להתאים לך:</p>
+       <p style="font-size:18px;font-weight:bold;margin:0 0 4px;color:#1F3A5F">${escapeHtml(job.title)}</p>
+       <p style="margin:0;color:#8C8475">${meta}</p>
+       ${this.email.button(link, "לצפייה בפרטים ולהגשה ←")}`,
+      {
+        heading: "משרה חדשה עבורך",
+        preheader: `${job.title} — ${meta}`,
+        footerNote:
+          "קיבלת מייל זה כי נרשמת לעדכונים בדער שטעלע. לביטול — מהאזור האישי באתר.",
+      },
+    );
 
     let sent = 0;
     for (const r of recipients) {
@@ -187,16 +186,12 @@ export class MailingService {
     return { total: recipients.length, sent };
   }
 
-  /** עוטף טקסט חופשי בתבנית RTL בטוחה (escapeHtml + שמירת שורות). */
+  /** עוטף טקסט חופשי בתבנית הממותגת (escapeHtml + שמירת שורות). */
   private wrapBody(body: string): string {
     const safe = escapeHtml(body).replace(/\n/g, "<br/>");
-    return `<div dir="rtl" style="font-family:Arial,sans-serif;line-height:1.6">
-      ${safe}
-      <hr style="margin-top:24px;border:none;border-top:1px solid #eee"/>
-      <p style="font-size:12px;color:#888">
-        קיבלת מייל זה כי נרשמת לעדכונים בדער שטעלע.
-        לביטול קבלת עדכונים — מהאזור האישי באתר.
-      </p>
-    </div>`;
+    return this.email.wrap(`<div>${safe}</div>`, {
+      footerNote:
+        "קיבלת מייל זה כי נרשמת לעדכונים בדער שטעלע. לביטול — מהאזור האישי באתר.",
+    });
   }
 }

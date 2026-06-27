@@ -5,6 +5,7 @@ import {
 } from "@nestjs/common";
 import * as bcrypt from "bcryptjs";
 import { PrismaService } from "../../prisma/prisma.service";
+import { EmailService } from "../email/email.service";
 import { CreateEmployerDto } from "./dto/create-employer.dto";
 import { UpdateEmployerDto } from "./dto/update-employer.dto";
 import { CreatePortalUserDto } from "./dto/create-portal-user.dto";
@@ -12,7 +13,10 @@ import { CreatePortalUserDto } from "./dto/create-portal-user.dto";
 /** מעסיקים — פנימי לחלוטין, לעולם לא חשוף לאתר הציבורי. */
 @Injectable()
 export class EmployersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly email: EmailService,
+  ) {}
 
   findAll() {
     // _count.jobs — מספר המשרות של כל מעסיק, לתצוגה בכרטיס בדשבורד.
@@ -63,7 +67,38 @@ export class EmployersService {
   }
 
   create(dto: CreateEmployerDto) {
+    // מעסיק שהצוות יוצר ידנית מאושר אוטומטית (default approved בסכימה).
     return this.prisma.employer.create({ data: dto });
+  }
+
+  /**
+   * אישור בקשת גישה של מעסיק (סעיף 6) — pending → approved. אידמפוטנטי:
+   * אישור חוזר לא משנה דבר. שולח מייל למעסיק שהחשבון אושר (fail-soft).
+   */
+  async approve(id: string) {
+    const employer = await this.findOne(id);
+    if (employer.status === "approved") return employer;
+    const updated = await this.prisma.employer.update({
+      where: { id },
+      data: { status: "approved", approvedAt: new Date(), rejectionReason: null },
+    });
+    this.email
+      .sendEmployerApproved(employer.contactEmail, employer.contactName)
+      .catch(() => undefined);
+    return updated;
+  }
+
+  /** דחיית בקשת גישה — סטטוס rejected + סיבה אופציונלית; מייל למעסיק (fail-soft). */
+  async reject(id: string, reason?: string) {
+    const employer = await this.findOne(id);
+    const updated = await this.prisma.employer.update({
+      where: { id },
+      data: { status: "rejected", rejectionReason: reason ?? null },
+    });
+    this.email
+      .sendEmployerRejected(employer.contactEmail, employer.contactName, reason)
+      .catch(() => undefined);
+    return updated;
   }
 
   async update(id: string, dto: UpdateEmployerDto) {

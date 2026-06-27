@@ -26,16 +26,16 @@ export default function EmployersPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link
-              href="/employers/contact"
+              href="/portal/register"
               className="w-full sm:w-auto bg-navy-600 hover:bg-navy-700 text-white font-bold text-lg px-8 py-3.5 rounded-xl transition-colors duration-150 text-center"
             >
-              {EMP.hero.buttonPrimary}
+              {EMP.hero.buttonRegister}
             </Link>
             <Link
-              href="/employers/terms"
+              href="/employers/contact"
               className="w-full sm:w-auto border border-navy-600 text-navy-600 hover:bg-navy-50 font-bold text-lg px-8 py-3.5 rounded-xl transition-colors duration-150 text-center"
             >
-              {EMP.hero.buttonSecondary}
+              {EMP.hero.buttonPrimary}
             </Link>
           </div>
           <p className="text-sm text-ink-500 mt-6">
@@ -108,16 +108,16 @@ export default function EmployersPage() {
           </h2>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link
-              href="/employers/contact"
+              href="/portal/register"
               className="w-full sm:w-auto bg-white hover:bg-sand-100 text-navy-700 font-bold text-lg px-8 py-3.5 rounded-xl transition-colors duration-150 text-center"
             >
-              {EMP.hero.buttonPrimary}
+              {EMP.hero.buttonRegister}
             </Link>
             <Link
-              href="/employers/terms"
+              href="/employers/contact"
               className="w-full sm:w-auto border border-sand-200 text-white hover:bg-navy-700 font-bold text-lg px-8 py-3.5 rounded-xl transition-colors duration-150 text-center"
             >
-              {EMP.hero.buttonSecondary}
+              {EMP.hero.buttonPrimary}
             </Link>
           </div>
         </div>

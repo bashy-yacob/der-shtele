@@ -49,6 +49,7 @@ export interface PortalEmployer {
   id: string;
   companyName: string;
   contactName: string;
+  status: "pending" | "approved" | "rejected";
 }
 
 export interface PortalJobListItem {

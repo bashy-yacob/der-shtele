@@ -1,7 +1,8 @@
 "use client";
 
-// כניסת מעסיק לפורטל — פרטי הכניסה מופקים ע"י הצוות. נפרד מכניסת המועמדים.
+// כניסת מעסיק לפורטל. נפרד מכניסת המועמדים; הרשמת מעסיק חדש ב-/portal/register.
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { Button, Card, Input } from "@/components/ui";
@@ -73,8 +74,14 @@ export default function PortalLoginPage() {
           </Button>
         </form>
 
-        <p className="text-xs text-ink-400 mt-6 text-center leading-relaxed">
-          אין לכם פרטי גישה? פנו לצוות דער שטעלע ונפיק עבורכם חשבון.
+        <p className="text-sm text-ink-500 mt-6 text-center">
+          אין לכם חשבון?{" "}
+          <Link
+            href="/portal/register"
+            className="font-semibold text-navy-600 hover:underline"
+          >
+            להרשמת מעסיק ←
+          </Link>
         </p>
       </Card>
     </main>

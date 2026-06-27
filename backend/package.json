@@ -13,6 +13,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "mail:test": "ts-node scripts/test-email.ts",
+    "mail:preview": "ts-node scripts/send-branded-email.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",

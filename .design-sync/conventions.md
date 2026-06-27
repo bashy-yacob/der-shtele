@@ -5,6 +5,7 @@ site. Three components ship: **Button, Card, Input**. Import from
 `@der-shtele/frontend` (bound to `window.DerShtele`).
 
 ## Setup — no provider needed
+
 Components are self-contained: `import { Button } from '@der-shtele/frontend'` and
 render them. There is **no theme/context wrapper**. The shipped `styles.css`
 already sets the page **RTL** (`html { direction: rtl }`) and the **Heebo** font, so
@@ -12,13 +13,17 @@ every design is right-to-left and Hebrew by default — don't add your own `dir`
 font; build RTL layouts.
 
 ## Brand & cultural rules (required for on-brand output)
+
 - **Hebrew, RTL** copy and layout throughout. Phrasing is respectful and direct
   (second person); use double-gender forms where natural (מועמד/ת, דרוש/ה).
 - **No images of people** anywhere — no photos, avatars, or hero portraits.
 - Modest and conservative: calm spacing, the blue/neutral palette below, no flashy
-  animation, no ads.
+  animation.
+- **Ads are allowed** only as first-party, staff-approved banners: modest design, no
+  images of people, clearly labeled "מודעה", shown only after prepayment.
 
 ## Styling idiom — Tailwind utilities on a STATIC stylesheet
+
 The DS styles with Tailwind classes, but the shipped `styles.css` / `_ds_bundle.css`
 is a **pre-compiled static build** — there is no JIT at render time, so **only
 utility classes already present in `_ds_bundle.css` actually render**. Therefore:
@@ -31,12 +36,12 @@ utility classes already present in `_ds_bundle.css` actually render**. Therefore
 
 **Brand tokens (theme):**
 
-| Use | Classes |
-|---|---|
-| Brand blue | `bg-primary-600` `hover:bg-primary-700` `text-primary-600` `border-primary-600` `bg-primary-50` `hover:bg-primary-50` |
-| Neutrals | `bg-neutral-50` (page) · `text-neutral-800` (body) · `text-neutral-700` · `border-neutral-200` |
-| Font | Heebo (default sans) |
-| Radius / elevation | `rounded-xl` `rounded-2xl` `shadow-sm` |
+| Use                | Classes                                                                                                               |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| Brand blue         | `bg-primary-600` `hover:bg-primary-700` `text-primary-600` `border-primary-600` `bg-primary-50` `hover:bg-primary-50` |
+| Neutrals           | `bg-neutral-50` (page) · `text-neutral-800` (body) · `text-neutral-700` · `border-neutral-200`                        |
+| Font               | Heebo (default sans)                                                                                                  |
+| Radius / elevation | `rounded-xl` `rounded-2xl` `shadow-sm`                                                                                |
 
 **Layout utilities present** (prefer these): `flex` `flex-col` `flex-wrap`
 `inline-flex` `items-center` `items-start` `justify-center` `justify-between` `grid`
@@ -45,6 +50,7 @@ utility classes already present in `_ds_bundle.css` actually render**. Therefore
 `text-lg` `text-xl` `text-2xl` `text-3xl`.
 
 ## Components
+
 - **Button** — `variant?: 'primary' | 'outline'` (default `primary`) plus any
   `<button>` attribute + `className`. Primary = filled blue CTA; outline = bordered
   secondary action.
@@ -56,12 +62,14 @@ utility classes already present in `_ds_bundle.css` actually render**. Therefore
   plus any `<input>` attribute. Always pass a matching `id` so the label associates.
 
 ## Where the truth lives
+
 Read `styles.css` (→ `_ds_bundle.css`) for the exact set of available classes, and
 each `components/general/<Name>/<Name>.prompt.md` + `<Name>.d.ts` for the API.
 
 ## Example
+
 ```tsx
-import { Button, Card, Input } from '@der-shtele/frontend';
+import { Button, Card, Input } from "@der-shtele/frontend";
 
 export function ApplyCard() {
   return (

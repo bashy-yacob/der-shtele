@@ -17,6 +17,11 @@ export function JobCard({ job }: JobCardProps) {
         jobId={job.id}
         className="absolute top-4 left-4 shadow-soft"
       />
+      {job.featured && (
+        <span className="mb-2 inline-block w-fit rounded-full bg-olive-100 px-2 py-0.5 text-xs font-semibold text-olive-700">
+          מקודם
+        </span>
+      )}
       <h3 className="font-display text-ink-900 text-xl font-bold pe-12">
         {job.title}
       </h3>

@@ -5,6 +5,7 @@ import { CreateJobDto } from "./dto/create-job.dto";
 import { UpdateJobDto } from "./dto/update-job.dto";
 import { QueryJobsDto } from "./dto/query-jobs.dto";
 import { assertJobTransition } from "../../common/status-machine/status-machine";
+import { isJobFeaturedActive } from "../../common/ads/ads";
 import { MailingService } from "../mailing/mailing.service";
 
 // השדות הציבוריים בלבד — לעולם לא חושפים employer / descriptionInternal / salary
@@ -19,6 +20,25 @@ const PUBLIC_SELECT = {
   openedAt: true,
 } satisfies Prisma.JobSelect;
 
+// select פנימי לחישוב קידום — מוסיף את שדות ה-featured (לא נחשפים לציבור;
+// נגזר מהם boolean featured בלבד).
+const PUBLIC_SELECT_WITH_FEATURED = {
+  ...PUBLIC_SELECT,
+  featuredUntil: true,
+  featuredPaymentStatus: true,
+} satisfies Prisma.JobSelect;
+
+// מסיר את שדות הקידום הגולמיים וגוזר featured boolean — צורת התגובה הציבורית.
+function toPublicJob<
+  T extends {
+    featuredUntil: Date | null;
+    featuredPaymentStatus: "unpaid" | "paid";
+  },
+>(job: T, now: Date) {
+  const { featuredUntil, featuredPaymentStatus, ...pub } = job;
+  return { ...pub, featured: isJobFeaturedActive(job, now) };
+}
+
 @Injectable()
 export class JobsService {
   private readonly logger = new Logger(JobsService.name);
@@ -28,18 +48,26 @@ export class JobsService {
     private readonly mailing: MailingService,
   ) {}
 
-  /** לוח המשרות הציבורי — רק משרות פעילות, שדות ציבוריים בלבד. */
-  findPublic(query: QueryJobsDto) {
-    return this.prisma.job.findMany({
+  /**
+   * לוח המשרות הציבורי — רק משרות פעילות, שדות ציבוריים בלבד.
+   * משרות ממומנות (prepaid + בתוך חלון הקידום) עולות לראש הרשימה.
+   */
+  async findPublic(query: QueryJobsDto) {
+    const jobs = await this.prisma.job.findMany({
       where: {
         status: "active",
         ...(query.field && { field: query.field }),
         ...(query.region && { region: query.region }),
         ...(query.experience && { experience: query.experience }),
       },
-      select: PUBLIC_SELECT,
+      select: PUBLIC_SELECT_WITH_FEATURED,
       orderBy: { openedAt: "desc" },
     });
+    const now = new Date();
+    // מיון יציב: featured קודם, ובכל קבוצה נשמר סדר openedAt desc מה-DB.
+    return jobs
+      .map((job) => toPublicJob(job, now))
+      .sort((a, b) => Number(b.featured) - Number(a.featured));
   }
 
   /**
@@ -69,10 +97,10 @@ export class JobsService {
   async findPublicOne(id: string) {
     const job = await this.prisma.job.findFirst({
       where: { id, status: "active" },
-      select: PUBLIC_SELECT,
+      select: PUBLIC_SELECT_WITH_FEATURED,
     });
     if (!job) throw new NotFoundException("משרה לא נמצאה");
-    return job;
+    return toPublicJob(job, new Date());
   }
 
   // ---- פנימי (צוות) ----
@@ -126,6 +154,18 @@ export class JobsService {
         ...dto,
         ...(dto.status === "closed" || dto.status === "filled"
           ? { closedAt: new Date() }
+          : {}),
+        // קידום בתשלום (prepaid): המרת תאריך + חותמת תשלום ברגע המעבר ל-paid.
+        ...(dto.featuredUntil !== undefined
+          ? {
+              featuredUntil: dto.featuredUntil
+                ? new Date(dto.featuredUntil)
+                : null,
+            }
+          : {}),
+        ...(dto.featuredPaymentStatus === "paid" &&
+        job.featuredPaymentStatus !== "paid"
+          ? { featuredPaidAt: new Date() }
           : {}),
       },
     });

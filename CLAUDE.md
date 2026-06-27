@@ -15,6 +15,7 @@
 - **DB:** Supabase משותף (ref `osgwcjjbgnkivdrvavlb`) **לפיתוח ולפרודקשן יחד** — אין Postgres מקומי. מיגרציות **לא רצות אוטומטית** — להריץ `npx prisma migrate deploy` (הבק "לפני" ה-DB עד שזה רץ; לפרוס קוד ואז מיד migrate). אחרונה שהוחלה: `20260624140000`. ⚠️ סיסמת admin עדיין `admin1234`, ומשתמש פורטל דמו `employer@dershtele.co.il` / `DerShtele!2026` — **חלשות בכוונה עד סוף הפיתוח**, להחליף לפני שימוש אמיתי.
 - **פריסה (live):** פרונט Vercel (`der-shtele.vercel.app`), בק Render free (`der-shtele-backend.onrender.com`), DB+אחסון Supabase. `render.yaml` בשורש; push ל-main → deploy אוטומטי בשניהם.
 - **שלב 4 — פורטל מעסיקים:** role `employer` משויך ל-Employer (`User.employerId`); כניסה נפרדת `/portal/login`; פרסום משרה → `pending` → אישור הצוות (`pending→active` ב-StatusCard) → עולה לאתר; המעסיק רואה מועמדים שהוצגו בשם מקוצר + סטטוס בלבד (**ללא פרטי קשר** — מודל התיווך). יצירת משתמש פורטל מהאדמין (`POST /employers/:id/portal-user`).
+- **הרשמת מעסיק עצמית (בקשת גישה):** מעסיק נרשם לבד ב-`/portal/register` (`POST /auth/employer-register`) → נוצר Employer בסטטוס `pending` + משתמש פורטל; מתחבר מיד אך רואה רק מסך "ממתין לאישור". `Employer.status` = `pending→approved→rejected`; הצוות מאשר/דוחה בדשבורד המעסיקים (`PATCH /employers/:id/approve|reject`, +מייל למעסיק). גולש לא-מחובר שמנסה `/portal/*` מופנה לנחיתה `/employers`. שער שרת: `requireApprovedEmployer` חוסם פרסום/צפייה במועמדים עד אישור. מעסיק שהצוות יוצר ידנית = `approved` אוטומטית (default בסכימה).
 - **עמלות:** מודל `not_due→due→invoiced→paid` נאכף בבק — `due` רק בתום 3 חודשי ערבות; `assertCommissionTransition` חוסם `paid`/`invoiced` מוקדם. קרון יומי מקדם ל-`due` + יוצר תזכורת גבייה.
 - **שבת/חג:** `ShabbatService` מול **Hebcal API** (חלונות הדלקה→הבדלה כולל יו"ט) + fallback היוריסטי. email/mailing/תזכורות עוברים דרכו.
 - **מיילים:** נבנו אישור הרשמה/הגשה, אימות כתובת (`/auth/verify`), עדכון סטטוס, ברכת גיוס, דיוור משרה חדשה, דייג'סט צוות. `TasksService` cron יומי + `POST /tasks/run-daily` (header `TASKS_SECRET`, מופעל ע"י cron חיצוני כי Render free נרדם). ⚠️ **SMTP/Resend לא מוגדר עדיין** (אין דומיין) → כל המיילים רק נכתבים ללוג (fail-soft). **זה הפער התפקודי היחיד שנותר.**
@@ -48,7 +49,8 @@ Prisma (backend): `npx prisma migrate dev` · `npx prisma generate` · `npx pris
 
 - כל הממשק בעברית, **RTL מלא**.
 - **ללא תמונות של אנשים** בשום חלק באתר (כולל Hero, אווטרים, רקעים).
-- עיצוב צנוע ושמרני. ללא פרסומות. ללא אנימציות פולשניות.
+- עיצוב צנוע ושמרני. ללא אנימציות פולשניות.
+- **פרסומות מותרות** אך ורק כמודעות צד-ראשון מאושרות צוות: ללא תמונות אנשים, עיצוב צנוע, מסומנות "מודעה", ומוצגות רק לאחר תשלום ואישור (prepaid).
 - ניסוח **מכובד**, גוף שני יחיד, ישיר — לא פורמלי-יתר.
 - ניסוח כפול (מועמד/ת, מחפש/ת) כשנחוץ.
 - **אסור** למסגר עבודה כמשנית ללימוד תורה — זה פוגעני. ניסוח ישיר ומכבד.

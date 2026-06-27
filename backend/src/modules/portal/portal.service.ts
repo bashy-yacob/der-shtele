@@ -31,6 +31,26 @@ export class PortalService {
     return employerId;
   }
 
+  /**
+   * כמו requireEmployer, אך גם מוודא שהמעסיק אושר ע"י הצוות (סעיף 6).
+   * מעסיק pending/rejected חסום מפרסום משרות וצפייה במועמדים — שכבת הגנה
+   * בצד השרת, גם אם הפרונט מציג בטעות. getMe/sendMessage נשארים פתוחים.
+   */
+  private async requireApprovedEmployer(
+    employerId: string | null,
+  ): Promise<string> {
+    const id = this.requireEmployer(employerId);
+    const employer = await this.prisma.employer.findUnique({
+      where: { id },
+      select: { status: true },
+    });
+    if (!employer) throw new NotFoundException("מעסיק לא נמצא");
+    if (employer.status !== "approved") {
+      throw new ForbiddenException("החשבון ממתין לאישור הצוות");
+    }
+    return id;
+  }
+
   /** שם מקוצר לשמירת פרטיות: "יוסי כהן" → "יוסי כ.". */
   private shortName(fullName: string): string {
     const parts = fullName.trim().split(/\s+/);
@@ -38,12 +58,12 @@ export class PortalService {
     return `${parts[0]} ${parts[1].charAt(0)}.`;
   }
 
-  /** פרטי המעסיק להצגת כותרת הפורטל. */
+  /** פרטי המעסיק להצגת כותרת הפורטל + סטטוס אישור (מניע את מסך ההמתנה). */
   async getMe(employerId: string | null) {
     const id = this.requireEmployer(employerId);
     const employer = await this.prisma.employer.findUnique({
       where: { id },
-      select: { id: true, companyName: true, contactName: true },
+      select: { id: true, companyName: true, contactName: true, status: true },
     });
     if (!employer) throw new NotFoundException("מעסיק לא נמצא");
     return employer;
@@ -72,7 +92,7 @@ export class PortalService {
 
   /** משרה בודדת של המעסיק + מועמדים שהוצגו (בשם מקוצר + סטטוס, ללא פרטי קשר). */
   async getJob(employerId: string | null, jobId: string) {
-    const id = this.requireEmployer(employerId);
+    const id = await this.requireApprovedEmployer(employerId);
     const job = await this.prisma.job.findFirst({
       where: { id: jobId, employerId: id },
       select: {
@@ -115,7 +135,7 @@ export class PortalService {
 
   /** פרסום משרה חדשה — נכפה ל-pending עד אישור הצוות. */
   async createJob(employerId: string | null, dto: CreatePortalJobDto) {
-    const id = this.requireEmployer(employerId);
+    const id = await this.requireApprovedEmployer(employerId);
     return this.prisma.job.create({
       data: { ...dto, employerId: id, status: "pending" },
       select: { id: true, title: true, status: true },
@@ -128,7 +148,7 @@ export class PortalService {
     jobId: string,
     dto: UpdatePortalJobDto,
   ) {
-    const id = this.requireEmployer(employerId);
+    const id = await this.requireApprovedEmployer(employerId);
     const job = await this.prisma.job.findFirst({
       where: { id: jobId, employerId: id },
     });
@@ -154,7 +174,7 @@ export class PortalService {
 
   /** עמלות/חשבוניות של המעסיק (קריאה בלבד) — ללא פרטי מועמד. */
   async listPlacements(employerId: string | null) {
-    const id = this.requireEmployer(employerId);
+    const id = await this.requireApprovedEmployer(employerId);
     return this.prisma.placement.findMany({
       where: { employerId: id, commissionAmount: { not: null } },
       orderBy: { placedAt: "desc" },

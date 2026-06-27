@@ -67,6 +67,7 @@ export interface PublicJob {
   scope: string; // 'מלאה' | 'חלקית' | 'גמיש'
   experience?: string | null; // ניסיון נדרש — גלוי לציבור (שכר נשאר פנימי)
   createdAt: string; // ISO date string
+  featured?: boolean; // משרה ממומנת — מוצגת בראש הלוח עם תג "מקודם"
 }
 
 /** טופס הגשת מועמדות מהאתר */
@@ -113,6 +114,9 @@ export interface CallLog {
   followUpAt: string | null; // תזכורת לשיחה חוזרת
 }
 
+/** סטטוס אישור מעסיק — תומך בהרשמה עצמית כ"בקשת גישה" (סעיף 6) */
+export type EmployerStatus = "pending" | "approved" | "rejected";
+
 /** מעסיק — נשמר פנימי, לא חשוף לציבור */
 export interface Employer {
   id: string;
@@ -123,6 +127,9 @@ export interface Employer {
   contactPhone: string;
   contactEmail: string;
   notes: string | null; // אמינות, העדפות, הערות
+  status: EmployerStatus; // pending=נרשם עצמאית וממתין; approved=מאושר; rejected=נדחה
+  approvedAt?: string | null;
+  rejectionReason?: string | null;
   createdAt: string;
   _count?: { jobs: number }; // מספר המשרות של המעסיק — מאוכלס ברשימת המעסיקים
 }
@@ -143,6 +150,11 @@ export interface InternalJob {
   status: JobStatus;
   openedAt: string;
   closedAt: string | null;
+  // קידום בתשלום (Featured) — נשלט מהדשבורד; prepaid
+  featuredUntil?: string | null;
+  featuredPaymentStatus?: AdPaymentStatus;
+  featuredPaidAt?: string | null;
+  featuredPrice?: number | null;
 }
 
 /** הצגת מועמד למשרה */
@@ -363,6 +375,57 @@ export type PublicTestimonial = Pick<
   Testimonial,
   "id" | "authorName" | "authorRole" | "quote"
 >;
+
+// ----------------------------------------------------------------
+// שלב ד — פרסומות (מודעות חסות + משרות ממומנות)
+// ----------------------------------------------------------------
+
+/** מיקום הצגת מודעה — מקביל ל-AdPlacement ב-backend */
+export type AdPlacement = "homepage" | "jobs_list" | "footer";
+
+/** מחזור חיים של מודעה — מקביל ל-AdStatus ב-backend */
+export type AdStatus =
+  | "draft"
+  | "pending_payment"
+  | "active"
+  | "paused"
+  | "expired";
+
+/** סטטוס תשלום — משותף למודעות ולמשרות ממומנות */
+export type AdPaymentStatus = "unpaid" | "paid";
+
+/** מודעה ציבורית — מה שמוצג באתר (ללא פרטי מפרסם/תשלום) */
+export interface PublicAd {
+  id: string;
+  title: string;
+  body?: string | null;
+  imageUrl?: string | null;
+  linkUrl?: string | null;
+  placement: AdPlacement;
+  order: number;
+}
+
+/** מודעה מלאה — כפי שהצוות רואה ומנהל בדשבורד */
+export interface Advertisement {
+  id: string;
+  advertiserName: string; // פנימי
+  contactPhone: string; // פנימי
+  contactEmail?: string | null; // פנימי
+  title: string;
+  body?: string | null;
+  imagePath?: string | null;
+  linkUrl?: string | null;
+  placement: AdPlacement;
+  order: number;
+  status: AdStatus;
+  paymentStatus: AdPaymentStatus;
+  paidAt?: string | null;
+  agreedPrice?: number | null; // ש"ח — פנימי
+  startDate?: string | null;
+  endDate?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export interface ApiResponse<T = void> {
   success: boolean;

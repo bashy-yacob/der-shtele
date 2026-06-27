@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getPublicJobs, getPublishedTestimonials } from "@/lib/api";
 import { JobCard } from "@/components/jobs/JobCard";
+import { AdZone } from "@/components/ads/AdZone";
 import { TestimonialsCarousel } from "@/components/marketing/TestimonialsCarousel";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { SkylineMotif } from "@/components/ui/SkylineMotif";
@@ -41,12 +42,7 @@ const CONTENT = {
       "דער שטעלע היא סוכנות השמה לציבור החרדי. נרשמים, שולחים קורות חיים — והצוות שלנו עושה את כל השאר. כל פנייה עוברת דרכנו, והמעסיק לא רואה את הפרטים שלך עד הרגע הנכון.",
     primary: "הרשמה וחיפוש משרות ←",
     secondary: "צפייה במשרות הפתוחות",
-    pills: [
-      "דיסקרטיות מלאה",
-      "ליווי אישי של הצוות",
-      "הרשמה חינם",
-      "בלי פרסומות",
-    ],
+    pills: ["דיסקרטיות מלאה", "ליווי אישי של הצוות", "הרשמה חינם"],
   },
   why: {
     eyebrow: "למה דרכנו",
@@ -68,7 +64,7 @@ const CONTENT = {
       },
       {
         title: "סביבה שמכבדת אותך",
-        desc: "ממשק נקי, בלי תמונות ובלי פרסומות. צוות שמכיר את הציבור ועובד לפי ערכיו.",
+        desc: "ממשק נקי, בלי תמונות. צוות שמכיר את הציבור ועובד לפי ערכיו.",
       },
     ],
   },
@@ -295,6 +291,13 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ======== נותני חסות (מודעות) ======== */}
+      <AdZone
+        placement="homepage"
+        title="בחסות"
+        className="max-w-5xl mx-auto px-4 py-12"
+      />
 
       {/* ======== הצצה למשרות חיות ======== */}
       <section className="bg-sand-50 py-20 px-4">

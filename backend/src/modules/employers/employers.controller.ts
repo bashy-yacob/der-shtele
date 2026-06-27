@@ -12,6 +12,7 @@ import { EmployersService } from './employers.service';
 import { CreateEmployerDto } from './dto/create-employer.dto';
 import { UpdateEmployerDto } from './dto/update-employer.dto';
 import { CreatePortalUserDto } from './dto/create-portal-user.dto';
+import { RejectEmployerDto } from './dto/reject-employer.dto';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
 
@@ -44,6 +45,18 @@ export class EmployersController {
     @Body() dto: CreatePortalUserDto,
   ) {
     return this.employersService.createPortalUser(id, dto);
+  }
+
+  /** אישור בקשת גישה של מעסיק (סעיף 6) — pending → approved. */
+  @Patch(':id/approve')
+  approve(@Param('id') id: string) {
+    return this.employersService.approve(id);
+  }
+
+  /** דחיית בקשת גישה של מעסיק — pending → rejected. */
+  @Patch(':id/reject')
+  reject(@Param('id') id: string, @Body() dto: RejectEmployerDto) {
+    return this.employersService.reject(id, dto.reason);
   }
 
   @Patch(':id')

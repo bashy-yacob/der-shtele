@@ -7,6 +7,8 @@ import type {
   JobField,
   Region,
   PublicTestimonial,
+  PublicAd,
+  AdPlacement,
 } from "@/types";
 
 // מוריד סלאש מיותר בסוף הכתובת כדי שלא ייווצר `//api/...`
@@ -39,6 +41,7 @@ interface RawPublicJob {
   scope: string;
   experience?: string | null;
   openedAt: string;
+  featured?: boolean;
 }
 
 /** ממיר את צורת ה-backend לצורת ה-UI (PublicJob). */
@@ -52,6 +55,7 @@ function toPublicJob(raw: RawPublicJob): PublicJob {
     scope: raw.scope,
     experience: raw.experience ?? null,
     createdAt: raw.openedAt,
+    featured: raw.featured ?? false,
   };
 }
 
@@ -124,6 +128,21 @@ export async function getPublishedTestimonials(): Promise<PublicTestimonial[]> {
       next: { revalidate: 60 },
     });
     return await unwrap<PublicTestimonial[]>(res);
+  } catch {
+    return [];
+  }
+}
+
+/** מודעות חסות חיות למיקום נתון. נכשל בעדינות → [] אם אין תקשורת. */
+export async function getPublicAds(
+  placement: AdPlacement,
+): Promise<PublicAd[]> {
+  try {
+    const res = await fetch(
+      `${BASE_URL}/api/advertisements/public?placement=${placement}`,
+      { next: { revalidate: 60 } },
+    );
+    return await unwrap<PublicAd[]>(res);
   } catch {
     return [];
   }

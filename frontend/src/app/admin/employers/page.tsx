@@ -5,6 +5,8 @@ import {
   listEmployers,
   createEmployer,
   createPortalUser,
+  approveEmployer,
+  rejectEmployer,
 } from "@/lib/admin-api";
 import type { Employer } from "@/types";
 import {
@@ -61,39 +63,162 @@ export default function EmployersPage() {
       ) : employers.length === 0 ? (
         <EmptyState message="אין מעסיקים במערכת. הוסף מעסיק כדי לפתוח משרה." />
       ) : (
-        <div className="grid md:grid-cols-2 gap-4">
-          {employers.map((e) => (
-            <Card key={e.id} className="space-y-2">
-              <div className="flex items-center justify-between">
-                <h3 className="font-display text-lg text-ink-900">
-                  {e.companyName}
-                </h3>
-                <span className="text-xs text-ink-400">
-                  {formatDate(e.createdAt)}
-                </span>
-              </div>
-              <span className="inline-block rounded-full bg-navy-50 px-2.5 py-0.5 text-xs font-semibold text-navy-600">
-                {e._count?.jobs ?? 0} {e._count?.jobs === 1 ? "משרה" : "משרות"}
-              </span>
-              <p className="text-sm text-ink-700">
-                איש קשר: {e.contactName} · {e.contactPhone}
+        <>
+          {/* בקשות גישה ממתינות — מעסיקים שנרשמו עצמאית וטרם אושרו (סעיף 6). */}
+          {employers.some((e) => e.status === "pending") && (
+            <section className="mb-8">
+              <h2 className="text-lg font-display text-ink-900 mb-1">
+                בקשות גישה ממתינות
+              </h2>
+              <p className="text-sm text-ink-500 mb-3">
+                מעסיקים שנרשמו דרך האתר. לאמת טלפונית ואז לאשר או לדחות.
               </p>
-              <p className="text-sm text-ink-500">{e.contactEmail}</p>
-              {e.businessNumber && (
-                <p className="text-xs text-ink-400">ח.פ {e.businessNumber}</p>
-              )}
-              {e.address && <p className="text-xs text-ink-400">{e.address}</p>}
-              {e.notes && (
-                <p className="text-sm text-ink-700 bg-sand-50 rounded-lg p-2 mt-1">
-                  {e.notes}
-                </p>
-              )}
-              <PortalCredentials employer={e} />
-            </Card>
-          ))}
-        </div>
+              <div className="grid md:grid-cols-2 gap-4">
+                {employers
+                  .filter((e) => e.status === "pending")
+                  .map((e) => (
+                    <PendingEmployerCard
+                      key={e.id}
+                      employer={e}
+                      onChanged={reload}
+                    />
+                  ))}
+              </div>
+            </section>
+          )}
+
+          <div className="grid md:grid-cols-2 gap-4">
+            {employers
+              .filter((e) => e.status !== "pending")
+              .map((e) => (
+                <Card key={e.id} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-display text-lg text-ink-900">
+                      {e.companyName}
+                    </h3>
+                    <span className="text-xs text-ink-400">
+                      {formatDate(e.createdAt)}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <StatusBadge status={e.status} />
+                    <span className="inline-block rounded-full bg-navy-50 px-2.5 py-0.5 text-xs font-semibold text-navy-600">
+                      {e._count?.jobs ?? 0}{" "}
+                      {e._count?.jobs === 1 ? "משרה" : "משרות"}
+                    </span>
+                  </div>
+                  <p className="text-sm text-ink-700">
+                    איש קשר: {e.contactName} · {e.contactPhone}
+                  </p>
+                  <p className="text-sm text-ink-500">{e.contactEmail}</p>
+                  {e.businessNumber && (
+                    <p className="text-xs text-ink-400">
+                      ח.פ {e.businessNumber}
+                    </p>
+                  )}
+                  {e.address && (
+                    <p className="text-xs text-ink-400">{e.address}</p>
+                  )}
+                  {e.status === "rejected" && e.rejectionReason && (
+                    <p className="text-xs text-red-600">
+                      סיבת דחייה: {e.rejectionReason}
+                    </p>
+                  )}
+                  {e.notes && (
+                    <p className="text-sm text-ink-700 bg-sand-50 rounded-lg p-2 mt-1">
+                      {e.notes}
+                    </p>
+                  )}
+                  <PortalCredentials employer={e} />
+                </Card>
+              ))}
+          </div>
+        </>
       )}
     </div>
+  );
+}
+
+/** תג סטטוס מעסיק לתצוגה בכרטיס. */
+function StatusBadge({ status }: { status: Employer["status"] }) {
+  if (status === "rejected") {
+    return (
+      <span className="inline-block rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-600">
+        נדחה
+      </span>
+    );
+  }
+  return (
+    <span className="inline-block rounded-full bg-olive-50 px-2.5 py-0.5 text-xs font-semibold text-olive-700">
+      מאושר
+    </span>
+  );
+}
+
+/** כרטיס בקשת גישה ממתינה — אישור/דחייה ע"י הצוות. */
+function PendingEmployerCard({
+  employer,
+  onChanged,
+}: {
+  employer: Employer;
+  onChanged: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+
+  const approve = async () => {
+    setErr("");
+    setBusy(true);
+    try {
+      await approveEmployer(employer.id);
+      onChanged();
+    } catch (e) {
+      setErr((e as Error).message);
+      setBusy(false);
+    }
+  };
+
+  const reject = async () => {
+    const reason = window.prompt("סיבת הדחייה (אופציונלי):");
+    if (reason === null) return; // ביטול
+    setErr("");
+    setBusy(true);
+    try {
+      await rejectEmployer(employer.id, reason || undefined);
+      onChanged();
+    } catch (e) {
+      setErr((e as Error).message);
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card className="space-y-2 border-r-4 border-r-amber-400">
+      <div className="flex items-center justify-between">
+        <h3 className="font-display text-lg text-ink-900">
+          {employer.companyName}
+        </h3>
+        <span className="text-xs text-ink-400">
+          {formatDate(employer.createdAt)}
+        </span>
+      </div>
+      <span className="inline-block rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
+        ממתין לאישור
+      </span>
+      <p className="text-sm text-ink-700">
+        איש קשר: {employer.contactName} · {employer.contactPhone}
+      </p>
+      <p className="text-sm text-ink-500">{employer.contactEmail}</p>
+      {err && <ErrorNote message={err} />}
+      <div className="flex gap-2 pt-2 border-t border-sand-100">
+        <Button size="sm" onClick={approve} disabled={busy}>
+          {busy ? "מעדכן..." : "אישור"}
+        </Button>
+        <Button size="sm" variant="ghost" onClick={reject} disabled={busy}>
+          דחייה
+        </Button>
+      </div>
+    </Card>
   );
 }
 
