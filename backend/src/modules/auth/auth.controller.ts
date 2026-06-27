@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Patch, Post } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { RegisterDto } from "./dto/register.dto";
+import { EmployerRegisterDto } from "./dto/employer-register.dto";
 import { LoginDto } from "./dto/login.dto";
 import { GoogleLoginDto } from "./dto/google-login.dto";
 import { UpdateMeDto } from "./dto/update-me.dto";
@@ -20,6 +21,13 @@ export class AuthController {
   @Post("register")
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
+  }
+
+  /** הרשמת מעסיק עצמית (סעיף 6) — נפתח חשבון pending עד אישור הצוות. */
+  @Public()
+  @Post("employer-register")
+  employerRegister(@Body() dto: EmployerRegisterDto) {
+    return this.authService.employerRegister(dto);
   }
 
   @Public()

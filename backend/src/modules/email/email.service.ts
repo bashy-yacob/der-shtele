@@ -202,4 +202,81 @@ export class EmailService {
       ),
     });
   }
+
+  /** התראה פנימית לצוות על בקשת גישה חדשה ממעסיק (הרשמה עצמית, סעיף 6). */
+  async notifyEmployerSignup(
+    company: string,
+    contact: string,
+    phone: string,
+    email: string,
+  ): Promise<void> {
+    await this.notifyTeam(
+      `בקשת גישה חדשה ממעסיק — ${company}`,
+      `<div dir="rtl">
+         <p>מעסיק נרשם עצמאית וממתין לאישור הצוות:</p>
+         <ul>
+           <li>חברה: ${escapeHtml(company)}</li>
+           <li>איש קשר: ${escapeHtml(contact)}</li>
+           <li>טלפון: ${escapeHtml(phone)}</li>
+           <li>מייל: ${escapeHtml(email)}</li>
+         </ul>
+         <p>לאימות ואישור/דחייה: דשבורד ← ניהול מעסיקים.</p>
+       </div>`,
+    );
+  }
+
+  /** אישור למעסיק שבקשת ההצטרפות התקבלה (לפני אישור הצוות). */
+  async sendEmployerSignupConfirmation(
+    to: string,
+    contactName: string,
+  ): Promise<void> {
+    await this.send({
+      to,
+      subject: "קיבלנו את בקשת ההצטרפות — דער שטעלע",
+      html: rtlEmail(
+        `<p>שלום ${escapeHtml(contactName)},</p>
+         <p>קיבלנו את בקשת ההצטרפות שלך לפורטל המעסיקים. הצוות יאמת את הפרטים
+         ויאשר את החשבון בהקדם, ונעדכן אותך ברגע שהחשבון יאושר.</p>`,
+      ),
+    });
+  }
+
+  /** עדכון למעסיק שהחשבון אושר — אפשר להתחבר ולפרסם משרות. */
+  async sendEmployerApproved(to: string, contactName: string): Promise<void> {
+    const appUrl = this.config.get<string>(
+      "APP_URL",
+      "https://der-shtele.vercel.app",
+    );
+    await this.send({
+      to,
+      subject: "החשבון אושר — אפשר לפרסם משרות — דער שטעלע",
+      html: rtlEmail(
+        `<p>שלום ${escapeHtml(contactName)},</p>
+         <p>שמחים לעדכן שחשבון המעסיק שלך אושר. אפשר להתחבר לפורטל ולפרסם משרות:</p>
+         <p style="margin:16px 0">
+           <a href="${appUrl}/portal/login" style="color:#1d4ed8;font-weight:bold">כניסה לפורטל המעסיקים ←</a>
+         </p>
+         <p>כל משרה שתפרסם תעבור לבדיקה ואישור הצוות לפני שתעלה לאתר.</p>`,
+      ),
+    });
+  }
+
+  /** עדכון למעסיק שבקשת ההצטרפות לא אושרה — עם סיבה אופציונלית. */
+  async sendEmployerRejected(
+    to: string,
+    contactName: string,
+    reason?: string,
+  ): Promise<void> {
+    await this.send({
+      to,
+      subject: "עדכון לגבי בקשת ההצטרפות — דער שטעלע",
+      html: rtlEmail(
+        `<p>שלום ${escapeHtml(contactName)},</p>
+         <p>לאחר בחינה, לא נוכל לאשר כעת את החשבון.${
+           reason ? ` ${escapeHtml(reason)}` : ""
+         }</p>
+         <p>לפרטים נוספים ניתן לפנות לצוות.</p>`,
+      ),
+    });
+  }
 }

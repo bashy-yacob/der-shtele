@@ -113,6 +113,9 @@ export interface CallLog {
   followUpAt: string | null; // תזכורת לשיחה חוזרת
 }
 
+/** סטטוס אישור מעסיק — תומך בהרשמה עצמית כ"בקשת גישה" (סעיף 6) */
+export type EmployerStatus = "pending" | "approved" | "rejected";
+
 /** מעסיק — נשמר פנימי, לא חשוף לציבור */
 export interface Employer {
   id: string;
@@ -123,6 +126,9 @@ export interface Employer {
   contactPhone: string;
   contactEmail: string;
   notes: string | null; // אמינות, העדפות, הערות
+  status: EmployerStatus; // pending=נרשם עצמאית וממתין; approved=מאושר; rejected=נדחה
+  approvedAt?: string | null;
+  rejectionReason?: string | null;
   createdAt: string;
   _count?: { jobs: number }; // מספר המשרות של המעסיק — מאוכלס ברשימת המעסיקים
 }

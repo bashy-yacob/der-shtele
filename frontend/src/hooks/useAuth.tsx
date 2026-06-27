@@ -44,6 +44,15 @@ export interface AuthContextValue {
     password: string;
     optInMarketing: boolean;
   }) => Promise<void>;
+  /** הרשמת מעסיק עצמית — נפתח חשבון pending; מתחבר מיד למסך ההמתנה. */
+  registerEmployer: (body: {
+    companyName: string;
+    contactName: string;
+    contactPhone: string;
+    email: string;
+    password: string;
+    optInMarketing: boolean;
+  }) => Promise<void>;
   logout: () => void;
   updateMarketing: (optInMarketing: boolean) => Promise<void>;
   /** עדכון פרטי הפרופיל לדיוור מותאם (עיר, תחום, טלפון, שנות ניסיון). */
@@ -138,6 +147,23 @@ function useAuthState(): AuthContextValue {
     persist(res.data.accessToken, res.data.user);
   };
 
+  const registerEmployer = async (body: {
+    companyName: string;
+    contactName: string;
+    contactPhone: string;
+    email: string;
+    password: string;
+    optInMarketing: boolean;
+  }) => {
+    const res = await fetch("/api/auth/employer-register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }).then((r) => r.json());
+    if (!res.success) throw new Error(res.error ?? "שגיאה בהרשמה");
+    persist(res.data.accessToken, res.data.user);
+  };
+
   const logout = () => {
     localStorage.removeItem(TOKEN_KEY);
     setUser(null);
@@ -224,6 +250,7 @@ function useAuthState(): AuthContextValue {
     loading,
     login,
     register,
+    registerEmployer,
     logout,
     updateMarketing,
     updateProfile,

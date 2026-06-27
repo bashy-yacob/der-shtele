@@ -13,6 +13,7 @@ import { randomBytes } from "crypto";
 import { PrismaService } from "../../prisma/prisma.service";
 import { EmailService } from "../email/email.service";
 import { RegisterDto } from "./dto/register.dto";
+import { EmployerRegisterDto } from "./dto/employer-register.dto";
 import { LoginDto } from "./dto/login.dto";
 import { UpdateMeDto } from "./dto/update-me.dto";
 import { ChangePasswordDto } from "./dto/change-password.dto";
@@ -69,6 +70,63 @@ export class AuthService {
     // מייל אימות כתובת (סעיף 3.1) — כשל מייל לא מפיל את ההרשמה.
     this.email
       .sendVerificationEmail(user.email, user.fullName, verificationToken)
+      .catch(() => undefined);
+
+    return this.issueToken(user);
+  }
+
+  /**
+   * הרשמת מעסיק עצמית כ"בקשת גישה" (סעיף 6). יוצרת Employer בסטטוס pending
+   * ומשתמש פורטל (role=employer) בטרנזקציה אחת — המעסיק מחובר מיד אך חסום
+   * מפרסום עד שהצוות מאשר בדשבורד. האימות האמיתי הוא טלפוני ע"י הצוות, ולכן
+   * emailVerified=true (אין צורך בקישור אימות נפרד).
+   */
+  async employerRegister(dto: EmployerRegisterDto) {
+    const existing = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
+    if (existing) {
+      throw new ConflictException("כתובת אימייל זו כבר רשומה");
+    }
+
+    const passwordHash = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
+
+    // טרנזקציה — לא נשארת רשומת Employer יתומה אם יצירת המשתמש נכשלת.
+    const user = await this.prisma.$transaction(async (tx) => {
+      const employer = await tx.employer.create({
+        data: {
+          companyName: dto.companyName,
+          contactName: dto.contactName,
+          contactPhone: dto.contactPhone,
+          contactEmail: dto.email,
+          status: "pending",
+        },
+      });
+      return tx.user.create({
+        data: {
+          email: dto.email,
+          fullName: dto.contactName,
+          passwordHash,
+          role: "employer",
+          employerId: employer.id,
+          emailVerified: true,
+          optInMarketing: dto.optInMarketing,
+          optInAt: dto.optInMarketing ? new Date() : null,
+        },
+      });
+    });
+
+    // fire-and-forget — כשל מייל לא מפיל את ההרשמה.
+    this.email
+      .notifyEmployerSignup(
+        dto.companyName,
+        dto.contactName,
+        dto.contactPhone,
+        dto.email,
+      )
+      .catch(() => undefined);
+    this.email
+      .sendEmployerSignupConfirmation(dto.email, dto.contactName)
       .catch(() => undefined);
 
     return this.issueToken(user);

@@ -122,6 +122,17 @@ export const createPortalUser = (
     { method: "POST", body },
   );
 
+/** אישור בקשת גישה של מעסיק (הרשמה עצמית) — pending → approved. */
+export const approveEmployer = (id: string) =>
+  adminFetch<Employer>(`employers/${id}/approve`, { method: "PATCH" });
+
+/** דחיית בקשת גישה — pending → rejected, עם סיבה אופציונלית. */
+export const rejectEmployer = (id: string, reason?: string) =>
+  adminFetch<Employer>(`employers/${id}/reject`, {
+    method: "PATCH",
+    body: { reason },
+  });
+
 // ---- ערים/אזורים ----
 // רשימת הערים הקיימות (משרות+מועמדים) — להזנת רשימות הבחירה בטפסים.
 export const listRegions = () => adminFetch<string[]>("jobs/regions");

@@ -38,3 +38,18 @@ export const candidateFormSchema = z.object({
 });
 
 export type CandidateFormValues = z.infer<typeof candidateFormSchema>;
+
+/** הרשמת מעסיק עצמית (סעיף 6) — בקשת גישה לפורטל. */
+export const employerRegisterSchema = z.object({
+  companyName: z.string().min(2, 'נא להזין שם חברה').max(100),
+  contactName: z.string().min(2, 'נא להזין שם איש קשר').max(100),
+  phone: phoneSchema,
+  email: z.string().email('כתובת אימייל לא תקינה'),
+  password: z.string().min(8, 'הסיסמה חייבת להכיל לפחות 8 תווים'),
+  // opt-in חובה — חייב להיות מסומן (חוק הספאם הישראלי)
+  optInMarketing: z.literal(true, {
+    errorMap: () => ({ message: 'יש לאשר קבלת עדכונים כדי להירשם' }),
+  }),
+});
+
+export type EmployerRegisterValues = z.infer<typeof employerRegisterSchema>;
