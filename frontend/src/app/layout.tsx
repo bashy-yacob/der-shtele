@@ -6,6 +6,7 @@ import { ConstructionBanner } from "@/components/layout/ConstructionBanner";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { GlobalReminderAlert } from "@/components/admin/GlobalReminderAlert";
+import { AdSideBanner } from "@/components/ads/AdSideBanner";
 import { AuthProvider } from "@/hooks/useAuth";
 import { SITE_NAME, SITE_DESCRIPTION, SITE_URL } from "@/lib/constants";
 
@@ -55,6 +56,7 @@ export default function RootLayout({
           <GlobalReminderAlert />
           <main className="flex-1">{children}</main>
           <Footer />
+          <AdSideBanner />
         </AuthProvider>
         <Analytics />
       </body>

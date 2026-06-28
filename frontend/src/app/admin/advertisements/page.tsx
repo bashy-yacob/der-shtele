@@ -17,11 +17,11 @@ import {
   EmptyState,
   PageHeader,
 } from "@/components/admin/Feedback";
-import { Card, Button, Input, Textarea, Select } from "@/components/ui";
+import { Card, Button, Input, Textarea } from "@/components/ui";
 import { formatDate } from "@/lib/utils";
 
 const PLACEMENT_LABELS: Record<AdPlacement, string> = {
-  homepage: "דף הבית",
+  homepage: "באנר צד (כל האתר)",
   jobs_list: "לוח משרות",
   footer: "כותרת תחתונה",
 };
@@ -132,7 +132,8 @@ export default function AdvertisementsPage() {
   }
 
   async function remove(a: Advertisement) {
-    if (!window.confirm(`למחוק את המודעה "${a.title}"? פעולה לא הפיכה.`)) return;
+    if (!window.confirm(`למחוק את המודעה "${a.title}"? פעולה לא הפיכה.`))
+      return;
     setBusyId(a.id);
     setError("");
     try {
@@ -346,10 +347,8 @@ function AdForm({
   const [err, setErr] = useState("");
   const [msg, setMsg] = useState("");
 
-  const set =
-    (k: keyof FormValues) =>
-    (v: string) =>
-      setForm((f) => ({ ...f, [k]: v }));
+  const set = (k: keyof FormValues) => (v: string) =>
+    setForm((f) => ({ ...f, [k]: v }));
 
   async function onFile(file: File | undefined) {
     if (!file) return;
@@ -460,19 +459,12 @@ function AdForm({
         </div>
       </div>
 
-      {/* מיקום, סדר, מחיר, תאריכים */}
-      <div className="grid md:grid-cols-3 gap-3">
-        <Select
-          label="מיקום"
-          value={form.placement}
-          onChange={(e) => set("placement")(e.target.value)}
-        >
-          {Object.entries(PLACEMENT_LABELS).map(([k, v]) => (
-            <option key={k} value={k}>
-              {v}
-            </option>
-          ))}
-        </Select>
+      {/* מיקום קבוע — באנר הצד הוא יחידת הפרסום היחידה כרגע */}
+      <p className="rounded-lg bg-sand-50 p-2 text-xs text-ink-500">
+        מיקום: <strong>באנר צד קבוע</strong> — מוצג בצד המסך בכל עמודי האתר.
+        כשיש כמה מודעות, מוצגת זו עם <strong>סדר התצוגה</strong> הנמוך ביותר.
+      </p>
+      <div className="grid md:grid-cols-2 gap-3">
         <Input
           label="סדר תצוגה"
           type="number"

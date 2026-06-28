@@ -1,7 +1,6 @@
 import { getPublicJobs, getRegions } from "@/lib/api";
 import { JobFilters } from "@/components/jobs/JobFilters";
 import { JobList } from "@/components/jobs/JobList";
-import { AdZone } from "@/components/ads/AdZone";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import type { JobField, Region } from "@/types";
 import type { Metadata } from "next";
@@ -70,9 +69,6 @@ export default async function JobsPage({
           </h2>
           <JobFilters current={searchParams} regions={regions} />
         </div>
-
-        {/* מודעות חסות ללוח המשרות */}
-        <AdZone placement="jobs_list" className="mb-12" />
 
         {/* תוצאות */}
         {filtered.length === 0 ? (

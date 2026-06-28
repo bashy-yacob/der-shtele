@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getPublicJobs, getPublishedTestimonials } from "@/lib/api";
 import { JobCard } from "@/components/jobs/JobCard";
-import { AdZone } from "@/components/ads/AdZone";
 import { TestimonialsCarousel } from "@/components/marketing/TestimonialsCarousel";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { SkylineMotif } from "@/components/ui/SkylineMotif";
@@ -291,13 +290,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* ======== נותני חסות (מודעות) ======== */}
-      <AdZone
-        placement="homepage"
-        title="בחסות"
-        className="max-w-5xl mx-auto px-4 py-12"
-      />
 
       {/* ======== הצצה למשרות חיות ======== */}
       <section className="bg-sand-50 py-20 px-4">
