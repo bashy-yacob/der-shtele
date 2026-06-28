@@ -1,18 +1,36 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAdSlot, normalizeUrl } from "./useAdSlot";
 
 /**
  * באנר חסות קבוע וגדול — דבוק לצד שמאל במסך רחב, רצועה תחתונה במובייל.
  * כותרת + טקסט תמיד מוצגים כטקסט קריא (לא תלוי בתמונה). placement=homepage.
+ * נסגר פעם אחת לביקור (session).
  */
 export function AdSideBanner() {
-  const { ad, dismissed, hidden, close } = useAdSlot(
-    "homepage",
-    "ds_ad_side_dismissed",
-  );
+  const { ad, hidden } = useAdSlot("homepage");
+  const [dismissed, setDismissed] = useState(true);
   const [imgFailed, setImgFailed] = useState(false);
+
+  useEffect(() => {
+    if (hidden) return;
+    try {
+      if (sessionStorage.getItem("ds_ad_side_dismissed") === "1") return;
+    } catch {
+      /* ignore */
+    }
+    setDismissed(false);
+  }, [hidden]);
+
+  const close = () => {
+    setDismissed(true);
+    try {
+      sessionStorage.setItem("ds_ad_side_dismissed", "1");
+    } catch {
+      /* ignore */
+    }
+  };
 
   if (hidden || dismissed || !ad) return null;
   const showImage = Boolean(ad.imageUrl) && !imgFailed;

@@ -30,7 +30,7 @@ const PLACEMENT_LABELS: Record<AdPlacement, string> = {
 
 const FORMAT_OPTIONS: { value: AdPlacement; label: string }[] = [
   { value: "homepage", label: "באנר צד (קבוע בצד שמאל, בכל האתר)" },
-  { value: "jobs_list", label: "פופאפ במרכז המסך (פעם אחת לביקור)" },
+  { value: "jobs_list", label: "פופאפ במרכז המסך (פעם בכמה עמודים)" },
 ];
 
 const STATUS_LABELS: Record<AdStatus, string> = {
