@@ -1,78 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
-import type { PublicAd } from "@/types";
-
-// עמודים שבהם הבאנר לא מוצג — אזורים אישיים/ניהוליים (לא "ציבורי").
-const HIDDEN_PREFIXES = [
-  "/admin",
-  "/portal",
-  "/account",
-  "/login",
-  "/register",
-  "/auth",
-];
-
-function normalizeUrl(url: string): string {
-  return /^https?:\/\//i.test(url) ? url : `https://${url}`;
-}
+import { useState } from "react";
+import { useAdSlot, normalizeUrl } from "./useAdSlot";
 
 /**
- * באנר חסות קבוע — דבוק לצד שמאל במסך רחב, רצועה תחתונה במובייל. נטען בצד-לקוח
- * (לא חוסם טעינת עמוד גם כש-Render במצב cold-start). ניתן לסגירה (נזכר ב-session).
- * כלל ברזל: ללא תמונות אנשים; מסומן "מודעה".
+ * באנר חסות קבוע וגדול — דבוק לצד שמאל במסך רחב, רצועה תחתונה במובייל.
+ * כותרת + טקסט תמיד מוצגים כטקסט קריא (לא תלוי בתמונה). placement=homepage.
  */
 export function AdSideBanner() {
-  const pathname = usePathname();
-  const [ads, setAds] = useState<PublicAd[]>([]);
-  const [dismissed, setDismissed] = useState(true); // ברירת מחדל סגור עד שנדע
+  const { ad, dismissed, hidden, close } = useAdSlot(
+    "homepage",
+    "ds_ad_side_dismissed",
+  );
   const [imgFailed, setImgFailed] = useState(false);
 
-  const hidden = HIDDEN_PREFIXES.some(
-    (p) => pathname === p || pathname.startsWith(`${p}/`),
-  );
-
-  // שחזור מצב סגירה (פעם אחת ל-session) + טעינת מודעות לעמוד ציבורי.
-  useEffect(() => {
-    if (hidden) return;
-    let active = true;
-
-    try {
-      if (sessionStorage.getItem("ds_ad_dismissed") === "1") return;
-    } catch {
-      /* sessionStorage חסום — ממשיכים */
-    }
-    setDismissed(false);
-
-    fetch("/api/public/ads?placement=homepage")
-      .then((r) => r.json())
-      .then((j) => {
-        if (active && j?.success && Array.isArray(j.data)) setAds(j.data);
-      })
-      .catch(() => undefined);
-
-    return () => {
-      active = false;
-    };
-  }, [hidden, pathname]);
-
-  if (hidden || dismissed || ads.length === 0) return null;
-
-  const ad = ads[0]; // המודעה בעדיפות העליונה (order נמוך)
+  if (hidden || dismissed || !ad) return null;
   const showImage = Boolean(ad.imageUrl) && !imgFailed;
 
-  const close = () => {
-    setDismissed(true);
-    try {
-      sessionStorage.setItem("ds_ad_dismissed", "1");
-    } catch {
-      /* ignore */
-    }
-  };
-
   const label = (
-    <span className="text-[11px] font-semibold text-ink-400">מודעה</span>
+    <span className="text-xs font-bold uppercase tracking-wide text-olive-700">
+      מודעה
+    </span>
   );
 
   const closeBtn = (
@@ -80,80 +28,70 @@ export function AdSideBanner() {
       type="button"
       onClick={close}
       aria-label="סגירת המודעה"
-      className="absolute top-2 left-2 flex h-6 w-6 items-center justify-center rounded-full bg-sand-100 text-ink-500 hover:bg-sand-200"
+      className="absolute left-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-sand-100 text-ink-500 hover:bg-sand-200"
     >
       ✕
     </button>
   );
 
-  const image = showImage ? (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={ad.imageUrl as string}
-      alt={ad.title}
-      loading="lazy"
-      onError={() => setImgFailed(true)}
-      className="w-full rounded-lg bg-sand-50 object-contain"
-    />
-  ) : null;
-
-  const cta = ad.linkUrl ? (
-    <a
-      href={normalizeUrl(ad.linkUrl)}
-      target="_blank"
-      rel="nofollow sponsored noopener noreferrer"
-      className="mt-2 inline-block w-full rounded-lg bg-navy-600 px-3 py-1.5 text-center text-sm font-bold text-white hover:bg-navy-700"
-    >
-      למידע נוסף ←
-    </a>
-  ) : null;
+  const img = (cls: string) =>
+    showImage ? (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={ad.imageUrl as string}
+        alt={ad.title}
+        loading="lazy"
+        onError={() => setImgFailed(true)}
+        className={cls}
+      />
+    ) : null;
 
   return (
     <>
-      {/* מסך רחב — דבוק לצד שמאל, ממורכז אנכית */}
+      {/* מסך רחב — באנר צד גדול, דבוק לשמאל, ממורכז אנכית */}
       <aside
         dir="rtl"
-        className="fixed left-3 top-1/2 z-40 hidden w-48 -translate-y-1/2 md:block"
+        className="fixed left-4 top-1/2 z-40 hidden w-80 -translate-y-1/2 lg:block"
       >
-        <div className="relative rounded-2xl border border-sand-200 bg-white p-3 pt-7 shadow-lift">
+        <div className="relative overflow-hidden rounded-2xl border border-sand-200 border-t-4 border-t-olive-500 bg-white shadow-lift">
           {closeBtn}
-          <div className="absolute right-3 top-2">{label}</div>
-          {image}
-          <h3 className="mt-2 font-display text-base font-bold leading-tight text-ink-900">
-            {ad.title}
-          </h3>
-          {ad.body && (
-            <p className="mt-1 line-clamp-4 text-xs leading-relaxed text-ink-600">
-              {ad.body}
-            </p>
-          )}
-          {cta}
+          <div className="p-5 pt-8">
+            <div className="mb-2">{label}</div>
+            {img("mb-3 w-full rounded-xl bg-sand-50 object-contain")}
+            <h3 className="font-display text-xl font-bold leading-snug text-ink-900">
+              {ad.title}
+            </h3>
+            {ad.body && (
+              <p className="mt-2 text-sm leading-relaxed text-ink-700">
+                {ad.body}
+              </p>
+            )}
+            {ad.linkUrl && (
+              <a
+                href={normalizeUrl(ad.linkUrl)}
+                target="_blank"
+                rel="nofollow sponsored noopener noreferrer"
+                className="mt-4 block w-full rounded-xl bg-navy-600 px-4 py-2.5 text-center font-bold text-white hover:bg-navy-700"
+              >
+                למידע נוסף ←
+              </a>
+            )}
+          </div>
         </div>
       </aside>
 
-      {/* מובייל — רצועה תחתונה */}
-      <div dir="rtl" className="fixed inset-x-0 bottom-0 z-40 p-2 md:hidden">
-        <div className="relative flex items-center gap-3 rounded-2xl border border-sand-200 bg-white p-3 pe-9 shadow-lift">
+      {/* מסך צר — רצועה תחתונה גדולה */}
+      <div dir="rtl" className="fixed inset-x-0 bottom-0 z-40 p-3 lg:hidden">
+        <div className="relative mx-auto flex max-w-2xl items-center gap-4 rounded-2xl border border-sand-200 border-t-4 border-t-olive-500 bg-white p-4 pe-10 shadow-lift">
           {closeBtn}
-          {showImage && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={ad.imageUrl as string}
-              alt={ad.title}
-              loading="lazy"
-              onError={() => setImgFailed(true)}
-              className="h-12 w-12 shrink-0 rounded-lg bg-sand-50 object-contain"
-            />
-          )}
+          {img("h-16 w-16 shrink-0 rounded-xl bg-sand-50 object-contain")}
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              {label}
-              <h3 className="truncate font-display text-sm font-bold text-ink-900">
-                {ad.title}
-              </h3>
-            </div>
+            <div className="mb-0.5">{label}</div>
+            <h3 className="truncate font-display text-base font-bold text-ink-900">
+              {ad.title}
+            </h3>
             {ad.body && (
-              <p className="truncate text-xs text-ink-600">{ad.body}</p>
+              <p className="line-clamp-2 text-sm text-ink-700">{ad.body}</p>
             )}
           </div>
           {ad.linkUrl && (
@@ -161,7 +99,7 @@ export function AdSideBanner() {
               href={normalizeUrl(ad.linkUrl)}
               target="_blank"
               rel="nofollow sponsored noopener noreferrer"
-              className="shrink-0 rounded-lg bg-navy-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-navy-700"
+              className="shrink-0 rounded-xl bg-navy-600 px-4 py-2 text-sm font-bold text-white hover:bg-navy-700"
             >
               למידע ←
             </a>

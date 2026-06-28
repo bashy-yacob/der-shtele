@@ -17,14 +17,21 @@ import {
   EmptyState,
   PageHeader,
 } from "@/components/admin/Feedback";
-import { Card, Button, Input, Textarea } from "@/components/ui";
+import { Card, Button, Input, Textarea, Select } from "@/components/ui";
 import { formatDate } from "@/lib/utils";
 
+// פורמט התצוגה ממופה ל-placement הקיים (כדי להימנע ממיגרציה):
+// homepage = באנר צד · jobs_list = פופאפ במרכז.
 const PLACEMENT_LABELS: Record<AdPlacement, string> = {
-  homepage: "באנר צד (כל האתר)",
-  jobs_list: "לוח משרות",
+  homepage: "באנר צד",
+  jobs_list: "פופאפ במרכז",
   footer: "כותרת תחתונה",
 };
+
+const FORMAT_OPTIONS: { value: AdPlacement; label: string }[] = [
+  { value: "homepage", label: "באנר צד (קבוע בצד שמאל, בכל האתר)" },
+  { value: "jobs_list", label: "פופאפ במרכז המסך (פעם אחת לביקור)" },
+];
 
 const STATUS_LABELS: Record<AdStatus, string> = {
   draft: "טיוטה",
@@ -459,12 +466,19 @@ function AdForm({
         </div>
       </div>
 
-      {/* מיקום קבוע — באנר הצד הוא יחידת הפרסום היחידה כרגע */}
-      <p className="rounded-lg bg-sand-50 p-2 text-xs text-ink-500">
-        מיקום: <strong>באנר צד קבוע</strong> — מוצג בצד המסך בכל עמודי האתר.
-        כשיש כמה מודעות, מוצגת זו עם <strong>סדר התצוגה</strong> הנמוך ביותר.
-      </p>
-      <div className="grid md:grid-cols-2 gap-3">
+      {/* פורמט תצוגה, סדר, מחיר */}
+      <div className="grid md:grid-cols-3 gap-3">
+        <Select
+          label="פורמט תצוגה"
+          value={form.placement}
+          onChange={(e) => set("placement")(e.target.value)}
+        >
+          {FORMAT_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </Select>
         <Input
           label="סדר תצוגה"
           type="number"
@@ -478,6 +492,10 @@ function AdForm({
           onChange={(e) => set("agreedPrice")(e.target.value)}
         />
       </div>
+      <p className="rounded-lg bg-sand-50 p-2 text-xs text-ink-500">
+        כשיש כמה מודעות באותו פורמט — מוצגת זו עם <strong>סדר התצוגה</strong>{" "}
+        הנמוך ביותר.
+      </p>
       <div className="grid md:grid-cols-2 gap-3">
         <Input
           label="מתאריך (אופציונלי)"
