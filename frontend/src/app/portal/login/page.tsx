@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { safeRedirect } from "@/lib/redirect";
 import { Button, Card, Input } from "@/components/ui";
 
 export default function PortalLoginPage() {
@@ -15,9 +16,11 @@ export default function PortalLoginPage() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // כבר מחובר כמעסיק → ישר לפורטל.
+  // כבר מחובר כמעסיק → ישר לפורטל (או ליעד שביקש ב-?redirect).
   useEffect(() => {
-    if (!loading && user?.role === "employer") router.replace("/portal");
+    if (loading || user?.role !== "employer") return;
+    const raw = new URLSearchParams(window.location.search).get("redirect");
+    router.replace(safeRedirect(raw, "/portal"));
   }, [loading, user, router]);
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -26,7 +29,8 @@ export default function PortalLoginPage() {
     setSubmitting(true);
     try {
       await login(email, password);
-      router.replace("/portal");
+      const raw = new URLSearchParams(window.location.search).get("redirect");
+      router.replace(safeRedirect(raw, "/portal"));
     } catch (err) {
       setError(err instanceof Error ? err.message : "שגיאה בהתחברות");
     } finally {

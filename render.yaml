@@ -27,7 +27,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: JWT_EXPIRES_IN
-        value: 7d
+        value: 30d
       # --- סודות: Render יבקש אותם בהקמה (אל תכתבי אותם בקוד) ---
       - key: DATABASE_URL              # מחרוזת החיבור של Supabase (pooler, פורט 6543)
         sync: false

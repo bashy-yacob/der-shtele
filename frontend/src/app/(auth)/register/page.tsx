@@ -6,7 +6,16 @@ import { GoogleButton } from "@/components/auth/GoogleButton";
 
 export const metadata: Metadata = { title: "הרשמה" };
 
-export default function RegisterPage() {
+export default function RegisterPage({
+  searchParams,
+}: {
+  searchParams: { redirect?: string };
+}) {
+  // שמירת יעד החזרה (?redirect) גם במעבר להתחברות — כדי לא לאבד אותו.
+  const redirect = searchParams?.redirect;
+  const loginHref = redirect
+    ? `/login?redirect=${encodeURIComponent(redirect)}`
+    : "/login";
   return (
     <AuthShell
       title="יצירת חשבון"
@@ -22,7 +31,7 @@ export default function RegisterPage() {
         <>
           כבר רשום/ה?{" "}
           <Link
-            href="/login"
+            href={loginHref}
             className="text-navy-600 font-semibold hover:underline"
           >
             התחברות

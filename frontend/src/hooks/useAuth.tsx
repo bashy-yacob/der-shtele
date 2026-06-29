@@ -13,6 +13,31 @@ import {
 import type { JobField } from "@/types";
 
 const TOKEN_KEY = "ds_token";
+// חותמת הפעילות האחרונה — מניעה את ניתוק חוסר-הפעילות (sliding window).
+const LAST_ACTIVE_KEY = "ds_last_active";
+// אחרי 3 ימים ללא שימוש המשתמש מנותק ונדרש להתחבר מחדש.
+const IDLE_LIMIT_MS = 3 * 24 * 60 * 60 * 1000;
+// לא מעדכנים את חותמת הפעילות ב-localStorage יותר מפעם בדקה (חיסכון בכתיבות).
+const TOUCH_THROTTLE_MS = 60 * 1000;
+
+/** מנקה את הסשן המקומי לחלוטין (טוקן + חותמת פעילות). */
+function clearSession() {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(LAST_ACTIVE_KEY);
+}
+
+/** האם עברה תקופת חוסר-הפעילות מאז השימוש האחרון. */
+function isIdleExpired(): boolean {
+  const raw = localStorage.getItem(LAST_ACTIVE_KEY);
+  if (!raw) return false;
+  const last = Number(raw);
+  return Number.isFinite(last) && Date.now() - last > IDLE_LIMIT_MS;
+}
+
+/** מאריך את חלון הפעילות — נקרא בכניסה ובכל פעילות משתמש. */
+function touchLastActive() {
+  localStorage.setItem(LAST_ACTIVE_KEY, String(Date.now()));
+}
 
 /** פרטי הפרופיל שהמשתמש ממלא מרצון — משמשים לדיוור מותאם אישית. */
 export interface ProfileFields {
@@ -90,6 +115,15 @@ function useAuthState(): AuthContextValue {
       setLoading(false);
       return;
     }
+    // ניתוק חוסר-פעילות: אם עברו 3 ימים מאז השימוש האחרון — לנקות ולא להתחבר.
+    if (isIdleExpired()) {
+      clearSession();
+      setLoading(false);
+      return;
+    }
+    // טוקן קיים מלפני השינוי (ללא חותמת פעילות) — מאתחלים כעת (תקופת חסד),
+    // כך שפריסה לא מנתקת את כל המשתמשים המחוברים.
+    touchLastActive();
     fetch("/api/auth/me", {
       headers: { Authorization: `Bearer ${t}` },
     })
@@ -111,14 +145,73 @@ function useAuthState(): AuthContextValue {
             optInPromptedAt: res.data.optInPromptedAt ?? null,
             authProvider: res.data.authProvider,
           });
+          touchLastActive();
+        } else {
+          // טוקן לא תקף (פג בשרת / נדחה) — לנקות כדי לא להשאיר טוקן מת ב-localStorage.
+          clearSession();
         }
       })
+      // כשל רשת זמני — לא מנתקים (משאירים את הטוקן לניסיון הבא).
       .catch(() => undefined)
       .finally(() => setLoading(false));
   }, [token]);
 
+  // מעקב פעילות + אכיפת חוסר-פעילות + סנכרון בין טאבים — רק כשמחובר.
+  useEffect(() => {
+    if (!user) return;
+
+    let lastTouch = 0;
+    const touch = () => {
+      const now = Date.now();
+      if (now - lastTouch > TOUCH_THROTTLE_MS) {
+        lastTouch = now;
+        touchLastActive();
+      }
+    };
+    const onActivity = () => touch();
+    window.addEventListener("mousedown", onActivity);
+    window.addEventListener("keydown", onActivity);
+    window.addEventListener("scroll", onActivity, { passive: true });
+
+    // בחזרה לטאב: לבדוק קודם אם פג חלון חוסר-הפעילות (טיימרים מושהים ברקע).
+    const onVisible = () => {
+      if (document.visibilityState !== "visible") return;
+      if (isIdleExpired()) {
+        clearSession();
+        setUser(null);
+      } else {
+        touch();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
+
+    // בדיקה תקופתית — מנתקת גם טאב שנשאר פתוח אך נטוש.
+    const interval = window.setInterval(() => {
+      if (isIdleExpired()) {
+        clearSession();
+        setUser(null);
+      }
+    }, TOUCH_THROTTLE_MS);
+
+    // סנכרון בין-טאבים: התנתקות בטאב אחר (הסרת הטוקן) משתקפת גם כאן.
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === TOKEN_KEY && !e.newValue) setUser(null);
+    };
+    window.addEventListener("storage", onStorage);
+
+    return () => {
+      window.removeEventListener("mousedown", onActivity);
+      window.removeEventListener("keydown", onActivity);
+      window.removeEventListener("scroll", onActivity);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("storage", onStorage);
+      window.clearInterval(interval);
+    };
+  }, [user]);
+
   const persist = (accessToken: string, u: AuthUser) => {
     localStorage.setItem(TOKEN_KEY, accessToken);
+    touchLastActive();
     setUser(u);
   };
 
@@ -165,7 +258,7 @@ function useAuthState(): AuthContextValue {
   };
 
   const logout = () => {
-    localStorage.removeItem(TOKEN_KEY);
+    clearSession();
     setUser(null);
   };
 

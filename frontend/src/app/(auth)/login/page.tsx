@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { safeRedirect, defaultDestForRole } from "@/lib/redirect";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { AuthShell } from "@/components/auth/AuthShell";
@@ -11,36 +12,49 @@ import { GoogleButton } from "@/components/auth/GoogleButton";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, user, loading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  // ?redirect נקרא בצד הלקוח בלבד (אין window ב-SSR) — לשימוש בקישור ההרשמה.
+  const [redirect, setRedirect] = useState<string | null>(null);
 
-  // חזרה מ-Google עם כשל (state שגוי / אימות נכשל / NetFree חוסם).
+  // חזרה מ-Google עם כשל (state שגוי / אימות נכשל / NetFree חוסם) + קריאת ?redirect.
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("error") === "google") {
-      setError("ההתחברות עם Google נכשלה. נסה שוב או השתמש בדואר אלקטרוני וסיסמה.");
+    const params = new URLSearchParams(window.location.search);
+    setRedirect(params.get("redirect"));
+    if (params.get("error") === "google") {
+      setError(
+        "ההתחברות עם Google נכשלה. נסה שוב או השתמש בדואר אלקטרוני וסיסמה.",
+      );
     }
   }, []);
 
+  // כבר מחובר? לא להציג את הטופס — להפנות ליעד שביקש (?redirect) או לפי תפקיד.
+  // משמש גם אחרי התחברות מוצלחת (login מעדכן את user) — הניווט מתבצע כאן בלבד.
+  useEffect(() => {
+    if (loading || !user) return;
+    const raw = new URLSearchParams(window.location.search).get("redirect");
+    router.replace(safeRedirect(raw, defaultDestForRole(user.role)));
+  }, [loading, user, router]);
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setSubmitting(true);
     setError(null);
     try {
       await login(email, password);
-      // יעד חזרה מ-?redirect (רק נתיב יחסי בטוח — מונע open redirect)
-      const raw = new URLSearchParams(window.location.search).get("redirect");
-      const target =
-        raw && raw.startsWith("/") && !raw.startsWith("//") ? raw : "/account";
-      router.push(target);
+      // הניווט מתבצע בשומר למעלה ברגע ש-user מתעדכן.
     } catch (err) {
       setError(err instanceof Error ? err.message : "שגיאה בהתחברות");
-    } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
+
+  const registerHref = redirect
+    ? `/register?redirect=${encodeURIComponent(redirect)}`
+    : "/register";
 
   return (
     <AuthShell
@@ -56,7 +70,7 @@ export default function LoginPage() {
         <>
           אין חשבון?{" "}
           <Link
-            href="/register"
+            href={registerHref}
             className="text-navy-600 font-semibold hover:underline"
           >
             הרשמה
@@ -86,8 +100,8 @@ export default function LoginPage() {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <Button type="submit" disabled={loading} className="w-full">
-          {loading ? "מתחבר..." : "התחברות"}
+        <Button type="submit" disabled={submitting} className="w-full">
+          {submitting ? "מתחבר..." : "התחברות"}
         </Button>
       </form>
       <GoogleButton label="התחברות עם Google" />

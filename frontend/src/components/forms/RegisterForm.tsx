@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { safeRedirect, defaultDestForRole } from "@/lib/redirect";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 
@@ -23,7 +24,7 @@ type RegisterValues = z.infer<typeof registerSchema>;
 
 export function RegisterForm() {
   const router = useRouter();
-  const { register: registerUser } = useAuth();
+  const { register: registerUser, user, loading } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const {
     register,
@@ -31,11 +32,19 @@ export function RegisterForm() {
     formState: { errors, isSubmitting },
   } = useForm<RegisterValues>({ resolver: zodResolver(registerSchema) });
 
+  // כבר מחובר? לא להציג טופס הרשמה — להפנות ליעד שביקש (?redirect) או לפי תפקיד.
+  // משמש גם אחרי הרשמה מוצלחת (register מעדכן את user) — הניווט מתבצע כאן בלבד.
+  useEffect(() => {
+    if (loading || !user) return;
+    const raw = new URLSearchParams(window.location.search).get("redirect");
+    router.replace(safeRedirect(raw, defaultDestForRole(user.role)));
+  }, [loading, user, router]);
+
   const onSubmit = async (data: RegisterValues) => {
     try {
       setError(null);
       await registerUser(data);
-      router.push("/account");
+      // הניווט מתבצע בשומר למעלה ברגע ש-user מתעדכן.
     } catch (err) {
       setError(err instanceof Error ? err.message : "שגיאה בהרשמה");
     }
