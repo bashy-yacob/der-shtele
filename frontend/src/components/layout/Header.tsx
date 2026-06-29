@@ -3,9 +3,10 @@ import { SITE_NAME } from "@/lib/constants";
 import { AdminHeaderLink } from "./AdminHeaderLink";
 import { UserMenu } from "./UserMenu";
 import { MobileMenu } from "./MobileMenu";
-import { NAV_LINKS } from "./nav-links";
+import { NAV_LINKS, JOBS_LINK } from "./nav-links";
 
 export function Header() {
+  const JobsIcon = JOBS_LINK.icon;
   return (
     <header
       className="bg-sand-50/85 backdrop-blur-md border-b border-sand-200 sticky top-0 z-50"
@@ -42,8 +43,16 @@ export function Header() {
           </nav>
         </div>
 
-        {/* שמאל: אזור המשתמש + המבורגר במובייל */}
-        <div className="flex items-center gap-2">
+        {/* שמאל: ה-CTA הראשי (לוח המשרות) + אזור המשתמש + המבורגר במובייל */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Link
+            href={JOBS_LINK.href}
+            aria-label={JOBS_LINK.label}
+            className="inline-flex items-center gap-1.5 bg-olive-600 hover:bg-olive-700 text-white text-sm font-bold px-3 sm:px-5 py-2.5 rounded-xl shadow-soft transition-colors duration-150"
+          >
+            <JobsIcon className="w-5 h-5 sm:w-[1.05rem] sm:h-[1.05rem]" />
+            <span className="hidden sm:inline">{JOBS_LINK.label}</span>
+          </Link>
           <UserMenu />
           <MobileMenu links={NAV_LINKS} />
         </div>

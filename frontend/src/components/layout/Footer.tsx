@@ -5,7 +5,7 @@ import { SITE_NAME, CONTACT_INFO } from "@/lib/constants";
 const NAV_LINKS = [
   { href: "/jobs", label: "לוח משרות" },
   { href: "/employers", label: "למעסיקים" },
-  { href: "/about", label: "אודות" },
+  { href: "/about", label: "לעובדים" },
   { href: "/contact", label: "צור קשר" },
   { href: "/register", label: "הרשמה" },
 ];
