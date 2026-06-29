@@ -158,7 +158,7 @@ export default function EmployersContactPage() {
           {/* הבטחת דיסקרטיות — מודל התיווך של הסוכנות */}
           <Reveal>
             <div className="mb-8 bg-navy-600 text-white rounded-2xl p-6">
-              <h2 className="font-display text-lg font-bold mb-2">
+              <h2 className="font-display text-lg font-bold mb-2 text-white">
                 {SITE_CONTENT.employers.terms.discretion.title}
               </h2>
               <p className="text-sand-200 text-sm leading-relaxed">

@@ -1,5 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import type { Icon } from "@/lib/icons";
+import {
+  Funnel,
+  HandCoins,
+  ShieldCheck,
+  Lock,
+  Clock,
+  UsersThree,
+} from "@/lib/icons";
 import { SITE_CONTENT } from "@/lib/constants";
 import { Card, SectionHeading } from "@/components/ui";
 
@@ -11,6 +20,16 @@ export const metadata: Metadata = {
 };
 
 const EMP = SITE_CONTENT.employers;
+
+// אייקון לכל יתרון (לפי סדר הפריטים ב-constants.employers.why.items)
+const WHY_ICONS: Icon[] = [
+  Funnel, // סינון מקצועי מלא
+  HandCoins, // תשלום רק על תוצאה
+  ShieldCheck, // ערבות שלושה חודשים
+  Lock, // דיסקרטיות מלאה
+  Clock, // חוסכים לכם זמן
+  UsersThree, // מכירים את הציבור
+];
 
 export default function EmployersPage() {
   return (
@@ -60,14 +79,20 @@ export default function EmployersPage() {
             className="mb-12"
           />
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {EMP.why.items.map((item, idx) => (
-              <Card key={idx} className="p-8 border-r-4 border-r-olive-500">
-                <h3 className="font-display text-ink-900 text-xl font-bold mb-3">
-                  {item.title}
-                </h3>
-                <p className="text-ink-700 leading-relaxed">{item.desc}</p>
-              </Card>
-            ))}
+            {EMP.why.items.map((item, idx) => {
+              const Icon = WHY_ICONS[idx % WHY_ICONS.length];
+              return (
+                <Card key={idx} className="p-8 border-r-4 border-r-olive-500">
+                  <span className="mb-4 flex items-center justify-center w-12 h-12 rounded-full bg-olive-100 text-olive-700">
+                    <Icon className="w-7 h-7" />
+                  </span>
+                  <h3 className="font-display text-ink-900 text-xl font-bold mb-3">
+                    {item.title}
+                  </h3>
+                  <p className="text-ink-700 leading-relaxed">{item.desc}</p>
+                </Card>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -103,7 +128,7 @@ export default function EmployersPage() {
       <section className="bg-navy-600 text-white py-16 px-4">
         <div className="max-w-3xl mx-auto text-center">
           <p className="text-sand-200 text-sm sm:text-base mb-6">{EMP.trust}</p>
-          <h2 className="font-display text-2xl sm:text-3xl font-bold mb-6">
+          <h2 className="font-display text-2xl sm:text-3xl font-bold mb-6 text-white">
             יש לכם משרה? בואו נמצא לה את האדם הנכון
           </h2>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">

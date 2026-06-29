@@ -47,10 +47,12 @@ module.exports = {
         },
       },
       fontFamily: {
-        // Frank Ruhl Libre — סריף עברי לכותרות גדולות
-        display: ["var(--font-display)", "Frank Ruhl Libre", "serif"],
-        // Heebo — גוף וממשק
+        // Heebo — כל האתר: גוף, ממשק וכותרות
         sans: ["var(--font-sans)", "Heebo", "Arial", "sans-serif"],
+        // display ממופה ל-Heebo כדי שכל מופעי font-display הקיימים (כותרות) יישארו אחידים עם שאר האתר
+        display: ["var(--font-sans)", "Heebo", "Arial", "sans-serif"],
+        // Frank Ruhl Libre — סריף עברי, ללוגו/wordmark בלבד
+        logo: ["var(--font-logo)", "Frank Ruhl Libre", "serif"],
       },
       boxShadow: {
         // צל רך חמים (חום-אפרפר, נמוך)

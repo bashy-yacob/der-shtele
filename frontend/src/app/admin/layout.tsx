@@ -3,22 +3,41 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
+import type { Icon } from "@/lib/icons";
+import {
+  SquaresFour,
+  ChatCircleText,
+  Users,
+  Briefcase,
+  Buildings,
+  Receipt,
+  BellRinging,
+  EnvelopeSimple,
+  Quotes,
+  Megaphone,
+  SignOut,
+} from "@/lib/icons";
 import { useAuth } from "@/hooks/useAuth";
 import { useDueReminders } from "@/hooks/useDueReminders";
 import { cn } from "@/lib/utils";
 
 // ניווט הדשבורד — לפי סעיף 7 באיפיון.
-const ADMIN_NAV = [
-  { href: "/admin", label: "לוח בקרה", exact: true },
-  { href: "/admin/contacts", label: "פניות" },
-  { href: "/admin/candidates", label: "מועמדים" },
-  { href: "/admin/jobs", label: "משרות" },
-  { href: "/admin/employers", label: "מעסיקים" },
-  { href: "/admin/commissions", label: "עמלות" },
-  { href: "/admin/reminders", label: "תזכורות" },
-  { href: "/admin/mailing", label: "רשימת תפוצה" },
-  { href: "/admin/testimonials", label: "המלצות" },
-  { href: "/admin/advertisements", label: "פרסומות" },
+const ADMIN_NAV: {
+  href: string;
+  label: string;
+  icon: Icon;
+  exact?: boolean;
+}[] = [
+  { href: "/admin", label: "לוח בקרה", icon: SquaresFour, exact: true },
+  { href: "/admin/contacts", label: "פניות", icon: ChatCircleText },
+  { href: "/admin/candidates", label: "מועמדים", icon: Users },
+  { href: "/admin/jobs", label: "משרות", icon: Briefcase },
+  { href: "/admin/employers", label: "מעסיקים", icon: Buildings },
+  { href: "/admin/commissions", label: "עמלות", icon: Receipt },
+  { href: "/admin/reminders", label: "תזכורות", icon: BellRinging },
+  { href: "/admin/mailing", label: "רשימת תפוצה", icon: EnvelopeSimple },
+  { href: "/admin/testimonials", label: "המלצות", icon: Quotes },
+  { href: "/admin/advertisements", label: "פרסומות", icon: Megaphone },
 ];
 
 const ADMIN_ROLES = ["staff", "admin"];
@@ -76,18 +95,27 @@ export default function AdminLayout({
                   ? pathname === item.href
                   : pathname.startsWith(item.href);
                 const isReminders = item.href === "/admin/reminders";
+                const Icon = item.icon;
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "flex items-center justify-between px-4 py-2.5 rounded-xl text-sm transition-colors text-start",
+                      "flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl text-sm transition-colors text-start",
                       active
                         ? "bg-navy-50 text-navy-700 font-bold"
                         : "text-ink-500 font-semibold hover:text-navy-600 hover:bg-sand-50",
                     )}
                   >
-                    <span>{item.label}</span>
+                    <span className="flex items-center gap-2.5 min-w-0">
+                      <Icon
+                        className={cn(
+                          "w-[1.15rem] h-[1.15rem] shrink-0",
+                          active ? "text-navy-600" : "text-olive-500/90",
+                        )}
+                      />
+                      <span className="truncate">{item.label}</span>
+                    </span>
                     {isReminders && dueCount > 0 && (
                       <span className="ml-1 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold">
                         {dueCount}
@@ -98,8 +126,9 @@ export default function AdminLayout({
               })}
               <button
                 onClick={logout}
-                className="px-4 py-2.5 rounded-xl text-sm font-semibold text-red-600 hover:bg-red-50 text-start transition-colors"
+                className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-red-600 hover:bg-red-50 text-start transition-colors"
               >
+                <SignOut className="w-[1.15rem] h-[1.15rem] shrink-0" />
                 התנתקות
               </button>
             </nav>

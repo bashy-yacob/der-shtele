@@ -9,6 +9,7 @@ import { GlobalReminderAlert } from "@/components/admin/GlobalReminderAlert";
 import { AdSideBanner } from "@/components/ads/AdSideBanner";
 import { AdPopup } from "@/components/ads/AdPopup";
 import { AuthProvider } from "@/hooks/useAuth";
+import { IconProvider } from "@/components/ui/IconProvider";
 import { SITE_NAME, SITE_DESCRIPTION, SITE_URL } from "@/lib/constants";
 
 // Heebo — גוף וממשק
@@ -19,11 +20,11 @@ const heebo = Heebo({
   display: "swap",
 });
 
-// Frank Ruhl Libre — סריף עברי לכותרות
+// Frank Ruhl Libre — סריף עברי, ללוגו בלבד
 const frankRuhl = Frank_Ruhl_Libre({
   subsets: ["hebrew", "latin"],
   weight: ["500", "700", "900"],
-  variable: "--font-display",
+  variable: "--font-logo",
   display: "swap",
 });
 
@@ -52,13 +53,15 @@ export default function RootLayout({
     >
       <body className="flex flex-col min-h-screen font-sans">
         <AuthProvider>
-          <ConstructionBanner />
-          <Header />
-          <GlobalReminderAlert />
-          <main className="flex-1">{children}</main>
-          <Footer />
-          <AdSideBanner />
-          <AdPopup />
+          <IconProvider>
+            <ConstructionBanner />
+            <Header />
+            <GlobalReminderAlert />
+            <main className="flex-1">{children}</main>
+            <Footer />
+            <AdSideBanner />
+            <AdPopup />
+          </IconProvider>
         </AuthProvider>
         <Analytics />
       </body>

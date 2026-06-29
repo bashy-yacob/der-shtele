@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { List, X, SquaresFour } from "@/lib/icons";
 import { useAuth } from "@/hooks/useAuth";
 import type { NavLink } from "./nav-links";
 
@@ -45,33 +46,9 @@ export function MobileMenu({ links }: { links: NavLink[] }) {
         className="w-10 h-10 -mr-2 flex items-center justify-center rounded-xl text-ink-500 hover:text-navy-600 hover:bg-sand-100 transition-colors"
       >
         {open ? (
-          // X לסגירה
-          <svg
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            aria-hidden="true"
-          >
-            <path d="M6 6l12 12M18 6L6 18" />
-          </svg>
+          <X size={22} weight="bold" aria-hidden="true" />
         ) : (
-          // שלושה קווים — המבורגר
-          <svg
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            aria-hidden="true"
-          >
-            <path d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
+          <List size={22} weight="bold" aria-hidden="true" />
         )}
       </button>
 
@@ -80,25 +57,30 @@ export function MobileMenu({ links }: { links: NavLink[] }) {
           role="menu"
           className="absolute end-0 mt-2 w-56 bg-white rounded-2xl border border-sand-200 shadow-soft p-2 z-50"
         >
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              role="menuitem"
-              onClick={() => setOpen(false)}
-              className="block px-3 py-2 rounded-xl text-sm font-semibold text-ink-500 hover:text-navy-600 hover:bg-sand-50 text-start transition-colors"
-            >
-              {link.label}
-            </Link>
-          ))}
+          {links.map((link) => {
+            const Icon = link.icon;
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                role="menuitem"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-semibold text-ink-500 hover:text-navy-600 hover:bg-sand-50 text-start transition-colors"
+              >
+                <Icon className="w-5 h-5 text-olive-500/90 shrink-0" />
+                {link.label}
+              </Link>
+            );
+          })}
 
           {isStaff && (
             <Link
               href="/admin"
               role="menuitem"
               onClick={() => setOpen(false)}
-              className="block px-3 py-2 rounded-xl text-sm font-bold text-olive-700 hover:text-olive-600 hover:bg-sand-50 text-start transition-colors"
+              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-bold text-olive-700 hover:text-olive-600 hover:bg-sand-50 text-start transition-colors"
             >
+              <SquaresFour className="w-5 h-5 shrink-0" />
               דשבורד צוות
             </Link>
           )}

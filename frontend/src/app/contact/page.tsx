@@ -204,7 +204,7 @@ export default function ContactPage() {
             {/* הבטחת דיסקרטיות — מודל התיווך של הסוכנות */}
             <Reveal delay={270}>
               <div className="mt-6 bg-navy-600 text-white rounded-2xl p-6">
-                <h3 className="font-display text-lg font-bold mb-2">
+                <h3 className="font-display text-lg font-bold mb-2 text-white">
                   כל פנייה נשארת אצלנו
                 </h3>
                 <p className="text-sand-200 text-sm leading-relaxed">

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Phone, EnvelopeSimple, Clock, ShieldCheck } from "@/lib/icons";
 import { SITE_NAME, CONTACT_INFO } from "@/lib/constants";
 
 const NAV_LINKS = [
@@ -15,7 +16,7 @@ export function Footer() {
       <div className="max-w-5xl mx-auto px-4 py-12 grid grid-cols-1 sm:grid-cols-3 gap-8">
         {/* לוגו + תיאור */}
         <div>
-          <p className="flex items-center gap-1 font-display text-xl font-bold text-white mb-2">
+          <p className="flex items-center gap-1 font-logo text-xl font-bold text-white mb-2">
             <span>{SITE_NAME}</span>
             <span className="w-1.5 h-1.5 bg-olive-500 rounded-full shrink-0 mb-1" />
           </p>
@@ -45,10 +46,22 @@ export function Footer() {
         <div>
           <p className="font-semibold text-white mb-3">יצירת קשר</p>
           <ul className="space-y-2 text-sand-300">
-            <li>טל׳: {CONTACT_INFO.phone}</li>
-            <li>מייל: {CONTACT_INFO.email}</li>
-            <li>{CONTACT_INFO.hours}</li>
-            <li className="text-olive-300">{CONTACT_INFO.note}</li>
+            <li className="flex items-center gap-2">
+              <Phone className="w-[1.15rem] h-[1.15rem] text-olive-300 shrink-0" />
+              <span>טל׳: {CONTACT_INFO.phone}</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <EnvelopeSimple className="w-[1.15rem] h-[1.15rem] text-olive-300 shrink-0" />
+              <span>מייל: {CONTACT_INFO.email}</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <Clock className="w-[1.15rem] h-[1.15rem] text-olive-300 shrink-0" />
+              <span>{CONTACT_INFO.hours}</span>
+            </li>
+            <li className="flex items-center gap-2 text-olive-300">
+              <ShieldCheck className="w-[1.15rem] h-[1.15rem] shrink-0" />
+              <span>{CONTACT_INFO.note}</span>
+            </li>
           </ul>
         </div>
       </div>

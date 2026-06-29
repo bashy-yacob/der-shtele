@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* הגופנים נטענים דרך next/font ב-layout.tsx (משתני CSS --font-sans / --font-display) */
+/* הגופנים נטענים דרך next/font ב-layout.tsx (--font-sans = Heebo לכל האתר, --font-logo = Frank Ruhl Libre ללוגו בלבד) */
 
 @layer base {
   html {

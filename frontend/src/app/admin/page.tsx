@@ -7,6 +7,16 @@ import type { DashboardSummary } from "@/types";
 import { StatCard } from "@/components/admin/StatCard";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import {
+  ListChecks,
+  UserPlus,
+  Handshake,
+  Coins,
+  Users,
+  Briefcase,
+  BellRinging,
+  EnvelopeSimple,
+} from "@/lib/icons";
+import {
   Loading,
   ErrorNote,
   EmptyState,
@@ -45,21 +55,44 @@ export default function AdminDashboardPage() {
           value={stats.queueCount}
           hint="מועמדים חדשים שטרם טופלו"
           tone={stats.queueCount > 0 ? "accent" : "default"}
+          icon={ListChecks}
         />
-        <StatCard label="קו״ח השבוע" value={stats.newCandidatesThisWeek} />
-        <StatCard label="גיוסים החודש" value={stats.placementsThisMonth} />
+        <StatCard
+          label="קו״ח השבוע"
+          value={stats.newCandidatesThisWeek}
+          icon={UserPlus}
+        />
+        <StatCard
+          label="גיוסים החודש"
+          value={stats.placementsThisMonth}
+          icon={Handshake}
+        />
         <StatCard
           label="עמלות פתוחות"
           value={formatCurrency(stats.pendingCommissions)}
+          icon={Coins}
         />
-        <StatCard label="מועמדים פעילים" value={stats.activeCandidates} />
-        <StatCard label="משרות פעילות" value={stats.activeJobs} />
+        <StatCard
+          label="מועמדים פעילים"
+          value={stats.activeCandidates}
+          icon={Users}
+        />
+        <StatCard
+          label="משרות פעילות"
+          value={stats.activeJobs}
+          icon={Briefcase}
+        />
         <StatCard
           label="תזכורות שעבר זמנן"
           value={stats.overdueReminders}
           tone={stats.overdueReminders > 0 ? "warn" : "default"}
+          icon={BellRinging}
         />
-        <StatCard label="מנויי מייל פעילים" value={stats.activeSubscribers} />
+        <StatCard
+          label="מנויי מייל פעילים"
+          value={stats.activeSubscribers}
+          icon={EnvelopeSimple}
+        />
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">

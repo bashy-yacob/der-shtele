@@ -8,6 +8,16 @@ import { SkylineMotif } from "@/components/ui/SkylineMotif";
 import { Reveal } from "@/components/ui/Reveal";
 import { CountUp } from "@/components/ui/CountUp";
 import {
+  ShieldCheck,
+  Handshake,
+  Gift,
+  Target,
+  HandHeart,
+  CaretDown,
+  ArrowLeft,
+  Briefcase,
+} from "@/lib/icons";
+import {
   SITE_NAME,
   SITE_DESCRIPTION,
   SITE_URL,
@@ -39,9 +49,13 @@ const CONTENT = {
     title: "המשרה הנכונה מחכה לך — בלי לחפש, בלי להיחשף",
     subtitle:
       "דער שטעלע היא סוכנות השמה לציבור החרדי. נרשמים, שולחים קורות חיים — והצוות שלנו עושה את כל השאר. כל פנייה עוברת דרכנו, והמעסיק לא רואה את הפרטים שלך עד הרגע הנכון.",
-    primary: "הרשמה וחיפוש משרות ←",
+    primary: "הרשמה וחיפוש משרות",
     secondary: "צפייה במשרות הפתוחות",
-    pills: ["דיסקרטיות מלאה", "ליווי אישי של הצוות", "הרשמה חינם"],
+    pills: [
+      { label: "דיסקרטיות מלאה", icon: ShieldCheck },
+      { label: "ליווי אישי של הצוות", icon: Handshake },
+      { label: "הרשמה חינם", icon: Gift },
+    ],
   },
   why: {
     eyebrow: "למה דרכנו",
@@ -52,18 +66,22 @@ const CONTENT = {
       {
         title: "דיסקרטיות מלאה",
         desc: "המעסיק אף פעם לא רואה את הפרטים שלך ישירות. כל קשר עובר דרך הצוות — אתה נחשף רק כשזה באמת מתאים.",
+        icon: ShieldCheck,
       },
       {
         title: "אנחנו עושים את העבודה",
         desc: "אין צורך לרדוף אחרי מעסיקים. שולחים קורות חיים פעם אחת, ואנחנו מציגים אותך למשרות הנכונות.",
+        icon: Handshake,
       },
       {
         title: "התאמה אמיתית, לא הצפה",
         desc: "לומדים מה מתאים לך ופונים אליך רק כשיש משהו קונקרטי. בלי עשרות מיילים, בלי רעש.",
+        icon: Target,
       },
       {
         title: "סביבה שמכבדת אותך",
         desc: "ממשק נקי, בלי תמונות. צוות שמכיר את הציבור ועובד לפי ערכיו.",
+        icon: HandHeart,
       },
     ],
   },
@@ -156,14 +174,16 @@ export default async function HomePage() {
           >
             <Link
               href="/register"
-              className="w-full sm:w-auto bg-navy-600 hover:bg-navy-700 text-white font-bold text-lg px-8 py-3.5 rounded-xl transition-colors duration-150 text-center"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-navy-600 hover:bg-navy-700 text-white font-bold text-lg px-8 py-3.5 rounded-xl transition-colors duration-150 text-center"
             >
               {CONTENT.hero.primary}
+              <ArrowLeft className="w-5 h-5 shrink-0" weight="bold" />
             </Link>
             <Link
               href="/jobs"
-              className="w-full sm:w-auto border border-navy-600 text-navy-600 hover:bg-navy-50 font-bold text-lg px-8 py-3.5 rounded-xl transition-colors duration-150 text-center"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-navy-600 text-navy-600 hover:bg-navy-50 font-bold text-lg px-8 py-3.5 rounded-xl transition-colors duration-150 text-center"
             >
+              <Briefcase className="w-5 h-5 shrink-0" />
               {CONTENT.hero.secondary}
             </Link>
           </div>
@@ -173,28 +193,18 @@ export default async function HomePage() {
             className="mt-10 flex flex-wrap justify-center gap-x-3 gap-y-2 animate-fade-up"
             style={{ animationDelay: "360ms" }}
           >
-            {CONTENT.hero.pills.map((pill) => (
-              <li
-                key={pill}
-                className="inline-flex items-center gap-1.5 bg-white/70 border border-sand-200 text-ink-700 text-sm font-semibold px-3 py-1.5 rounded-full"
-              >
-                <svg
-                  className="w-4 h-4 text-olive-600 shrink-0"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
+            {CONTENT.hero.pills.map((pill) => {
+              const Icon = pill.icon;
+              return (
+                <li
+                  key={pill.label}
+                  className="inline-flex items-center gap-1.5 bg-white/70 border border-sand-200 text-ink-700 text-sm font-semibold px-3 py-1.5 rounded-full"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-                {pill}
-              </li>
-            ))}
+                  <Icon className="w-[1.05rem] h-[1.05rem] text-olive-600 shrink-0" />
+                  {pill.label}
+                </li>
+              );
+            })}
           </ul>
         </div>
       </section>
@@ -229,36 +239,26 @@ export default async function HomePage() {
             />
           </Reveal>
           <div className="grid sm:grid-cols-2 gap-6">
-            {CONTENT.why.cards.map((card, idx) => (
-              <Reveal key={card.title} delay={idx * 90}>
-                <div className="h-full flex gap-4 bg-white border border-sand-200 rounded-2xl shadow-soft p-7 transition-shadow hover:shadow-lift">
-                  <span
-                    className="flex items-center justify-center w-11 h-11 rounded-full bg-olive-100 text-olive-700 shrink-0"
-                    aria-hidden="true"
-                  >
-                    <svg
-                      className="w-6 h-6"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  </span>
-                  <div>
-                    <h3 className="font-display text-ink-900 text-xl font-bold mb-2">
-                      {card.title}
-                    </h3>
-                    <p className="text-ink-700 leading-relaxed">{card.desc}</p>
+            {CONTENT.why.cards.map((card, idx) => {
+              const Icon = card.icon;
+              return (
+                <Reveal key={card.title} delay={idx * 90}>
+                  <div className="h-full flex gap-4 bg-white border border-sand-200 rounded-2xl shadow-soft p-7 transition-shadow hover:shadow-lift">
+                    <span className="flex items-center justify-center w-12 h-12 rounded-full bg-olive-100 text-olive-700 shrink-0">
+                      <Icon className="w-7 h-7" />
+                    </span>
+                    <div>
+                      <h3 className="font-display text-ink-900 text-xl font-bold mb-2">
+                        {card.title}
+                      </h3>
+                      <p className="text-ink-700 leading-relaxed">
+                        {card.desc}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </Reveal>
-            ))}
+                </Reveal>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -371,20 +371,10 @@ export default async function HomePage() {
                 <details className="group bg-sand-50 border border-sand-200 rounded-2xl px-5 py-4 [&_summary]:list-none open:shadow-soft">
                   <summary className="flex items-center justify-between gap-4 cursor-pointer font-display text-lg font-bold text-ink-900">
                     {item.q}
-                    <svg
+                    <CaretDown
                       className="w-5 h-5 text-olive-600 shrink-0 transition-transform duration-200 group-open:rotate-180"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
+                      weight="bold"
+                    />
                   </summary>
                   <p className="text-ink-700 leading-relaxed mt-3">{item.a}</p>
                 </details>
@@ -406,9 +396,10 @@ export default async function HomePage() {
             </p>
             <Link
               href="/register"
-              className="inline-flex items-center justify-center bg-olive-500 hover:bg-olive-600 text-white font-bold text-lg px-10 py-3.5 rounded-xl transition-colors duration-150"
+              className="inline-flex items-center justify-center gap-2 bg-olive-500 hover:bg-olive-600 text-white font-bold text-lg px-10 py-3.5 rounded-xl transition-colors duration-150"
             >
-              הרשמה וחיפוש משרות ←
+              הרשמה וחיפוש משרות
+              <ArrowLeft className="w-5 h-5 shrink-0" weight="bold" />
             </Link>
           </div>
         </Reveal>

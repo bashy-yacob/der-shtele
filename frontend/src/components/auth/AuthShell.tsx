@@ -49,7 +49,7 @@ export function AuthShell({
           </Link>
 
           <div className="relative">
-            <h2 className="font-display text-2xl font-bold leading-snug mb-6">
+            <h2 className="font-display text-2xl font-bold leading-snug mb-6 text-white">
               {panelTitle}
             </h2>
             <ul className="space-y-3">

@@ -17,7 +17,7 @@ export function Header() {
           {/* wordmark מותגי — סריף navy עם נקודת olive */}
           <Link
             href="/"
-            className="flex items-center gap-1 font-display text-2xl font-bold text-navy-600 tracking-tight"
+            className="flex items-center gap-1 font-logo text-2xl font-bold text-navy-600 tracking-tight"
           >
             <span>{SITE_NAME}</span>
             <span className="w-1.5 h-1.5 bg-olive-500 rounded-full shrink-0 mb-1" />
@@ -25,15 +25,19 @@ export function Header() {
 
           {/* ניווט ראשי */}
           <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-ink-500">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="hover:text-navy-600 transition-colors py-1.5"
-              >
-                {link.label}
-              </Link>
-            ))}
+            {NAV_LINKS.map((link) => {
+              const Icon = link.icon;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="flex items-center gap-1.5 hover:text-navy-600 transition-colors py-1.5"
+                >
+                  <Icon className="w-[1.05rem] h-[1.05rem] text-olive-500/90" />
+                  {link.label}
+                </Link>
+              );
+            })}
             <AdminHeaderLink />
           </nav>
         </div>

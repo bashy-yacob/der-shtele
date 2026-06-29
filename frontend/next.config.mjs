@@ -2,8 +2,12 @@
 const nextConfig = {
   // RTL support - Hebrew only
   i18n: {
-    locales: ['he'],
-    defaultLocale: 'he',
+    locales: ["he"],
+    defaultLocale: "he",
+  },
+  experimental: {
+    // ייבוא מודולרי של אייקונים — זמני build/dev מהיר וצרור קטן יותר
+    optimizePackageImports: ["@phosphor-icons/react"],
   },
 };
 

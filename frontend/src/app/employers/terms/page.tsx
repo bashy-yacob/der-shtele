@@ -120,7 +120,7 @@ export default function EmployersTermsPage() {
       {/* ======== דיסקרטיות + CTA ======== */}
       <section className="bg-navy-600 text-white py-16 px-4">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="font-display text-2xl sm:text-3xl font-bold mb-4">
+          <h2 className="font-display text-2xl sm:text-3xl font-bold mb-4 text-white">
             {TERMS.discretion.title}
           </h2>
           <p className="text-sand-200 text-lg leading-relaxed mb-8">

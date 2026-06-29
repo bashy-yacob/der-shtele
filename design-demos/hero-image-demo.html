@@ -1,0 +1,722 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>דער שטעלע — דמה: תמונת Hero</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&family=Frank+Ruhl+Libre:wght@700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ====== טוקנים מהקוד האמיתי (tailwind.config.js) ====== */
+      :root {
+        --navy-50: #f2f0f7;
+        --navy-600: #2e2549;
+        --navy-700: #281e40;
+        --olive-100: #fcd9c5;
+        --olive-300: #fb9960;
+        --olive-500: #ff803f;
+        --olive-600: #e55806;
+        --sand-50: #fcfaf4;
+        --sand-100: #f7f2e7;
+        --sand-200: #efe7d5;
+        --sand-300: #e0d4bb;
+        --ink-500: #8c8475;
+        --ink-700: #4a4439;
+        --ink-900: #211e18;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Heebo", Arial, sans-serif;
+        color: var(--ink-900);
+        background: #e9e4d8;
+      }
+
+      /* ====== סרגל בקרה (לא חלק מהעיצוב) ====== */
+      .panel {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: #1b1530;
+        color: #fff;
+        padding: 14px 20px;
+        box-shadow: 0 6px 20px -8px rgba(0, 0, 0, 0.5);
+      }
+      .panel h1 {
+        font-size: 16px;
+        margin: 0 0 10px;
+        font-weight: 800;
+      }
+      .panel .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px 26px;
+        align-items: center;
+      }
+      .panel label {
+        font-size: 13px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        cursor: pointer;
+      }
+      .panel .group {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(255, 255, 255, 0.07);
+        padding: 7px 12px;
+        border-radius: 10px;
+      }
+      .panel .group b {
+        font-size: 12px;
+        color: var(--olive-300);
+        font-weight: 700;
+      }
+      .filebtn {
+        background: var(--olive-500);
+        color: #fff;
+        font-weight: 700;
+        font-size: 13px;
+        border: none;
+        padding: 9px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+      }
+      .filebtn:hover {
+        background: var(--olive-600);
+      }
+      input[type="range"] {
+        accent-color: var(--olive-500);
+      }
+      select,
+      input[type="range"] {
+        cursor: pointer;
+      }
+      .hint {
+        font-size: 12px;
+        color: #cdc6e0;
+        margin-top: 8px;
+        line-height: 1.5;
+      }
+
+      /* ====== הערת המלצה ====== */
+      .note {
+        max-width: 1000px;
+        margin: 22px auto 6px;
+        padding: 16px 20px;
+        background: #fff;
+        border: 1px solid var(--sand-200);
+        border-right: 5px solid var(--olive-500);
+        border-radius: 14px;
+        font-size: 14px;
+        line-height: 1.7;
+        color: var(--ink-700);
+      }
+      .note b {
+        color: var(--ink-900);
+      }
+      .empty {
+        max-width: 1000px;
+        margin: 60px auto;
+        text-align: center;
+        color: var(--ink-700);
+        font-size: 18px;
+        background: #fff;
+        border: 1px dashed var(--sand-300);
+        border-radius: 16px;
+        padding: 50px 20px;
+      }
+
+      /* ====== מסגרת תצוגה (מדמה דף אמיתי) ====== */
+      .frame {
+        margin: 0 0 30px;
+        background: var(--sand-100);
+        overflow: hidden;
+        box-shadow: 0 10px 40px -16px rgba(33, 30, 24, 0.3);
+        border-top: 1px solid var(--sand-200);
+        border-bottom: 1px solid var(--sand-200);
+      }
+      /* מסך מלא אמיתי */
+      .frame:fullscreen {
+        margin: 0;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        background: var(--sand-100);
+      }
+      .frame:fullscreen .hero {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .frame:fullscreen .hero.side .split {
+        flex: 1 1 auto;
+      }
+      .fsbtn {
+        background: var(--olive-500);
+        color: #fff;
+        border: none;
+        font-weight: 700;
+        font-size: 12px;
+        padding: 5px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-family: inherit;
+      }
+      .fsbtn:hover {
+        background: var(--olive-600);
+      }
+      .variant-label {
+        background: #1b1530;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 8px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .variant-label .tag {
+        color: var(--olive-300);
+      }
+
+      /* בר עליון מדומה */
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 26px;
+        background: var(--sand-100);
+        border-bottom: 1px solid var(--sand-200);
+      }
+      .wordmark {
+        font-family: "Frank Ruhl Libre", serif;
+        font-weight: 700;
+        font-size: 22px;
+        color: var(--ink-900);
+      }
+      .wordmark .dot {
+        color: var(--olive-500);
+      }
+      .nav {
+        display: flex;
+        gap: 18px;
+        font-size: 14px;
+        color: var(--ink-700);
+        font-weight: 500;
+      }
+
+      /* ====== HERO — בסיס ====== */
+      .hero {
+        position: relative;
+        overflow: hidden;
+      }
+      /* תמונת רקע מוצגת רק ב"רקע מלא"; תמונת צד רק ב"תמונה בצד" */
+      .bgimg,
+      .overlay {
+        display: none;
+      }
+      .imgcol {
+        display: none;
+      }
+      .hero-inner {
+        position: relative;
+        z-index: 2;
+        max-width: 780px;
+        margin: 0 auto;
+        padding: 70px 24px;
+        text-align: center;
+      }
+      .hero h2 {
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        line-height: 1.12;
+        margin: 0 0 18px;
+        font-size: clamp(28px, 4.4vw, 46px);
+      }
+      .hero p.sub {
+        font-size: clamp(16px, 1.7vw, 19px);
+        line-height: 1.65;
+        max-width: 560px;
+        margin: 0 auto 28px;
+      }
+      .btns {
+        display: flex;
+        gap: 14px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .btn {
+        font-weight: 700;
+        font-size: 16px;
+        padding: 13px 28px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        cursor: default;
+      }
+      .btn-primary {
+        background: var(--navy-600);
+        color: #fff;
+      }
+      .btn-secondary {
+        background: transparent;
+        border: 1.5px solid var(--navy-600);
+        color: var(--navy-600);
+      }
+      .pills {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 30px;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 7px 14px;
+        border-radius: 999px;
+        border: 1px solid var(--sand-200);
+      }
+      .pill svg {
+        width: 15px;
+        height: 15px;
+        color: var(--olive-600);
+      }
+
+      /* פס סטטיסטיקות (כדי לראות איך התמונה מתחברת לסגול שמתחת) */
+      .stats {
+        background: var(--navy-600);
+        color: #fff;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        padding: 26px;
+        text-align: center;
+      }
+      .stats .num {
+        font-weight: 800;
+        font-size: 30px;
+        color: var(--olive-300);
+      }
+      .stats .lbl {
+        font-size: 12px;
+        color: var(--sand-200);
+        margin-top: 3px;
+      }
+
+      /* ---- מצב: רקע מלא ---- */
+      .hero.full .bgimg {
+        display: block;
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 0;
+      }
+      .hero.full .overlay {
+        display: block;
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        background: linear-gradient(
+          to top,
+          rgba(46, 37, 73, var(--ov)) 0%,
+          rgba(46, 37, 73, calc(var(--ov) * 0.82)) 55%,
+          rgba(46, 37, 73, calc(var(--ov) * 0.6)) 100%
+        );
+      }
+      .hero.full {
+        min-height: clamp(440px, 62vh, 640px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      /* "הצג תמונה שלמה" — object-fit נקבע inline ב-JS; כאן רק רקע מאחורי הפסים */
+      .hero.full.contain {
+        background: var(--navy-700);
+      }
+      .hero.side.contain .imgcol {
+        background: var(--sand-100);
+      }
+      .hero.full h2 {
+        color: #fff;
+      }
+      .hero.full p.sub {
+        color: #f3eee2;
+      }
+      .hero.full .btn-secondary {
+        border-color: #fff;
+        color: #fff;
+      }
+      .hero.full .pill {
+        background: rgba(255, 255, 255, 0.14);
+        border-color: rgba(255, 255, 255, 0.25);
+        color: #fff;
+      }
+      .hero.full .pill svg {
+        color: var(--olive-300);
+      }
+
+      /* ---- מצב: תמונה בצד ---- */
+      .hero.side {
+        background: var(--sand-100);
+      }
+      .hero.side .split {
+        display: flex;
+        align-items: stretch;
+        gap: 0;
+        flex-wrap: wrap;
+      }
+      .hero.side .txtcol {
+        flex: 1 1 50%;
+        min-width: 300px;
+      }
+      .hero.side .txtcol .hero-inner {
+        text-align: right;
+        margin: 0;
+        max-width: none;
+        padding: 60px 40px;
+      }
+      .hero.side .txtcol .btns,
+      .hero.side .txtcol .pills {
+        justify-content: flex-start;
+      }
+      .hero.side .txtcol p.sub {
+        margin-right: 0;
+        margin-left: auto;
+      }
+      .hero.side h2 {
+        color: var(--ink-900);
+      }
+      .hero.side p.sub {
+        color: var(--ink-700);
+      }
+      .hero.side .imgcol {
+        display: block;
+        flex: 1 1 42%;
+        min-width: 280px;
+        position: relative;
+        min-height: 460px;
+        background: var(--sand-200);
+      }
+      .hero.side .imgcol img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .hero.side.tint .imgcol img {
+        mix-blend-mode: multiply;
+      }
+      .hero.side .imgcol::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        box-shadow: inset 60px 0 60px -40px var(--sand-100);
+      } /* מעבר רך לטקסט */
+    </style>
+  </head>
+  <body>
+    <div class="panel">
+      <h1>🖼️ דמה — בחירת תמונת Hero לאתר דער שטעלע</h1>
+      <div class="row">
+        <button class="filebtn" id="loadBtn" type="button">
+          טען תמונות (אפשר לבחור את כל ה‑8 ביחד)
+        </button>
+        <input
+          type="file"
+          id="fileInput"
+          accept="image/*"
+          multiple
+          style="display: none"
+        />
+
+        <span class="group"
+          ><b>פריסה</b>
+          <label
+            ><input type="radio" name="layout" value="full" checked /> רקע
+            מלא</label
+          >
+          <label
+            ><input type="radio" name="layout" value="side" /> תמונה בצד</label
+          >
+        </span>
+
+        <span class="group"
+          ><b>התאמת תמונה</b>
+          <label
+            ><input type="radio" name="fit" value="cover" checked /> מילוי
+            (חיתוך)</label
+          >
+          <label
+            ><input type="radio" name="fit" value="contain" /> הצג תמונה
+            שלמה</label
+          >
+        </span>
+
+        <span class="group" id="ovGroup"
+          ><b>כהות שכבת־על</b>
+          <input type="range" id="overlay" min="0" max="90" value="58" />
+          <span id="ovVal" style="font-size: 12px; width: 34px">58%</span>
+        </span>
+
+        <span class="group"
+          ><b>מיקום תמונה</b>
+          <label style="gap: 5px"
+            >↔ אופקי <input type="range" id="posX" min="0" max="100" value="50"
+          /></label>
+          <label style="gap: 5px"
+            >↕ אנכי <input type="range" id="posY" min="0" max="100" value="35"
+          /></label>
+        </span>
+
+        <span class="group" id="tintGroup" style="display: none"
+          ><b>גוון לקרם</b>
+          <label
+            ><input type="checkbox" id="tint" /> מיזוג לרקע (לתמונות
+            חתוכות/8)</label
+          >
+        </span>
+      </div>
+      <div class="hint">
+        טוען מהמחשב שלך — שום דבר לא נשמר ולא נשלח לשום מקום. בחרי את כל התמונות
+        ביחד; הן ייכנסו לפי הסדר כ"תמונה 1…8". בכל תמונה יש כפתור "⛶ מסך מלא"
+        לתצוגה אמיתית בגודל מלא, וסליידרים "מיקום תמונה" כדי לקבוע בדיוק איפה
+        התמונה מתחילה (אופקי + אנכי).
+      </div>
+    </div>
+
+    <div class="note">
+      <b>תזכורת מהירה:</b> לטעמי 🟢 <b>8</b> (רקע נקי) ו‑<b>6</b> (חדר ישיבות)
+      משתלבות הכי יפה; 🔴 הייתי נמנעת מ‑<b>7</b> (כסף), <b>1</b> (בורסה),
+      <b>2</b> (חיצים), <b>5</b> (רשת כחולה) ו‑<b>4</b> (צלליות אנשים) כי הן
+      משדרות חומרנות או צבע קר שמתנגש בפלטה החמה. הכל פתוח להחלטה שלך — בשביל זה
+      הדמה.
+    </div>
+
+    <div id="emptyState" class="empty">
+      ⬆ לחצי על "טען תמונות" למעלה כדי לראות את כל התמונות בתוך העיצוב.
+    </div>
+
+    <div id="variants"></div>
+
+    <template id="heroTpl">
+      <div class="frame">
+        <div class="variant-label">
+          <span class="name"></span>
+          <span style="display: flex; align-items: center; gap: 12px">
+            <span class="tag"></span>
+            <button class="fsbtn" type="button">⛶ מסך מלא</button>
+          </span>
+        </div>
+        <div class="topbar">
+          <span class="wordmark">דער שטעלע<span class="dot"> ●</span></span>
+          <span class="nav"
+            ><span>דף הבית</span><span>לוח משרות</span><span>למעסיקים</span
+            ><span>אודות</span><span>צור קשר</span></span
+          >
+        </div>
+        <section class="hero">
+          <img class="bgimg" alt="" />
+          <div class="overlay"></div>
+          <div class="split">
+            <div class="txtcol">
+              <div class="hero-inner">
+                <h2>המשרה הנכונה מחכה לך — בלי לחפש, בלי להיחשף</h2>
+                <p class="sub">
+                  דער שטעלע היא סוכנות השמה לציבור החרדי. נרשמים, שולחים קורות
+                  חיים — והצוות שלנו עושה את כל השאר.
+                </p>
+                <div class="btns">
+                  <a class="btn btn-primary">הרשמה וחיפוש משרות ←</a>
+                  <a class="btn btn-secondary">צפייה במשרות הפתוחות</a>
+                </div>
+                <div class="pills">
+                  <span class="pill"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="3"
+                    >
+                      <path d="M5 13l4 4L19 7" />
+                    </svg>
+                    דיסקרטיות מלאה</span
+                  >
+                  <span class="pill"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="3"
+                    >
+                      <path d="M5 13l4 4L19 7" />
+                    </svg>
+                    ליווי אישי של הצוות</span
+                  >
+                  <span class="pill"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="3"
+                    >
+                      <path d="M5 13l4 4L19 7" />
+                    </svg>
+                    הרשמה חינם</span
+                  >
+                </div>
+              </div>
+            </div>
+            <div class="imgcol"><img alt="" /></div>
+          </div>
+        </section>
+        <div class="stats">
+          <div>
+            <div class="num">9+</div>
+            <div class="lbl">משרות פתוחות עכשיו</div>
+          </div>
+          <div>
+            <div class="num">100%</div>
+            <div class="lbl">דיסקרטי — הפרטים אצלנו</div>
+          </div>
+          <div>
+            <div class="num">0 ₪</div>
+            <div class="lbl">להרשמה ולהגשה — תמיד</div>
+          </div>
+          <div>
+            <div class="num">3</div>
+            <div class="lbl">חודשי ערבות על כל השמה</div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <script>
+      const images = []; // data URLs לפי סדר טעינה
+      const fileInput = document.getElementById("fileInput");
+      const loadBtn = document.getElementById("loadBtn");
+      const variants = document.getElementById("variants");
+      const emptyState = document.getElementById("emptyState");
+      const tpl = document.getElementById("heroTpl");
+
+      const state = {
+        layout: "full",
+        fit: "cover",
+        overlay: 0.58,
+        posX: 50,
+        posY: 35,
+        tint: false,
+      };
+
+      loadBtn.addEventListener("click", () => fileInput.click());
+      fileInput.addEventListener("change", (e) => {
+        const files = [...e.target.files];
+        let pending = files.length;
+        if (!pending) return;
+        images.length = 0;
+        const slots = new Array(files.length);
+        files.forEach((file, i) => {
+          const r = new FileReader();
+          r.onload = (ev) => {
+            slots[i] = ev.target.result;
+            if (--pending === 0) {
+              images.push(...slots);
+              render();
+            }
+          };
+          r.readAsDataURL(file);
+        });
+      });
+
+      document.querySelectorAll("input[name=layout]").forEach((r) =>
+        r.addEventListener("change", (e) => {
+          state.layout = e.target.value;
+          syncControls();
+          render();
+        }),
+      );
+      document.querySelectorAll("input[name=fit]").forEach((r) =>
+        r.addEventListener("change", (e) => {
+          state.fit = e.target.value;
+          render();
+        }),
+      );
+      document.getElementById("overlay").addEventListener("input", (e) => {
+        state.overlay = e.target.value / 100;
+        document.getElementById("ovVal").textContent = e.target.value + "%";
+        render();
+      });
+      document.getElementById("posX").addEventListener("input", (e) => {
+        state.posX = +e.target.value;
+        render();
+      });
+      document.getElementById("posY").addEventListener("input", (e) => {
+        state.posY = +e.target.value;
+        render();
+      });
+      document.getElementById("tint").addEventListener("change", (e) => {
+        state.tint = e.target.checked;
+        render();
+      });
+
+      function syncControls() {
+        document.getElementById("ovGroup").style.display =
+          state.layout === "full" ? "" : "none";
+        document.getElementById("tintGroup").style.display =
+          state.layout === "side" ? "" : "none";
+      }
+
+      function render() {
+        variants.innerHTML = "";
+        emptyState.style.display = images.length ? "none" : "";
+        images.forEach((src, i) => {
+          const node = tpl.content.cloneNode(true);
+          node.querySelector(".name").textContent = "תמונה " + (i + 1);
+          node.querySelector(".tag").textContent =
+            state.layout === "full" ? "רקע מלא" : "תמונה בצד";
+          const hero = node.querySelector(".hero");
+          hero.classList.add(state.layout);
+          if (state.tint) hero.classList.add("tint");
+          if (state.fit === "contain") hero.classList.add("contain");
+          hero.style.setProperty("--ov", state.overlay);
+          const bg = node.querySelector(".bgimg");
+          const sideImg = node.querySelector(".imgcol img");
+          const objPos = state.posX + "% " + state.posY + "%";
+          bg.src = src;
+          sideImg.src = src;
+          bg.style.objectFit = state.fit;
+          sideImg.style.objectFit = state.fit;
+          bg.style.objectPosition = objPos;
+          sideImg.style.objectPosition = objPos;
+          const frame = node.querySelector(".frame");
+          node.querySelector(".fsbtn").addEventListener("click", () => {
+            (frame.requestFullscreen || frame.webkitRequestFullscreen).call(
+              frame,
+            );
+          });
+          variants.appendChild(node);
+        });
+      }
+
+      syncControls();
+    </script>
+  </body>
+</html>
