@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -14,11 +15,18 @@ import {
   Textarea,
   CityCombobox,
   SectionHeading,
-  SkylineMotif,
   Reveal,
 } from "@/components/ui";
+import { HandCoins, ShieldCheck, Lock } from "@/lib/icons";
 
 const FORM = SITE_CONTENT.employers.contactForm;
+
+// תגיות אמון קטנות בהירו — ערכי הליבה למעסיק
+const HERO_PILLS = [
+  { label: "תשלום רק על תוצאה", icon: HandCoins },
+  { label: "ערבות שלושה חודשים", icon: ShieldCheck },
+  { label: "דיסקרטיות מלאה", icon: Lock },
+];
 
 // ולידציה לטופס פניית מעסיק — נשלח דרך ה-endpoint הציבורי /api/contact.
 // המטרה: לאסוף מהמעסיק את כל מה שהצוות צריך כדי לפתוח משרה ולחזור אליו,
@@ -131,24 +139,50 @@ export default function EmployersContactPage() {
   return (
     <main dir="rtl">
       {/* ======== HERO ======== */}
-      <section className="relative overflow-hidden bg-sand-100 border-b border-sand-200">
-        <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-40 text-sand-300/70 animate-float"
-          aria-hidden="true"
-        >
-          <SkylineMotif className="w-full h-full" />
+      <section className="relative overflow-hidden border-b border-navy-700">
+        {/* תמונת רקע — לחיצת יד (עקבי עם ה-Hero בעמוד הבית) */}
+        <div className="absolute inset-0" aria-hidden="true">
+          <Image
+            src="/hero-handshake.jpg"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-center"
+          />
+          {/* שכבת-על סגולה — לקריאוּת הטקסט הלבן */}
+          <div className="absolute inset-0 bg-gradient-to-t from-navy-800/85 via-navy-700/60 to-navy-600/35" />
         </div>
 
         <div className="relative max-w-3xl mx-auto px-4 py-20 sm:py-24 text-center">
-          <h1 className="font-display text-ink-900 text-4xl sm:text-5xl font-bold tracking-tight leading-tight mb-5 animate-fade-up">
+          <h1 className="font-display text-white text-4xl sm:text-5xl font-bold tracking-tight leading-tight mb-5 animate-fade-up [text-shadow:0_2px_24px_rgba(21,15,36,0.45)]">
             {FORM.title}
           </h1>
           <p
-            className="text-ink-700 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed animate-fade-up"
+            className="text-sand-100 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed animate-fade-up"
             style={{ animationDelay: "120ms" }}
           >
             {FORM.subtitle}
           </p>
+
+          {/* תגיות אמון קטנות */}
+          <ul
+            className="mt-8 flex flex-wrap justify-center gap-x-3 gap-y-2 animate-fade-up"
+            style={{ animationDelay: "240ms" }}
+          >
+            {HERO_PILLS.map((pill) => {
+              const Icon = pill.icon;
+              return (
+                <li
+                  key={pill.label}
+                  className="inline-flex items-center gap-1.5 bg-white/10 border border-white/25 text-white text-sm font-semibold px-3 py-1.5 rounded-full backdrop-blur-sm"
+                >
+                  <Icon className="w-[1.05rem] h-[1.05rem] text-olive-300 shrink-0" />
+                  {pill.label}
+                </li>
+              );
+            })}
+          </ul>
         </div>
       </section>
 
@@ -158,9 +192,17 @@ export default function EmployersContactPage() {
           {/* הבטחת דיסקרטיות — מודל התיווך של הסוכנות */}
           <Reveal>
             <div className="mb-8 bg-navy-600 text-white rounded-2xl p-6">
-              <h2 className="font-display text-lg font-bold mb-2 text-white">
-                {SITE_CONTENT.employers.terms.discretion.title}
-              </h2>
+              <div className="flex items-center gap-2.5 mb-2">
+                <span
+                  className="flex items-center justify-center w-9 h-9 rounded-full bg-white/10 text-olive-300 shrink-0"
+                  aria-hidden="true"
+                >
+                  <ShieldCheck className="w-5 h-5" />
+                </span>
+                <h2 className="font-display text-lg font-bold text-white">
+                  {SITE_CONTENT.employers.terms.discretion.title}
+                </h2>
+              </div>
               <p className="text-sand-200 text-sm leading-relaxed">
                 {SITE_CONTENT.employers.terms.discretion.body}
               </p>

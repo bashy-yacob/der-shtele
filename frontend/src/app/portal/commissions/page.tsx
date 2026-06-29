@@ -2,10 +2,7 @@
 
 // עמלות וחשבוניות של המעסיק (קריאה בלבד). מציג סטטוס אפקטיבי + מועד תום ערבות.
 import { useEffect, useState } from "react";
-import {
-  listPortalPlacements,
-  type PortalPlacement,
-} from "@/lib/portal-api";
+import { listPortalPlacements, type PortalPlacement } from "@/lib/portal-api";
 import { Card } from "@/components/ui";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { COMMISSION_STATUS_LABELS } from "@/lib/labels";
@@ -35,7 +32,7 @@ export default function PortalCommissionsPage() {
           <p className="text-ink-500">אין עדיין גיוסים או עמלות לרישום.</p>
         </Card>
       ) : (
-        <Card className="p-0 overflow-hidden">
+        <Card className="p-0 overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-sand-50 text-ink-500">
               <tr>

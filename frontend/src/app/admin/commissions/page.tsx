@@ -147,7 +147,7 @@ export default function CommissionsPage() {
       {rows.length === 0 ? (
         <EmptyState message="אין עמלות לרישום עדיין" />
       ) : (
-        <Card className="p-0 overflow-hidden">
+        <Card className="p-0 overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-sand-50 text-ink-500">
               <tr>
@@ -174,7 +174,8 @@ export default function CommissionsPage() {
                   p.commissionStatus,
                   p.guaranteeEndsAt,
                 );
-                const settled = status === "paid" || status === "partial_refund";
+                const settled =
+                  status === "paid" || status === "partial_refund";
                 const days = daysUntil(p.guaranteeEndsAt);
                 const approaching =
                   !settled && !collectible && days > 0 && days <= 7;

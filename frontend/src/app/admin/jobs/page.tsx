@@ -46,7 +46,7 @@ export default function JobsListPage() {
       ) : jobs.length === 0 ? (
         <EmptyState message="אין משרות. צור משרה חדשה כדי להתחיל." />
       ) : (
-        <Card className="p-0 overflow-hidden">
+        <Card className="p-0 overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-sand-50 text-ink-500">
               <tr>

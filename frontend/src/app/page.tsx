@@ -150,69 +150,77 @@ export default async function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_LD) }}
       />
       {/* ======== HERO ======== */}
-      <section className="relative overflow-hidden border-b border-navy-700">
-        {/* תמונת רקע — לחיצת יד (במקום מוטיב קו-הרקיע) */}
-        <div className="absolute inset-0" aria-hidden="true">
-          <Image
-            src="/hero-handshake.jpg"
-            alt=""
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover object-center"
-          />
-          {/* שכבת-על סגולה — לקריאוּת הטקסט ולמעבר רך אל פס הסטטיסטיקות */}
-          <div className="absolute inset-0 bg-gradient-to-t from-navy-800/80 via-navy-700/55 to-navy-600/30" />
-        </div>
-
-        <div className="relative max-w-4xl mx-auto px-4 py-24 sm:py-28 text-center">
-          <h1 className="font-display text-white text-4xl sm:text-6xl font-bold tracking-tight leading-tight mb-6 animate-fade-up [text-shadow:0_2px_24px_rgba(21,15,36,0.45)]">
-            {CONTENT.hero.title}
-          </h1>
-          <p
-            className="text-sand-100 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed mb-10 animate-fade-up"
-            style={{ animationDelay: "120ms" }}
-          >
-            {CONTENT.hero.subtitle}
-          </p>
-          <div
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-up"
-            style={{ animationDelay: "240ms" }}
-          >
-            <Link
-              href="/register"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-olive-500 hover:bg-olive-600 text-white font-bold text-lg px-8 py-3.5 rounded-xl transition-colors duration-150 text-center shadow-lift"
-            >
-              {CONTENT.hero.primary}
-              <ArrowLeft className="w-5 h-5 shrink-0" weight="bold" />
-            </Link>
-            <Link
-              href="/jobs"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-white/70 text-white hover:bg-white/10 font-bold text-lg px-8 py-3.5 rounded-xl transition-colors duration-150 text-center"
-            >
-              <Briefcase className="w-5 h-5 shrink-0" />
-              {CONTENT.hero.secondary}
-            </Link>
-          </div>
-
-          {/* תגיות אמון קטנות */}
-          <ul
-            className="mt-10 flex flex-wrap justify-center gap-x-3 gap-y-2 animate-fade-up"
-            style={{ animationDelay: "360ms" }}
-          >
-            {CONTENT.hero.pills.map((pill) => {
-              const Icon = pill.icon;
-              return (
-                <li
-                  key={pill.label}
-                  className="inline-flex items-center gap-1.5 bg-white/10 border border-white/25 text-white text-sm font-semibold px-3 py-1.5 rounded-full backdrop-blur-sm"
+      <section className="relative overflow-hidden bg-sand-100 border-b border-sand-200">
+        <div className="relative max-w-5xl mx-auto px-4 py-16 sm:py-20 lg:py-24">
+          <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-12">
+            {/* טקסט */}
+            <div className="text-center lg:text-start">
+              <h1 className="font-display text-ink-900 text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-tight mb-6 animate-fade-up">
+                {CONTENT.hero.title}
+              </h1>
+              <p
+                className="text-ink-700 text-lg sm:text-xl max-w-xl mx-auto lg:mx-0 leading-relaxed mb-8 animate-fade-up"
+                style={{ animationDelay: "120ms" }}
+              >
+                {CONTENT.hero.subtitle}
+              </p>
+              <div
+                className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center animate-fade-up"
+                style={{ animationDelay: "240ms" }}
+              >
+                <Link
+                  href="/register"
+                  className={buttonClass("primary", "lg", "w-full sm:w-auto")}
                 >
-                  <Icon className="w-[1.05rem] h-[1.05rem] text-olive-300 shrink-0" />
-                  {pill.label}
-                </li>
-              );
-            })}
-          </ul>
+                  {CONTENT.hero.primary}
+                  <ArrowLeft className="w-5 h-5 shrink-0" weight="bold" />
+                </Link>
+                <Link
+                  href="/jobs"
+                  className={buttonClass("outline", "lg", "w-full sm:w-auto")}
+                >
+                  <Briefcase className="w-5 h-5 shrink-0" />
+                  {CONTENT.hero.secondary}
+                </Link>
+              </div>
+
+              {/* תגיות אמון קטנות */}
+              <ul
+                className="mt-8 flex flex-wrap justify-center lg:justify-start gap-x-3 gap-y-2 animate-fade-up"
+                style={{ animationDelay: "360ms" }}
+              >
+                {CONTENT.hero.pills.map((pill) => {
+                  const Icon = pill.icon;
+                  return (
+                    <li
+                      key={pill.label}
+                      className="inline-flex items-center gap-1.5 bg-white/70 border border-sand-200 text-ink-700 text-sm font-semibold px-3 py-1.5 rounded-full"
+                    >
+                      <Icon className="w-[1.05rem] h-[1.05rem] text-olive-600 shrink-0" />
+                      {pill.label}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+
+            {/* תמונה — לחיצת יד במסגרת לבנה נקייה (הרקע הלבן מתמזג, ללא קרופ אגרסיבי) */}
+            <div
+              className="animate-fade-up"
+              style={{ animationDelay: "180ms" }}
+            >
+              <div className="relative aspect-[4/3] sm:aspect-[3/2] w-full overflow-hidden rounded-2xl border border-sand-200 bg-white shadow-lift">
+                <Image
+                  src="/hero-handshake.jpg"
+                  alt="לחיצת יד — שיתוף פעולה בין מועמד למעסיק, בליווי הצוות"
+                  fill
+                  priority
+                  sizes="(min-width: 1024px) 32rem, 100vw"
+                  className="object-cover object-center"
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

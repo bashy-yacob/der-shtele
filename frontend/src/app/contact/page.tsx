@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -12,9 +13,15 @@ import {
   Select,
   Textarea,
   SectionHeading,
-  SkylineMotif,
   Reveal,
 } from "@/components/ui";
+import {
+  Phone,
+  EnvelopeSimple,
+  Clock,
+  ShieldCheck,
+  Handshake,
+} from "@/lib/icons";
 
 // Validation schema for contact form
 const contactSchema = z.object({
@@ -48,7 +55,7 @@ const contactSchema = z.object({
 
 type ContactFormData = z.infer<typeof contactSchema>;
 
-// פרטי קשר מוצגים ככרטיסים עם אייקון — עקבי עם שאר האתר
+// פרטי קשר מוצגים ככרטיסים עם אייקון Phosphor — עקבי עם שאר האתר
 const CONTACT_CHANNELS = [
   {
     key: "phone",
@@ -56,7 +63,7 @@ const CONTACT_CHANNELS = [
     value: CONTACT_INFO.phone,
     href: `tel:${CONTACT_INFO.phone}`,
     note: null as string | null,
-    icon: "M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z",
+    icon: Phone,
   },
   {
     key: "email",
@@ -64,7 +71,7 @@ const CONTACT_CHANNELS = [
     value: CONTACT_INFO.email,
     href: `mailto:${CONTACT_INFO.email}`,
     note: null as string | null,
-    icon: "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z",
+    icon: EnvelopeSimple,
   },
   {
     key: "hours",
@@ -72,8 +79,15 @@ const CONTACT_CHANNELS = [
     value: CONTACT_INFO.hours,
     href: null as string | null,
     note: CONTACT_INFO.note,
-    icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
+    icon: Clock,
   },
+];
+
+// תגיות אמון קטנות בהירו — עקבי עם עמוד הבית
+const HERO_PILLS = [
+  { label: "דיסקרטיות מלאה", icon: ShieldCheck },
+  { label: "מענה אישי מהצוות", icon: Handshake },
+  { label: "א׳–ה׳ · לא בשבת ויו״ט", icon: Clock },
 ];
 
 export default function ContactPage() {
@@ -122,24 +136,50 @@ export default function ContactPage() {
   return (
     <main dir="rtl">
       {/* ======== HERO ======== */}
-      <section className="relative overflow-hidden bg-sand-100 border-b border-sand-200">
-        <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-40 text-sand-300/70 animate-float"
-          aria-hidden="true"
-        >
-          <SkylineMotif className="w-full h-full" />
+      <section className="relative overflow-hidden border-b border-navy-700">
+        {/* תמונת רקע — לחיצת יד (עקבי עם ה-Hero בעמוד הבית) */}
+        <div className="absolute inset-0" aria-hidden="true">
+          <Image
+            src="/hero-handshake.jpg"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-center"
+          />
+          {/* שכבת-על סגולה — לקריאוּת הטקסט הלבן */}
+          <div className="absolute inset-0 bg-gradient-to-t from-navy-800/85 via-navy-700/60 to-navy-600/35" />
         </div>
 
         <div className="relative max-w-3xl mx-auto px-4 py-20 sm:py-24 text-center">
-          <h1 className="font-display text-ink-900 text-4xl sm:text-5xl font-bold tracking-tight leading-tight mb-5 animate-fade-up">
+          <h1 className="font-display text-white text-4xl sm:text-5xl font-bold tracking-tight leading-tight mb-5 animate-fade-up [text-shadow:0_2px_24px_rgba(21,15,36,0.45)]">
             {SITE_CONTENT.contact.title}
           </h1>
           <p
-            className="text-ink-700 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed animate-fade-up"
+            className="text-sand-100 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed animate-fade-up"
             style={{ animationDelay: "120ms" }}
           >
             {SITE_CONTENT.contact.subtitle}
           </p>
+
+          {/* תגיות אמון קטנות */}
+          <ul
+            className="mt-8 flex flex-wrap justify-center gap-x-3 gap-y-2 animate-fade-up"
+            style={{ animationDelay: "240ms" }}
+          >
+            {HERO_PILLS.map((pill) => {
+              const Icon = pill.icon;
+              return (
+                <li
+                  key={pill.label}
+                  className="inline-flex items-center gap-1.5 bg-white/10 border border-white/25 text-white text-sm font-semibold px-3 py-1.5 rounded-full backdrop-blur-sm"
+                >
+                  <Icon className="w-[1.05rem] h-[1.05rem] text-olive-300 shrink-0" />
+                  {pill.label}
+                </li>
+              );
+            })}
+          </ul>
         </div>
       </section>
 
@@ -153,60 +193,59 @@ export default function ContactPage() {
             </Reveal>
 
             <div className="space-y-5">
-              {CONTACT_CHANNELS.map((channel, idx) => (
-                <Reveal key={channel.key} delay={idx * 90}>
-                  <div className="flex gap-4 bg-white border border-sand-200 rounded-2xl shadow-soft p-5 transition-shadow hover:shadow-lift">
-                    <span
-                      className="flex items-center justify-center w-11 h-11 rounded-full bg-olive-100 text-olive-700 shrink-0"
-                      aria-hidden="true"
-                    >
-                      <svg
-                        className="w-6 h-6"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+              {CONTACT_CHANNELS.map((channel, idx) => {
+                const Icon = channel.icon;
+                return (
+                  <Reveal key={channel.key} delay={idx * 90}>
+                    <div className="flex gap-4 bg-white border border-sand-200 rounded-2xl shadow-soft p-5 transition-shadow hover:shadow-lift">
+                      <span
+                        className="flex items-center justify-center w-11 h-11 rounded-full bg-olive-100 text-olive-700 shrink-0"
+                        aria-hidden="true"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d={channel.icon}
-                        />
-                      </svg>
-                    </span>
-                    <div className="min-w-0">
-                      <h3 className="font-display text-ink-900 font-bold mb-1">
-                        {channel.label}
-                      </h3>
-                      {channel.href ? (
-                        <a
-                          href={channel.href}
-                          className="text-lg font-medium text-navy-600 hover:text-navy-700 break-words"
-                        >
-                          {channel.value}
-                        </a>
-                      ) : (
-                        <p className="text-ink-700 font-medium leading-relaxed">
-                          {channel.value}
-                        </p>
-                      )}
-                      {channel.note && (
-                        <p className="text-sm text-ink-500 mt-1.5">
-                          {channel.note}
-                        </p>
-                      )}
+                        <Icon className="w-6 h-6" />
+                      </span>
+                      <div className="min-w-0">
+                        <h3 className="font-display text-ink-900 font-bold mb-1">
+                          {channel.label}
+                        </h3>
+                        {channel.href ? (
+                          <a
+                            href={channel.href}
+                            className="text-lg font-medium text-navy-600 hover:text-navy-700 break-words"
+                          >
+                            {channel.value}
+                          </a>
+                        ) : (
+                          <p className="text-ink-700 font-medium leading-relaxed">
+                            {channel.value}
+                          </p>
+                        )}
+                        {channel.note && (
+                          <p className="text-sm text-ink-500 mt-1.5">
+                            {channel.note}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </Reveal>
-              ))}
+                  </Reveal>
+                );
+              })}
             </div>
 
             {/* הבטחת דיסקרטיות — מודל התיווך של הסוכנות */}
             <Reveal delay={270}>
               <div className="mt-6 bg-navy-600 text-white rounded-2xl p-6">
-                <h3 className="font-display text-lg font-bold mb-2 text-white">
-                  כל פנייה נשארת אצלנו
-                </h3>
+                <div className="flex items-center gap-2.5 mb-2">
+                  <span
+                    className="flex items-center justify-center w-9 h-9 rounded-full bg-white/10 text-olive-300 shrink-0"
+                    aria-hidden="true"
+                  >
+                    <ShieldCheck className="w-5 h-5" />
+                  </span>
+                  <h3 className="font-display text-lg font-bold text-white">
+                    כל פנייה נשארת אצלנו
+                  </h3>
+                </div>
                 <p className="text-sand-200 text-sm leading-relaxed">
                   הפרטים שלך מגיעים אל הצוות בלבד ומטופלים בדיסקרטיות מלאה.
                   אנחנו לא מעבירים פרטי קשר למעסיק — כל קשר עובר דרכנו, ורק כשזה
