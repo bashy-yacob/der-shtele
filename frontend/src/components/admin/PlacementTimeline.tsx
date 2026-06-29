@@ -47,7 +47,7 @@ export function PlacementTimeline({ p }: { p: TimelinePlacement }) {
               ? "bg-olive-50 border-olive-300 text-olive-700"
               : approaching
                 ? "bg-amber-50 border-amber-300 text-amber-800"
-                : "bg-sand-50 border-sand-200 text-ink-600")
+                : "bg-sand-50 border-sand-200 text-ink-700")
           }
         >
           {guaranteeOver ? (
@@ -70,9 +70,11 @@ export function PlacementTimeline({ p }: { p: TimelinePlacement }) {
       )}
 
       {events.length === 0 ? (
-        <p className="text-sm text-ink-400">אין עדיין פעולות מתועדות לגיוס זה.</p>
+        <p className="text-sm text-ink-400">
+          אין עדיין פעולות מתועדות לגיוס זה.
+        </p>
       ) : (
-        <ol className="relative space-y-3 pr-1">
+        <ol className="relative space-y-3 ps-1">
           {events.map((e, i) => (
             <li key={e.id} className="flex gap-3">
               <div className="flex flex-col items-center">
@@ -90,9 +92,7 @@ export function PlacementTimeline({ p }: { p: TimelinePlacement }) {
                 <p className="text-sm font-semibold text-ink-900">
                   {PLACEMENT_EVENT_LABELS[e.type] ?? e.type}
                 </p>
-                {e.note && (
-                  <p className="text-xs text-ink-600">{e.note}</p>
-                )}
+                {e.note && <p className="text-xs text-ink-500">{e.note}</p>}
                 <p className="text-xs text-ink-400">
                   {formatDateTime(e.createdAt)}
                   {e.createdBy && <span> · {e.createdBy}</span>}

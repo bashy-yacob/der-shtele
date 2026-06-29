@@ -75,6 +75,16 @@ export const INQUIRY_TYPE_LABELS: Record<InquiryType, string> = {
   general: "כללי",
 };
 
+/** סטטוס מעסיק (בקשת גישה) — תוויות עבריות לכרטיסי הדשבורד. */
+export const EMPLOYER_STATUS_LABELS: Record<
+  "pending" | "approved" | "rejected",
+  string
+> = {
+  pending: "ממתין לאישור",
+  approved: "מאושר",
+  rejected: "נדחה",
+};
+
 export const SCOPE_OPTIONS = ["מלאה", "חלקית", "גמיש"] as const;
 
 /** ניסיון נדרש — תואם את פילטר הסינון בלוח המשרות (איפיון 4.3). מקור אמת אחד. */
@@ -113,4 +123,7 @@ export const STATUS_TONE: Record<string, string> = {
   employer: "bg-navy-50 text-navy-700",
   candidate: "bg-olive-100 text-olive-700",
   general: "bg-sand-200 text-ink-700",
+  // employer access-request status (pending משותף עם משרה לעיל)
+  approved: "bg-olive-100 text-olive-700",
+  rejected: "bg-red-100 text-red-700",
 };

@@ -53,13 +53,13 @@ export function AdPopup() {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="animate-fade-up relative w-full max-w-xl overflow-hidden rounded-3xl border-t-8 border-t-olive-500 bg-white shadow-2xl"
+        className="animate-fade-up relative w-full max-w-xl overflow-hidden rounded-2xl border-t-8 border-t-olive-500 bg-white shadow-lift"
       >
         <button
           type="button"
           onClick={close}
           aria-label="סגירת המודעה"
-          className="absolute left-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-sand-100 text-lg text-ink-600 hover:bg-sand-200"
+          className="absolute left-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-sand-100 text-lg text-ink-500 hover:bg-sand-200"
         >
           ✕
         </button>
@@ -94,7 +94,7 @@ export function AdPopup() {
               href={normalizeUrl(ad.linkUrl)}
               target="_blank"
               rel="nofollow sponsored noopener noreferrer"
-              className="mt-6 block w-full rounded-2xl bg-navy-600 px-5 py-4 text-center text-lg font-bold text-white hover:bg-navy-700"
+              className="mt-6 block w-full rounded-xl bg-navy-600 px-5 py-4 text-center text-lg font-bold text-white hover:bg-navy-700"
             >
               למידע נוסף ←
             </a>

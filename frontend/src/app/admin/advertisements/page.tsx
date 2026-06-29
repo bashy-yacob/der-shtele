@@ -174,7 +174,7 @@ export default function AdvertisementsPage() {
         }
       />
 
-      <p className="mb-4 rounded-lg border border-olive-200 bg-olive-50 p-3 text-sm text-ink-600">
+      <p className="mb-4 rounded-lg border border-olive-300 bg-olive-50 p-3 text-sm text-ink-700">
         מודעה מוצגת באתר רק לאחר סימון תשלום <strong>וגם</strong> הפעלה, ובתוך
         חלון התאריכים. כלל ברזל: ללא תמונות אנשים — כל מודעה מאושרת ידנית.
       </p>
@@ -455,7 +455,7 @@ function AdForm({
             accept="image/png,image/jpeg,image/webp"
             disabled={uploading}
             onChange={(e) => onFile(e.target.files?.[0])}
-            className="block w-full text-sm text-ink-600 file:me-3 file:rounded-lg file:border-0 file:bg-navy-50 file:px-3 file:py-1.5 file:text-navy-700"
+            className="block w-full text-sm text-ink-500 file:me-3 file:rounded-lg file:border-0 file:bg-navy-50 file:px-3 file:py-1.5 file:text-navy-700"
           />
           {uploading && (
             <p className="mt-1 text-xs text-ink-400">מעלה תמונה...</p>

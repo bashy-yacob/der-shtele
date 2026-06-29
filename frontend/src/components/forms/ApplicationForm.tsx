@@ -9,7 +9,7 @@ import { phoneSchema } from "@/lib/validations";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import { Button, Card, Input } from "@/components/ui";
+import { Button, Card, Input, Textarea } from "@/components/ui";
 
 const ALLOWED_CV_TYPES = [
   "application/pdf",
@@ -99,7 +99,7 @@ export default function ApplicationForm({
 
       // חובת קו"ח: או שמשתמשים בקיים, או שמעלים חדש.
       if (!useExisting && !hasNewFile) {
-        setError("יש לצרף קורות חיים, או לבחור להשתמש בקו\"ח הקיים בפרופיל.");
+        setError('יש לצרף קורות חיים, או לבחור להשתמש בקו"ח הקיים בפרופיל.');
         return;
       }
 
@@ -182,7 +182,7 @@ export default function ApplicationForm({
       </h2>
 
       {submitted && (
-        <div className="bg-olive-50 border border-olive-300 rounded-xl p-4 mb-6">
+        <div className="bg-olive-50 border border-olive-300 rounded-xl p-3 mb-6">
           <p className="text-olive-700 font-medium text-sm">
             {SITE_CONTENT.messages.success.candidate}
           </p>
@@ -190,7 +190,7 @@ export default function ApplicationForm({
       )}
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-6">
           <p className="text-red-700 font-medium text-sm">{error}</p>
         </div>
       )}
@@ -240,21 +240,13 @@ export default function ApplicationForm({
         />
 
         {/* Notes */}
-        <div>
-          <label
-            htmlFor="notes"
-            className="block text-sm font-semibold text-ink-700 mb-1.5"
-          >
-            הערות (אופציונלי)
-          </label>
-          <textarea
-            {...register("notes")}
-            id="notes"
-            rows={3}
-            placeholder="כל מידע נוסף שרלוונטי..."
-            className="w-full px-4 py-2.5 border border-sand-300 rounded-xl text-sm bg-white text-ink-900 placeholder:text-ink-400 focus:ring-2 focus:ring-navy-600/30 focus:border-navy-600 focus:outline-none transition-all resize-none"
-          />
-        </div>
+        <Textarea
+          {...register("notes")}
+          id="notes"
+          rows={3}
+          label="הערות (אופציונלי)"
+          placeholder="כל מידע נוסף שרלוונטי..."
+        />
 
         {/* Resume Upload */}
         <div className="rounded-xl border border-olive-300 bg-olive-50 p-4">
@@ -299,7 +291,7 @@ export default function ApplicationForm({
               type="file"
               id="resume"
               accept=".pdf,.doc,.docx"
-              className="w-full text-sm text-ink-500 file:ml-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-olive-100 file:text-olive-700 hover:file:bg-olive-200 cursor-pointer"
+              className="w-full text-sm text-ink-500 file:me-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-olive-100 file:text-olive-700 hover:file:bg-olive-300 cursor-pointer"
             />
           )}
           {errors.resume && (

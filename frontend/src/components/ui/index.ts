@@ -1,4 +1,4 @@
-export { Button } from "./Button";
+export { Button, buttonClass } from "./Button";
 export { Input } from "./Input";
 export { Select } from "./Select";
 export { CityCombobox } from "./CityCombobox";

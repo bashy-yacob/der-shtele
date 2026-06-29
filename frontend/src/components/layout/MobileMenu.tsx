@@ -43,7 +43,7 @@ export function MobileMenu({ links }: { links: NavLink[] }) {
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label="תפריט ניווט"
-        className="w-10 h-10 -mr-2 flex items-center justify-center rounded-xl text-ink-500 hover:text-navy-600 hover:bg-sand-100 transition-colors"
+        className="w-10 h-10 -ms-2 flex items-center justify-center rounded-xl text-ink-500 hover:text-navy-600 hover:bg-sand-100 transition-colors"
       >
         {open ? (
           <X size={22} weight="bold" aria-hidden="true" />

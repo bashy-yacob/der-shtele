@@ -10,7 +10,7 @@ import {
   UsersThree,
 } from "@/lib/icons";
 import { SITE_CONTENT } from "@/lib/constants";
-import { Card, SectionHeading } from "@/components/ui";
+import { Card, SectionHeading, buttonClass } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "למעסיקים",
@@ -46,13 +46,13 @@ export default function EmployersPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link
               href="/portal/register"
-              className="w-full sm:w-auto bg-navy-600 hover:bg-navy-700 text-white font-bold text-lg px-8 py-3.5 rounded-xl transition-colors duration-150 text-center"
+              className={buttonClass("primary", "lg", "w-full sm:w-auto")}
             >
               {EMP.hero.buttonRegister}
             </Link>
             <Link
               href="/employers/contact"
-              className="w-full sm:w-auto border border-navy-600 text-navy-600 hover:bg-navy-50 font-bold text-lg px-8 py-3.5 rounded-xl transition-colors duration-150 text-center"
+              className={buttonClass("outline", "lg", "w-full sm:w-auto")}
             >
               {EMP.hero.buttonPrimary}
             </Link>
@@ -82,7 +82,7 @@ export default function EmployersPage() {
             {EMP.why.items.map((item, idx) => {
               const Icon = WHY_ICONS[idx % WHY_ICONS.length];
               return (
-                <Card key={idx} className="p-8 border-r-4 border-r-olive-500">
+                <Card key={idx} className="p-8 border-s-4 border-s-olive-500">
                   <span className="mb-4 flex items-center justify-center w-12 h-12 rounded-full bg-olive-100 text-olive-700">
                     <Icon className="w-7 h-7" />
                   </span>

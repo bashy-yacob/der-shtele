@@ -525,7 +525,7 @@ function PresentationsCard({
                   />
                   {transitions.length > 0 && (
                     <select
-                      className="text-xs border border-sand-300 rounded-lg px-2 py-1 bg-white"
+                      className="text-xs border border-sand-300 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-navy-600/30 focus:border-navy-600"
                       value=""
                       onChange={(e) =>
                         e.target.value &&

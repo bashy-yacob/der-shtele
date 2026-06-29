@@ -10,6 +10,7 @@ import {
 } from "@/lib/icons";
 import type { PublicJob } from "@/types";
 import { FIELD_LABELS, regionLabel } from "@/lib/constants";
+import { buttonClass } from "@/components/ui/Button";
 import { SaveJobButton } from "./SaveJobButton";
 
 interface JobCardProps {
@@ -24,7 +25,7 @@ export function JobCard({ job }: JobCardProps) {
     <div className="relative flex flex-col bg-white border border-sand-200 rounded-2xl shadow-soft p-6 hover:border-olive-300 transition-colors">
       <SaveJobButton
         jobId={job.id}
-        className="absolute top-4 left-4 shadow-soft"
+        className="absolute top-4 end-4 shadow-soft"
       />
       {job.featured && (
         <span className="mb-2 inline-block w-fit rounded-full bg-olive-100 px-2 py-0.5 text-xs font-semibold text-olive-700">
@@ -52,7 +53,7 @@ export function JobCard({ job }: JobCardProps) {
 
       <Link
         href={`/jobs/${job.id}`}
-        className="mt-auto inline-flex items-center justify-center gap-2 bg-navy-600 hover:bg-navy-700 text-white font-bold px-4 py-2.5 rounded-xl transition-colors w-full text-center"
+        className={buttonClass("primary", "md", "mt-auto w-full")}
       >
         לפרטים ולהגשה
         <ArrowLeft className="w-[1.05rem] h-[1.05rem] shrink-0" weight="bold" />
@@ -69,7 +70,7 @@ function Tag({
   children: React.ReactNode;
 }) {
   return (
-    <span className="inline-flex items-center gap-1 bg-olive-50 text-olive-700 border border-olive-100 px-2.5 py-1 rounded-md font-semibold">
+    <span className="inline-flex items-center gap-1 bg-olive-50 text-olive-700 border border-olive-100 px-2.5 py-1 rounded-lg font-semibold">
       <Icon className="w-3.5 h-3.5 shrink-0" />
       {children}
     </span>

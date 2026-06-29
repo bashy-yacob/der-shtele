@@ -2,6 +2,7 @@ import { getPublicJobs, getRegions } from "@/lib/api";
 import { JobFilters } from "@/components/jobs/JobFilters";
 import { JobList } from "@/components/jobs/JobList";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { buttonClass } from "@/components/ui/Button";
 import type { JobField, Region } from "@/types";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -72,17 +73,14 @@ export default async function JobsPage({
 
         {/* תוצאות */}
         {filtered.length === 0 ? (
-          <div className="bg-white border border-dashed border-sand-300 rounded-3xl p-12 text-center max-w-2xl mx-auto shadow-soft">
+          <div className="bg-white border border-dashed border-sand-300 rounded-2xl p-12 text-center max-w-2xl mx-auto shadow-soft">
             <h3 className="font-display text-ink-900 text-xl font-bold mb-3">
               {JOBS_CONTENT.empty.title}
             </h3>
             <p className="text-ink-700 mb-8 max-w-md mx-auto leading-relaxed">
               {JOBS_CONTENT.empty.desc}
             </p>
-            <Link
-              href="/register"
-              className="inline-flex items-center justify-center bg-navy-600 hover:bg-navy-700 text-white font-bold px-8 py-3.5 rounded-xl transition-colors"
-            >
+            <Link href="/register" className={buttonClass("primary", "lg")}>
               {JOBS_CONTENT.empty.button}
             </Link>
           </div>

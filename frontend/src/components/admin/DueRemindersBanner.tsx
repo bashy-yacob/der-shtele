@@ -77,7 +77,7 @@ export function DueRemindersBanner({
       <button
         onClick={() => setMinimized(false)}
         style={{ bottom }}
-        className="fixed left-4 z-50 flex items-center gap-2 rounded-full bg-red-500 text-white shadow-lg px-4 py-2.5 text-sm font-bold hover:bg-red-600 transition-colors"
+        className="fixed left-4 z-50 flex items-center gap-2 rounded-full bg-red-500 text-white shadow-lift px-4 py-2.5 text-sm font-bold hover:bg-red-600 transition-colors"
         aria-label="הצג תזכורות ממתינות"
       >
         <span className="relative flex h-2.5 w-2.5">
@@ -95,7 +95,7 @@ export function DueRemindersBanner({
     <div
       dir="rtl"
       style={{ bottom }}
-      className="fixed left-4 z-50 w-80 max-w-[calc(100vw-2rem)] rounded-2xl border-2 border-red-300 bg-white p-3 shadow-lg transition-[bottom] duration-150"
+      className="fixed left-4 z-50 w-80 max-w-[calc(100vw-2rem)] rounded-2xl border-2 border-red-300 bg-white p-3 shadow-lift transition-[bottom] duration-150"
     >
       <div className="flex items-center justify-between mb-2">
         <h2 className="flex items-center gap-2 text-sm font-bold text-red-700">
@@ -134,7 +134,7 @@ export function DueRemindersBanner({
             <button
               onClick={() => markDone(r.id)}
               disabled={busyId === r.id}
-              className="shrink-0 rounded-md border border-olive-500 px-2 py-1 text-[11px] font-bold text-olive-700 hover:bg-olive-50 disabled:opacity-50 transition-colors"
+              className="shrink-0 rounded-lg border border-olive-500 px-2 py-1 text-[11px] font-bold text-olive-700 hover:bg-olive-50 disabled:opacity-50 transition-colors"
             >
               {busyId === r.id ? "..." : "בוצע"}
             </button>

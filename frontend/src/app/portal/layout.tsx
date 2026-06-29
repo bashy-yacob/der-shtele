@@ -73,9 +73,7 @@ export default function PortalLayout({
         <h1 className="font-display text-2xl text-ink-900 mb-3">
           פורטל מעסיקים
         </h1>
-        <p className="text-ink-500 mb-6">
-          אזור זה מיועד למעסיקים בלבד.
-        </p>
+        <p className="text-ink-500 mb-6">אזור זה מיועד למעסיקים בלבד.</p>
         <Link href="/" className="text-navy-600 font-semibold hover:underline">
           לאתר הראשי ←
         </Link>
@@ -151,7 +149,7 @@ function PendingApprovalScreen({
         <h1 className="font-display text-2xl text-ink-900 mb-3">
           {rejected ? "הבקשה לא אושרה" : "החשבון ממתין לאישור"}
         </h1>
-        <p className="text-ink-600 leading-relaxed mb-6">
+        <p className="text-ink-700 leading-relaxed mb-6">
           {rejected
             ? "לאחר בחינה, בקשת ההצטרפות לא אושרה כעת. לפרטים נוספים אפשר לפנות לצוות דער שטעלע."
             : "תודה שנרשמתם. הצוות יאמת את הפרטים ויאשר את החשבון בהקדם — נעדכן אתכם במייל ברגע שהחשבון יאושר, ואז תוכלו לפרסם משרות."}
@@ -165,7 +163,7 @@ function PendingApprovalScreen({
           </button>
           <Link
             href="/"
-            className="px-5 py-2.5 rounded-xl text-sm font-semibold text-navy-600 border border-navy-200 hover:bg-navy-50 transition-colors"
+            className="px-5 py-2.5 rounded-xl text-sm font-semibold text-navy-600 border border-navy-100 hover:bg-navy-50 transition-colors"
           >
             לאתר הראשי
           </Link>

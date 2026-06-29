@@ -228,7 +228,7 @@ export default function ContactPage() {
                 />
 
                 {submitted && (
-                  <div className="bg-olive-50 border border-olive-200 rounded-xl p-4 mb-6">
+                  <div className="bg-olive-50 border border-olive-300 rounded-xl p-3 mb-6">
                     <p className="text-olive-700 font-medium">
                       {SITE_CONTENT.messages.success.contact}
                     </p>
@@ -236,7 +236,7 @@ export default function ContactPage() {
                 )}
 
                 {error && (
-                  <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+                  <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-6">
                     <p className="text-red-700 font-medium">{error}</p>
                   </div>
                 )}
@@ -294,7 +294,7 @@ export default function ContactPage() {
                       type="file"
                       id="resume"
                       accept=".pdf,.doc,.docx"
-                      className="w-full text-sm text-ink-500 file:ml-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-navy-50 file:text-navy-700 hover:file:bg-navy-100 file:cursor-pointer"
+                      className="w-full text-sm text-ink-500 file:me-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-navy-50 file:text-navy-700 hover:file:bg-navy-100 file:cursor-pointer"
                     />
                     <p className="text-xs text-ink-400 mt-1.5">
                       PDF או Word, עד 5MB

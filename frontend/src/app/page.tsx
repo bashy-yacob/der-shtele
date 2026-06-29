@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { getPublicJobs, getPublishedTestimonials } from "@/lib/api";
 import { JobCard } from "@/components/jobs/JobCard";
 import { TestimonialsCarousel } from "@/components/marketing/TestimonialsCarousel";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { SkylineMotif } from "@/components/ui/SkylineMotif";
 import { Reveal } from "@/components/ui/Reveal";
 import { CountUp } from "@/components/ui/CountUp";
+import { buttonClass } from "@/components/ui/Button";
 import {
   ShieldCheck,
   Handshake,
@@ -80,7 +81,7 @@ const CONTENT = {
       },
       {
         title: "סביבה שמכבדת אותך",
-        desc: "ממשק נקי, בלי תמונות. צוות שמכיר את הציבור ועובד לפי ערכיו.",
+        desc: "ממשק נקי ומכובד. צוות שמכיר את הציבור ועובד לפי ערכיו.",
         icon: HandHeart,
       },
     ],
@@ -149,21 +150,27 @@ export default async function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_LD) }}
       />
       {/* ======== HERO ======== */}
-      <section className="relative overflow-hidden bg-sand-100 border-b border-sand-200">
-        {/* מוטיב קו-רקיע עדין שמרחף קלות */}
-        <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-44 text-sand-300/70 animate-float"
-          aria-hidden="true"
-        >
-          <SkylineMotif className="w-full h-full" />
+      <section className="relative overflow-hidden border-b border-navy-700">
+        {/* תמונת רקע — לחיצת יד (במקום מוטיב קו-הרקיע) */}
+        <div className="absolute inset-0" aria-hidden="true">
+          <Image
+            src="/hero-handshake.jpg"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-center"
+          />
+          {/* שכבת-על סגולה — לקריאוּת הטקסט ולמעבר רך אל פס הסטטיסטיקות */}
+          <div className="absolute inset-0 bg-gradient-to-t from-navy-800/80 via-navy-700/55 to-navy-600/30" />
         </div>
 
         <div className="relative max-w-4xl mx-auto px-4 py-24 sm:py-28 text-center">
-          <h1 className="font-display text-ink-900 text-4xl sm:text-6xl font-bold tracking-tight leading-tight mb-6 animate-fade-up">
+          <h1 className="font-display text-white text-4xl sm:text-6xl font-bold tracking-tight leading-tight mb-6 animate-fade-up [text-shadow:0_2px_24px_rgba(21,15,36,0.45)]">
             {CONTENT.hero.title}
           </h1>
           <p
-            className="text-ink-700 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed mb-10 animate-fade-up"
+            className="text-sand-100 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed mb-10 animate-fade-up"
             style={{ animationDelay: "120ms" }}
           >
             {CONTENT.hero.subtitle}
@@ -174,14 +181,14 @@ export default async function HomePage() {
           >
             <Link
               href="/register"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-navy-600 hover:bg-navy-700 text-white font-bold text-lg px-8 py-3.5 rounded-xl transition-colors duration-150 text-center"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-olive-500 hover:bg-olive-600 text-white font-bold text-lg px-8 py-3.5 rounded-xl transition-colors duration-150 text-center shadow-lift"
             >
               {CONTENT.hero.primary}
               <ArrowLeft className="w-5 h-5 shrink-0" weight="bold" />
             </Link>
             <Link
               href="/jobs"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-navy-600 text-navy-600 hover:bg-navy-50 font-bold text-lg px-8 py-3.5 rounded-xl transition-colors duration-150 text-center"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-white/70 text-white hover:bg-white/10 font-bold text-lg px-8 py-3.5 rounded-xl transition-colors duration-150 text-center"
             >
               <Briefcase className="w-5 h-5 shrink-0" />
               {CONTENT.hero.secondary}
@@ -198,9 +205,9 @@ export default async function HomePage() {
               return (
                 <li
                   key={pill.label}
-                  className="inline-flex items-center gap-1.5 bg-white/70 border border-sand-200 text-ink-700 text-sm font-semibold px-3 py-1.5 rounded-full"
+                  className="inline-flex items-center gap-1.5 bg-white/10 border border-white/25 text-white text-sm font-semibold px-3 py-1.5 rounded-full backdrop-blur-sm"
                 >
-                  <Icon className="w-[1.05rem] h-[1.05rem] text-olive-600 shrink-0" />
+                  <Icon className="w-[1.05rem] h-[1.05rem] text-olive-300 shrink-0" />
                   {pill.label}
                 </li>
               );
@@ -243,7 +250,7 @@ export default async function HomePage() {
               const Icon = card.icon;
               return (
                 <Reveal key={card.title} delay={idx * 90}>
-                  <div className="h-full flex gap-4 bg-white border border-sand-200 rounded-2xl shadow-soft p-7 transition-shadow hover:shadow-lift">
+                  <div className="h-full flex gap-4 bg-white border border-sand-200 rounded-2xl shadow-soft p-6 transition-shadow hover:shadow-lift">
                     <span className="flex items-center justify-center w-12 h-12 rounded-full bg-olive-100 text-olive-700 shrink-0">
                       <Icon className="w-7 h-7" />
                     </span>
@@ -276,7 +283,7 @@ export default async function HomePage() {
           <div className="grid md:grid-cols-3 gap-8">
             {CONTENT.steps.list.map((step, idx) => (
               <Reveal key={step.title} delay={idx * 110}>
-                <div className="h-full flex flex-col items-start gap-4 bg-sand-50 border border-sand-200 rounded-2xl shadow-soft p-7">
+                <div className="h-full flex flex-col items-start gap-4 bg-sand-50 border border-sand-200 rounded-2xl shadow-soft p-6">
                   <span className="flex items-center justify-center w-11 h-11 rounded-full bg-olive-100 text-olive-700 font-display text-xl font-bold shrink-0">
                     {idx + 1}
                   </span>
@@ -325,10 +332,7 @@ export default async function HomePage() {
                 כרגע אין משרות פתוחות להצגה. השאירו פרטים ונעדכן אתכם כשתיפתח
                 משרה מתאימה.
               </p>
-              <Link
-                href="/register"
-                className="inline-flex bg-navy-600 hover:bg-navy-700 text-white font-bold px-6 py-2.5 rounded-xl transition-colors"
-              >
+              <Link href="/register" className={buttonClass("primary", "md")}>
                 להרשמה ←
               </Link>
             </div>
@@ -387,17 +391,14 @@ export default async function HomePage() {
       {/* ======== CTA סוגר ======== */}
       <section className="bg-sand-100 py-20 px-4">
         <Reveal>
-          <div className="max-w-3xl mx-auto bg-navy-600 rounded-3xl px-8 py-12 sm:py-14 text-center">
+          <div className="max-w-3xl mx-auto bg-navy-600 rounded-2xl px-8 py-12 sm:py-14 text-center">
             <h2 className="font-display text-white text-3xl font-bold mb-4">
               מוכן/ה למצוא את המשרה הנכונה?
             </h2>
             <p className="text-sand-200 mb-8 max-w-md mx-auto leading-relaxed">
               הרשמה לוקחת דקה. מכאן — אנחנו כבר דואגים לכל השאר.
             </p>
-            <Link
-              href="/register"
-              className="inline-flex items-center justify-center gap-2 bg-olive-500 hover:bg-olive-600 text-white font-bold text-lg px-10 py-3.5 rounded-xl transition-colors duration-150"
-            >
+            <Link href="/register" className={buttonClass("secondary", "lg")}>
               הרשמה וחיפוש משרות
               <ArrowLeft className="w-5 h-5 shrink-0" weight="bold" />
             </Link>

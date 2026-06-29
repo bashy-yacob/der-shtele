@@ -31,7 +31,7 @@ export function AuthShell({
       className="flex min-h-[80vh] items-center justify-center px-4 py-12 sm:py-16"
       dir="rtl"
     >
-      <div className="w-full max-w-4xl grid md:grid-cols-2 bg-white border border-sand-200 rounded-3xl shadow-soft overflow-hidden animate-fade-up">
+      <div className="w-full max-w-4xl grid md:grid-cols-2 bg-white border border-sand-200 rounded-2xl shadow-soft overflow-hidden animate-fade-up">
         {/* פאנל מיתוג */}
         <aside className="relative hidden md:flex flex-col justify-between bg-navy-600 text-white p-9 overflow-hidden">
           <div
@@ -43,7 +43,7 @@ export function AuthShell({
 
           <Link
             href="/"
-            className="relative font-display text-2xl font-bold tracking-tight"
+            className="relative font-logo text-2xl font-bold tracking-tight"
           >
             דער שטעלע
           </Link>

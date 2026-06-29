@@ -57,7 +57,7 @@ function Detail({
           {value}
         </a>
       ) : (
-        <span className="text-ink-800 font-medium">{value}</span>
+        <span className="text-ink-900 font-medium">{value}</span>
       )}
     </div>
   );
@@ -174,12 +174,12 @@ export default function ContactsPage() {
                     {c.phone}
                   </a>
                   {c.resumePath && (
-                    <span className="text-xs text-olive-700 bg-olive-50 border border-olive-200 rounded-full px-2 py-0.5">
+                    <span className="text-xs text-olive-700 bg-olive-50 border border-olive-300 rounded-full px-2 py-0.5">
                       צורפו קו״ח
                     </span>
                   )}
                   {c.handledAt && (
-                    <span className="text-xs text-olive-700 bg-olive-100 border border-olive-200 rounded-full px-2 py-0.5">
+                    <span className="text-xs text-olive-700 bg-olive-100 border border-olive-300 rounded-full px-2 py-0.5">
                       ✓ טופל
                     </span>
                   )}

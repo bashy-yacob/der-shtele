@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
+import { buttonClass } from "@/components/ui/Button";
 import { useAuth } from "@/hooks/useAuth";
 import { useSavedJobs } from "@/hooks/useSavedJobs";
 import { FIELD_LABELS, JOB_STATUS_LABELS, regionLabel } from "@/lib/labels";
@@ -70,7 +71,7 @@ export default function SavedJobsPage() {
                         {job.title}
                       </h2>
                       {inactive && (
-                        <span className="text-xs font-semibold bg-sand-100 text-ink-500 rounded-md px-2 py-0.5">
+                        <span className="text-xs font-semibold bg-sand-100 text-ink-500 rounded-lg px-2 py-0.5">
                           לא פעילה ({JOB_STATUS_LABELS[job.status]})
                         </span>
                       )}
@@ -88,7 +89,7 @@ export default function SavedJobsPage() {
                     ) : (
                       <Link
                         href={`/jobs/${job.id}`}
-                        className="bg-navy-600 hover:bg-navy-700 text-white font-bold px-4 py-2 rounded-xl transition-colors text-sm"
+                        className={buttonClass("primary", "sm")}
                       >
                         הגש עכשיו ←
                       </Link>

@@ -80,7 +80,7 @@ export function UserMenu() {
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label="התפריט שלי"
-        className="w-9 h-9 rounded-full bg-navy-600 text-white text-sm font-bold flex items-center justify-center ring-2 ring-olive-400 ring-offset-2 ring-offset-sand-50 hover:bg-navy-700 transition-colors"
+        className="w-9 h-9 rounded-full bg-navy-600 text-white text-sm font-bold flex items-center justify-center ring-2 ring-olive-500 ring-offset-2 ring-offset-sand-50 hover:bg-navy-700 transition-colors"
       >
         {initials(user.fullName, user.email)}
       </button>

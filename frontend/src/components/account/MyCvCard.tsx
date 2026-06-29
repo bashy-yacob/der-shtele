@@ -104,8 +104,8 @@ export function MyCvCard() {
         </div>
       ) : (
         <p className="text-sm text-ink-500 leading-relaxed">
-          עדיין לא הועלו קורות חיים. הקובץ יתווסף לפרופיל בהגשת המועמדות הראשונה,
-          ולאחר מכן ניתן יהיה להחליפו כאן.
+          עדיין לא הועלו קורות חיים. הקובץ יתווסף לפרופיל בהגשת המועמדות
+          הראשונה, ולאחר מכן ניתן יהיה להחליפו כאן.
         </p>
       )}
 
@@ -117,11 +117,9 @@ export function MyCvCard() {
             accept=".pdf,.doc,.docx"
             onChange={onFile}
             disabled={uploading}
-            className="w-full text-sm text-ink-500 file:ml-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-sand-100 file:text-ink-700 hover:file:bg-sand-200 cursor-pointer"
+            className="w-full text-sm text-ink-500 file:me-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-navy-50 file:text-navy-700 hover:file:bg-navy-100 cursor-pointer"
           />
-          {uploading && (
-            <p className="text-xs text-ink-400 mt-1">מעלה...</p>
-          )}
+          {uploading && <p className="text-xs text-ink-400 mt-1">מעלה...</p>}
         </div>
       )}
 

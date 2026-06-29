@@ -11,6 +11,7 @@ export default function SettingsPage() {
   const [optIn, setOptIn] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [msgError, setMsgError] = useState(false);
 
   // טוען את הערך האמיתי מהמשתמש כשהוא נטען (לא ערך קשיח).
   useEffect(() => {
@@ -22,10 +23,12 @@ export default function SettingsPage() {
   const onSave = async () => {
     setSaving(true);
     setMessage(null);
+    setMsgError(false);
     try {
       await updateMarketing(optIn);
       setMessage("ההעדפה נשמרה בהצלחה.");
     } catch (err) {
+      setMsgError(true);
       setMessage(err instanceof Error ? err.message : "שגיאה בשמירה.");
     } finally {
       setSaving(false);
@@ -87,7 +90,13 @@ export default function SettingsPage() {
         <Button onClick={onSave} disabled={saving} className="w-full sm:w-auto">
           {saving ? "שומר..." : "שמירת שינויים"}
         </Button>
-        {message && <p className="text-sm text-ink-700">{message}</p>}
+        {message && (
+          <p
+            className={`text-sm ${msgError ? "text-red-600" : "text-olive-700"}`}
+          >
+            {message}
+          </p>
+        )}
       </Card>
 
       <Card className="space-y-4">

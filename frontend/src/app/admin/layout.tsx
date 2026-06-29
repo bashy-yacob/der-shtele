@@ -117,7 +117,7 @@ export default function AdminLayout({
                       <span className="truncate">{item.label}</span>
                     </span>
                     {isReminders && dueCount > 0 && (
-                      <span className="ml-1 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold">
+                      <span className="ms-1 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold">
                         {dueCount}
                       </span>
                     )}

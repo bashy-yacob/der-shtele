@@ -184,13 +184,13 @@ export default function EmployersContactPage() {
               </p>
 
               {submitted && (
-                <div className="bg-olive-50 border border-olive-200 rounded-xl p-4 mb-6">
+                <div className="bg-olive-50 border border-olive-300 rounded-xl p-3 mb-6">
                   <p className="text-olive-700 font-medium">{FORM.success}</p>
                 </div>
               )}
 
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+                <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-6">
                   <p className="text-red-700 font-medium">{error}</p>
                 </div>
               )}

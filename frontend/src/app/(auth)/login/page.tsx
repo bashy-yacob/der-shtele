@@ -80,7 +80,7 @@ export default function LoginPage() {
     >
       <form onSubmit={onSubmit} className="space-y-5">
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
+          <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-red-700 text-sm font-medium">
             {error}
           </div>
         )}

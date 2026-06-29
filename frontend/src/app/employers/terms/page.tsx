@@ -84,7 +84,7 @@ export default function EmployersTermsPage() {
           {TERMS.visibility.body}
         </p>
         <div className="grid md:grid-cols-2 gap-8">
-          <Card className="p-8 border-r-4 border-r-olive-500">
+          <Card className="p-8 border-s-4 border-s-olive-500">
             <h3 className="font-display text-ink-900 text-xl font-bold mb-4">
               {TERMS.visibility.public.label}
             </h3>
@@ -99,7 +99,7 @@ export default function EmployersTermsPage() {
               ))}
             </ul>
           </Card>
-          <Card className="p-8 border-r-4 border-r-navy-600">
+          <Card className="p-8 border-s-4 border-s-navy-600">
             <h3 className="font-display text-ink-900 text-xl font-bold mb-4">
               {TERMS.visibility.internal.label}
             </h3>

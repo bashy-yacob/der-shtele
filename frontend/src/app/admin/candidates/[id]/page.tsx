@@ -337,7 +337,7 @@ function CallLogCard({
       ) : (
         <ul className="space-y-3">
           {c.callLogs.map((log) => (
-            <li key={log.id} className="border-r-2 border-navy-100 pr-3 py-1">
+            <li key={log.id} className="border-s-2 border-navy-100 ps-3 py-1">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-semibold text-ink-900">
                   {log.staffName}
@@ -495,7 +495,7 @@ function HireForm({
 
   if (options.length === 0) {
     return (
-      <div className="rounded-xl bg-sand-100 border border-sand-200 px-4 py-3 text-sm text-ink-600">
+      <div className="rounded-xl bg-sand-100 border border-sand-200 px-4 py-3 text-sm text-ink-700">
         כדי לגייס יש להציג את המועמד למשרה תחילה (אין משרה משויכת).
         <div className="mt-2">
           <Button size="sm" variant="ghost" onClick={onCancel}>
@@ -539,7 +539,7 @@ function HireForm({
         <select
           value={jobId}
           onChange={(e) => setJobId(e.target.value)}
-          className="w-full rounded-lg border border-sand-300 bg-white px-3 py-2 text-sm text-ink-900 focus:outline-none focus:ring-2 focus:ring-olive-300"
+          className="w-full rounded-xl border border-sand-300 bg-white px-3 py-2 text-sm text-ink-900 focus:outline-none focus:ring-2 focus:ring-navy-600/30 focus:border-navy-600"
         >
           <option value="">— בחירת משרה —</option>
           {options.map((p) => (

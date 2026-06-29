@@ -17,6 +17,8 @@ import {
   PageHeader,
 } from "@/components/admin/Feedback";
 import { Card, Button, Input, Textarea } from "@/components/ui";
+import { StatusBadge } from "@/components/admin/StatusBadge";
+import { EMPLOYER_STATUS_LABELS } from "@/lib/labels";
 import { formatDate } from "@/lib/utils";
 
 export default function EmployersPage() {
@@ -101,7 +103,10 @@ export default function EmployersPage() {
                     </span>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <StatusBadge status={e.status} />
+                    <StatusBadge
+                      status={e.status}
+                      label={EMPLOYER_STATUS_LABELS[e.status]}
+                    />
                     <span className="inline-block rounded-full bg-navy-50 px-2.5 py-0.5 text-xs font-semibold text-navy-600">
                       {e._count?.jobs ?? 0}{" "}
                       {e._count?.jobs === 1 ? "משרה" : "משרות"}
@@ -136,22 +141,6 @@ export default function EmployersPage() {
         </>
       )}
     </div>
-  );
-}
-
-/** תג סטטוס מעסיק לתצוגה בכרטיס. */
-function StatusBadge({ status }: { status: Employer["status"] }) {
-  if (status === "rejected") {
-    return (
-      <span className="inline-block rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-600">
-        נדחה
-      </span>
-    );
-  }
-  return (
-    <span className="inline-block rounded-full bg-olive-50 px-2.5 py-0.5 text-xs font-semibold text-olive-700">
-      מאושר
-    </span>
   );
 }
 
@@ -193,7 +182,7 @@ function PendingEmployerCard({
   };
 
   return (
-    <Card className="space-y-2 border-r-4 border-r-amber-400">
+    <Card className="space-y-2 border-s-4 border-s-amber-400">
       <div className="flex items-center justify-between">
         <h3 className="font-display text-lg text-ink-900">
           {employer.companyName}
@@ -202,9 +191,7 @@ function PendingEmployerCard({
           {formatDate(employer.createdAt)}
         </span>
       </div>
-      <span className="inline-block rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
-        ממתין לאישור
-      </span>
+      <StatusBadge status="pending" label={EMPLOYER_STATUS_LABELS.pending} />
       <p className="text-sm text-ink-700">
         איש קשר: {employer.contactName} · {employer.contactPhone}
       </p>

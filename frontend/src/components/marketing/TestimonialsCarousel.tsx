@@ -51,7 +51,7 @@ export function TestimonialsCarousel({ items, intervalMs = 7000 }: Props) {
       {/* כרטיס ההמלצה */}
       <div
         aria-live="polite"
-        className="bg-white border border-sand-200 rounded-3xl shadow-soft px-7 py-10 sm:px-12 sm:py-12 text-center min-h-[16rem] flex flex-col items-center justify-center"
+        className="bg-white border border-sand-200 rounded-2xl shadow-soft px-8 py-10 sm:px-12 sm:py-12 text-center min-h-[16rem] flex flex-col items-center justify-center"
       >
         {/* גרש פתיחה דקורטיבי (לא תמונת אדם) */}
         <span
@@ -63,7 +63,7 @@ export function TestimonialsCarousel({ items, intervalMs = 7000 }: Props) {
 
         <blockquote
           key={active.id}
-          className="animate-fade-up text-ink-800 text-lg sm:text-2xl leading-relaxed font-display max-w-2xl mx-auto"
+          className="animate-fade-up text-ink-900 text-lg sm:text-2xl leading-relaxed font-display max-w-2xl mx-auto"
         >
           {active.quote}
         </blockquote>
@@ -83,7 +83,7 @@ export function TestimonialsCarousel({ items, intervalMs = 7000 }: Props) {
             type="button"
             onClick={() => go(index - 1)}
             aria-label="ההמלצה הקודמת"
-            className="flex items-center justify-center w-10 h-10 rounded-full border border-sand-300 text-ink-500 hover:text-navy-600 hover:border-navy-300 transition-colors"
+            className="flex items-center justify-center w-10 h-10 rounded-full border border-sand-300 text-ink-500 hover:text-navy-600 hover:border-navy-500 transition-colors"
           >
             {/* RTL: "הקודם" = חץ ימינה */}
             <svg
@@ -125,7 +125,7 @@ export function TestimonialsCarousel({ items, intervalMs = 7000 }: Props) {
             type="button"
             onClick={() => go(index + 1)}
             aria-label="ההמלצה הבאה"
-            className="flex items-center justify-center w-10 h-10 rounded-full border border-sand-300 text-ink-500 hover:text-navy-600 hover:border-navy-300 transition-colors"
+            className="flex items-center justify-center w-10 h-10 rounded-full border border-sand-300 text-ink-500 hover:text-navy-600 hover:border-navy-500 transition-colors"
           >
             {/* RTL: "הבא" = חץ שמאלה */}
             <svg

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FIELD_LABELS, buildCityOptions } from "@/lib/constants";
 import { EXPERIENCE_OPTIONS } from "@/lib/labels";
+import { buttonClass } from "@/components/ui/Button";
 
 interface JobFiltersProps {
   current: { field?: string; region?: string; experience?: string };
@@ -42,14 +43,11 @@ export function JobFilters({ current, regions = [] }: JobFiltersProps) {
       <div className="flex gap-2">
         <button
           type="submit"
-          className="flex-1 bg-navy-600 hover:bg-navy-700 text-white font-bold py-2.5 px-4 rounded-xl transition-colors"
+          className={buttonClass("primary", "md", "flex-1")}
         >
           חיפוש
         </button>
-        <Link
-          href="/jobs"
-          className="flex-1 border border-sand-300 text-ink-700 hover:bg-sand-100 font-semibold py-2.5 px-4 rounded-xl text-center transition-colors"
-        >
+        <Link href="/jobs" className={buttonClass("outline", "md", "flex-1")}>
           ניקוי
         </Link>
       </div>
