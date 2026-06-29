@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -139,27 +138,13 @@ export default function EmployersContactPage() {
   return (
     <main dir="rtl">
       {/* ======== HERO ======== */}
-      <section className="relative overflow-hidden border-b border-navy-700">
-        {/* תמונת רקע — לחיצת יד (עקבי עם ה-Hero בעמוד הבית) */}
-        <div className="absolute inset-0" aria-hidden="true">
-          <Image
-            src="/hero-handshake.jpg"
-            alt=""
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover object-center"
-          />
-          {/* שכבת-על סגולה — לקריאוּת הטקסט הלבן */}
-          <div className="absolute inset-0 bg-gradient-to-t from-navy-800/85 via-navy-700/60 to-navy-600/35" />
-        </div>
-
-        <div className="relative max-w-3xl mx-auto px-4 py-20 sm:py-24 text-center">
-          <h1 className="font-display text-white text-4xl sm:text-5xl font-bold tracking-tight leading-tight mb-5 animate-fade-up [text-shadow:0_2px_24px_rgba(21,15,36,0.45)]">
+      <section className="bg-sand-100 border-b border-sand-200">
+        <div className="max-w-3xl mx-auto px-4 py-20 sm:py-24 text-center">
+          <h1 className="font-display text-ink-900 text-4xl sm:text-5xl font-bold tracking-tight leading-tight mb-5 animate-fade-up">
             {FORM.title}
           </h1>
           <p
-            className="text-sand-100 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed animate-fade-up"
+            className="text-ink-700 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed animate-fade-up"
             style={{ animationDelay: "120ms" }}
           >
             {FORM.subtitle}
@@ -175,9 +160,9 @@ export default function EmployersContactPage() {
               return (
                 <li
                   key={pill.label}
-                  className="inline-flex items-center gap-1.5 bg-white/10 border border-white/25 text-white text-sm font-semibold px-3 py-1.5 rounded-full backdrop-blur-sm"
+                  className="inline-flex items-center gap-1.5 bg-white/70 border border-sand-200 text-ink-700 text-sm font-semibold px-3 py-1.5 rounded-full"
                 >
-                  <Icon className="w-[1.05rem] h-[1.05rem] text-olive-300 shrink-0" />
+                  <Icon className="w-[1.05rem] h-[1.05rem] text-olive-600 shrink-0" />
                   {pill.label}
                 </li>
               );
