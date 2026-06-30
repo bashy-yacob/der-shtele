@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { PlacementTimeline } from "@/components/admin/PlacementTimeline";
 import { StatCard } from "@/components/admin/StatCard";
+import { useConfirm } from "@/components/admin/ConfirmDialog";
 import {
   Loading,
   ErrorNote,
@@ -44,6 +45,7 @@ export default function CommissionsPage() {
   const [editing, setEditing] = useState<string | null>(null);
   const [amountDraft, setAmountDraft] = useState("");
   const [savingAmount, setSavingAmount] = useState(false);
+  const confirm = useConfirm();
 
   const reload = () =>
     Promise.all([listCommissions(), getCommissionsSummary()])
@@ -66,7 +68,15 @@ export default function CommissionsPage() {
         : status === "invoiced"
           ? "לסמן שנשלחה חשבונית למעסיק על עמלה זו?"
           : "";
-    if (confirmMsg && !window.confirm(confirmMsg)) return;
+    if (
+      confirmMsg &&
+      !(await confirm({
+        title: status === "paid" ? "סימון כשולם" : "סימון חשבונית",
+        message: confirmMsg,
+        confirmLabel: status === "paid" ? "סמן כשולם" : "אישור",
+      }))
+    )
+      return;
     setError("");
     setMsg("");
     try {

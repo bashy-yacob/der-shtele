@@ -5,6 +5,7 @@ import { listSubscribers, sendMailing, listRegions } from "@/lib/admin-api";
 import type { CandidateStatus, JobField, Region, Subscriber } from "@/types";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { StatCard } from "@/components/admin/StatCard";
+import { useConfirm } from "@/components/admin/ConfirmDialog";
 import {
   Loading,
   ErrorNote,
@@ -217,6 +218,7 @@ function SendCard({ filter, count }: { filter: Filter; count: number }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [msg, setMsg] = useState("");
+  const confirm = useConfirm();
 
   const send = async () => {
     if (subject.trim().length < 2 || body.trim().length < 1) {
@@ -225,9 +227,11 @@ function SendCard({ filter, count }: { filter: Filter; count: number }) {
     }
     // אישור לפני שליחה המונית — פעולה בלתי-הפיכה.
     if (
-      !window.confirm(
-        `לשלוח את ההודעה "${subject.trim()}" ל-${count} מנויים? לא ניתן לבטל שליחה.`,
-      )
+      !(await confirm({
+        title: "שליחת דיוור",
+        message: `לשלוח את ההודעה "${subject.trim()}" ל-${count} מנויים? לא ניתן לבטל שליחה.`,
+        confirmLabel: "שלח",
+      }))
     )
       return;
     setBusy(true);

@@ -14,6 +14,7 @@ import type { CandidateDetail, CandidateStatus } from "@/types";
 import { useAuth } from "@/hooks/useAuth";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { PlacementTimeline } from "@/components/admin/PlacementTimeline";
+import { useConfirm } from "@/components/admin/ConfirmDialog";
 import {
   Loading,
   ErrorNote,
@@ -154,6 +155,12 @@ function DetailsCard({
   const [hiring, setHiring] = useState(false);
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
+  const confirm = useConfirm();
+
+  // סנכרון ההערות מחדש כשהמועמד נטען מחדש (כדי לא לדרוס עריכה של נציג אחר).
+  useEffect(() => {
+    setNotes(c.notes ?? "");
+  }, [c.notes]);
 
   const nextStatuses = CANDIDATE_TRANSITIONS[c.status];
 
@@ -162,9 +169,12 @@ function DetailsCard({
   const changeStatus = async (status: CandidateStatus) => {
     if (
       status === "not_suitable" &&
-      !window.confirm(
-        `לסמן את ${c.fullName} כ"לא מתאים"? המועמד יוסר מהטיפול הפעיל (ניתן להחזירו בהמשך).`,
-      )
+      !(await confirm({
+        title: "סימון כלא מתאים",
+        message: `לסמן את ${c.fullName} כ"לא מתאים"? המועמד יוסר מהטיפול הפעיל (ניתן להחזירו בהמשך).`,
+        confirmLabel: "סמן כלא מתאים",
+        danger: true,
+      }))
     )
       return;
     setBusy(true);
@@ -378,10 +388,19 @@ function ContactCard({ c }: { c: CandidateDetail }) {
   const openResume = async () => {
     setLoadingResume(true);
     setResumeErr("");
+    // פותחים לשונית מיד בתוך מחוות המשתמש (כדי לא להיחסם ע"י חוסם-פופאפים),
+    // ומזריקים את ה-URL החתום כשהוא מגיע מהשרת.
+    const tab = window.open("about:blank", "_blank");
     try {
       const { url } = await getCandidateResume(c.id);
-      window.open(url, "_blank", "noopener");
+      if (tab) {
+        tab.opener = null;
+        tab.location.href = url;
+      } else {
+        window.location.href = url; // נפילה-רכה אם הלשונית נחסמה
+      }
     } catch (e) {
+      tab?.close();
       setResumeErr((e as Error).message);
     } finally {
       setLoadingResume(false);

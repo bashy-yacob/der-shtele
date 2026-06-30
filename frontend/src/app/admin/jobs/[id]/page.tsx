@@ -45,6 +45,7 @@ import {
   EXPERIENCE_OPTIONS,
 } from "@/lib/labels";
 import { JOB_TRANSITIONS, CANDIDATE_TRANSITIONS } from "@/lib/status-machine";
+import { useConfirm } from "@/components/admin/ConfirmDialog";
 import { formatDate } from "@/lib/utils";
 
 export default function JobDetailPage() {
@@ -239,6 +240,7 @@ function StatusCard({
 }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  const confirm = useConfirm();
   const next = JOB_TRANSITIONS[job.status];
 
   // תווית/גוון/אישור לכל מעבר — תלוי גם בסטטוס המקור (אישור מול דחייה מול סגירה).
@@ -285,8 +287,19 @@ function StatusCard({
     return { label: JOB_STATUS_LABELS[s], variant: "outline" };
   };
 
-  const change = async (status: JobStatus, confirmMsg?: string) => {
-    if (confirmMsg && !window.confirm(confirmMsg)) return;
+  const change = async (
+    status: JobStatus,
+    m?: { label: string; danger?: boolean; confirm?: string },
+  ) => {
+    if (
+      m?.confirm &&
+      !(await confirm({
+        message: m.confirm,
+        danger: m.danger,
+        confirmLabel: m.label,
+      }))
+    )
+      return;
     setBusy(true);
     setErr("");
     try {
@@ -333,7 +346,7 @@ function StatusCard({
                 className={
                   m.danger ? "text-red-600 hover:bg-red-50" : undefined
                 }
-                onClick={() => change(s, m.confirm)}
+                onClick={() => change(s, m)}
                 disabled={busy}
               >
                 {m.label}

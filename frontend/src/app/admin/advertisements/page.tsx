@@ -18,6 +18,7 @@ import {
   PageHeader,
 } from "@/components/admin/Feedback";
 import { Card, Button, Input, Textarea, Select } from "@/components/ui";
+import { useConfirm } from "@/components/admin/ConfirmDialog";
 import { formatDate } from "@/lib/utils";
 
 // פורמט התצוגה ממופה ל-placement הקיים (כדי להימנע ממיגרציה):
@@ -115,6 +116,7 @@ export default function AdvertisementsPage() {
   const [busyId, setBusyId] = useState<string | null>(null);
   // הודעת הצלחה ברמת העמוד — נשארת גלויה גם אחרי שהטופס נסגר.
   const [msg, setMsg] = useState("");
+  const confirm = useConfirm();
 
   const reload = () =>
     listAds()
@@ -145,23 +147,35 @@ export default function AdvertisementsPage() {
   async function activate(a: Advertisement) {
     if (
       a.imagePath &&
-      !window.confirm(
-        "המודעה כוללת תמונה. אני מאשר שהתמונה אינה כוללת תמונות אנשים (כלל ברזל) — להפעיל?",
-      )
+      !(await confirm({
+        title: "הפעלת מודעה עם תמונה",
+        message: "אני מאשר שהתמונה אינה כוללת תמונות אנשים (כלל ברזל). להפעיל?",
+        confirmLabel: "הפעל",
+      }))
     )
       return;
     if (
       a.paymentStatus !== "paid" &&
-      !window.confirm(
-        "המודעה עדיין מסומנת כלא שולמה. להפעיל בכל זאת? (מודעה תוצג באתר רק לאחר סימון תשלום)",
-      )
+      !(await confirm({
+        title: "המודעה לא שולמה",
+        message:
+          "המודעה עדיין מסומנת כלא שולמה. להפעיל בכל זאת? (תוצג באתר רק לאחר סימון תשלום)",
+        confirmLabel: "הפעל בכל זאת",
+      }))
     )
       return;
     await patch(a, { status: "active" });
   }
 
   async function remove(a: Advertisement) {
-    if (!window.confirm(`למחוק את המודעה "${a.title}"? פעולה לא הפיכה.`))
+    if (
+      !(await confirm({
+        title: "מחיקת מודעה",
+        message: `למחוק את המודעה "${a.title}"? פעולה לא הפיכה.`,
+        confirmLabel: "מחק",
+        danger: true,
+      }))
+    )
       return;
     setBusyId(a.id);
     setError("");

@@ -18,6 +18,7 @@ import {
 } from "@/components/admin/Feedback";
 import { Card, Button, Input, Textarea } from "@/components/ui";
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { useConfirm, usePrompt } from "@/components/admin/ConfirmDialog";
 import { EMPLOYER_STATUS_LABELS } from "@/lib/labels";
 import { formatDate } from "@/lib/utils";
 
@@ -168,12 +169,16 @@ function PendingEmployerCard({
 }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  const confirm = useConfirm();
+  const prompt = usePrompt();
 
   const approve = async () => {
     if (
-      !window.confirm(
-        `לאשר את "${employer.companyName}"? המעסיק יקבל גישה לפורטל ויוכל לפרסם משרות, ויישלח לו מייל אישור.`,
-      )
+      !(await confirm({
+        title: "אישור מעסיק",
+        message: `לאשר את "${employer.companyName}"? המעסיק יקבל גישה לפורטל ויוכל לפרסם משרות, ויישלח לו מייל אישור.`,
+        confirmLabel: "אשר",
+      }))
     )
       return;
     setErr("");
@@ -188,7 +193,13 @@ function PendingEmployerCard({
   };
 
   const reject = async () => {
-    const reason = window.prompt("סיבת הדחייה (אופציונלי):");
+    const reason = await prompt({
+      title: `דחיית "${employer.companyName}"`,
+      message: "אפשר לציין סיבת דחייה (תישלח למעסיק במייל). לא חובה.",
+      placeholder: "סיבת הדחייה (אופציונלי)",
+      confirmLabel: "דחה",
+      multiline: true,
+    });
     if (reason === null) return; // ביטול
     setErr("");
     setBusy(true);

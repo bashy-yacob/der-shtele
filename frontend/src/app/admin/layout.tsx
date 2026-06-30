@@ -19,6 +19,7 @@ import {
 } from "@/lib/icons";
 import { useAuth } from "@/hooks/useAuth";
 import { useDueReminders } from "@/hooks/useDueReminders";
+import { ConfirmProvider } from "@/components/admin/ConfirmDialog";
 import { cn } from "@/lib/utils";
 
 // ניווט הדשבורד — לפי סעיף 7 באיפיון.
@@ -79,63 +80,65 @@ export default function AdminLayout({
   }
 
   return (
-    <main className="max-w-6xl mx-auto px-4 py-8" dir="rtl">
-      <div className="grid md:grid-cols-5 gap-6">
-        <aside className="md:col-span-1">
-          <div className="sticky top-4">
-            <div className="mb-3 px-2">
-              <p className="text-xs text-ink-400">מחובר כ-</p>
-              <p className="text-sm font-bold text-ink-900 truncate">
-                {user.fullName || user.email}
-              </p>
-            </div>
-            <nav className="flex md:flex-col gap-1 bg-white rounded-2xl border border-sand-200 shadow-soft p-2 flex-wrap">
-              {ADMIN_NAV.map((item) => {
-                const active = item.exact
-                  ? pathname === item.href
-                  : pathname.startsWith(item.href);
-                const isReminders = item.href === "/admin/reminders";
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl text-sm transition-colors text-start",
-                      active
-                        ? "bg-navy-50 text-navy-700 font-bold"
-                        : "text-ink-500 font-semibold hover:text-navy-600 hover:bg-sand-50",
-                    )}
-                  >
-                    <span className="flex items-center gap-2.5 min-w-0">
-                      <Icon
-                        className={cn(
-                          "w-[1.15rem] h-[1.15rem] shrink-0",
-                          active ? "text-navy-600" : "text-olive-500/90",
-                        )}
-                      />
-                      <span className="truncate">{item.label}</span>
-                    </span>
-                    {isReminders && dueCount > 0 && (
-                      <span className="ms-1 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold">
-                        {dueCount}
+    <ConfirmProvider>
+      <main className="max-w-6xl mx-auto px-4 py-8" dir="rtl">
+        <div className="grid md:grid-cols-5 gap-6">
+          <aside className="md:col-span-1">
+            <div className="sticky top-4">
+              <div className="mb-3 px-2">
+                <p className="text-xs text-ink-400">מחובר כ-</p>
+                <p className="text-sm font-bold text-ink-900 truncate">
+                  {user.fullName || user.email}
+                </p>
+              </div>
+              <nav className="flex md:flex-col gap-1 bg-white rounded-2xl border border-sand-200 shadow-soft p-2 flex-wrap">
+                {ADMIN_NAV.map((item) => {
+                  const active = item.exact
+                    ? pathname === item.href
+                    : pathname.startsWith(item.href);
+                  const isReminders = item.href === "/admin/reminders";
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn(
+                        "flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl text-sm transition-colors text-start",
+                        active
+                          ? "bg-navy-50 text-navy-700 font-bold"
+                          : "text-ink-500 font-semibold hover:text-navy-600 hover:bg-sand-50",
+                      )}
+                    >
+                      <span className="flex items-center gap-2.5 min-w-0">
+                        <Icon
+                          className={cn(
+                            "w-[1.15rem] h-[1.15rem] shrink-0",
+                            active ? "text-navy-600" : "text-olive-500/90",
+                          )}
+                        />
+                        <span className="truncate">{item.label}</span>
                       </span>
-                    )}
-                  </Link>
-                );
-              })}
-              <button
-                onClick={logout}
-                className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-red-600 hover:bg-red-50 text-start transition-colors"
-              >
-                <SignOut className="w-[1.15rem] h-[1.15rem] shrink-0" />
-                התנתקות
-              </button>
-            </nav>
-          </div>
-        </aside>
-        <section className="md:col-span-4 min-w-0">{children}</section>
-      </div>
-    </main>
+                      {isReminders && dueCount > 0 && (
+                        <span className="ms-1 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold">
+                          {dueCount}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+                <button
+                  onClick={logout}
+                  className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-red-600 hover:bg-red-50 text-start transition-colors"
+                >
+                  <SignOut className="w-[1.15rem] h-[1.15rem] shrink-0" />
+                  התנתקות
+                </button>
+              </nav>
+            </div>
+          </aside>
+          <section className="md:col-span-4 min-w-0">{children}</section>
+        </div>
+      </main>
+    </ConfirmProvider>
   );
 }

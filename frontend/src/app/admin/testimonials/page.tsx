@@ -16,6 +16,7 @@ import {
   PageHeader,
 } from "@/components/admin/Feedback";
 import { Card, Button, Input, Textarea } from "@/components/ui";
+import { useConfirm } from "@/components/admin/ConfirmDialog";
 
 // ערכי טופס משותפים ליצירה ולעריכה.
 interface FormValues {
@@ -53,6 +54,7 @@ export default function TestimonialsPage() {
   const [busyId, setBusyId] = useState<string | null>(null);
   // הודעת הצלחה ברמת העמוד — נשארת גלויה גם אחרי שהטופס נסגר.
   const [msg, setMsg] = useState("");
+  const confirm = useConfirm();
 
   const reload = () =>
     listTestimonials()
@@ -81,7 +83,14 @@ export default function TestimonialsPage() {
   }
 
   async function remove(t: Testimonial) {
-    if (!window.confirm(`למחוק את ההמלצה של ${t.authorName}? פעולה לא הפיכה.`))
+    if (
+      !(await confirm({
+        title: "מחיקת המלצה",
+        message: `למחוק את ההמלצה של ${t.authorName}? פעולה לא הפיכה.`,
+        confirmLabel: "מחק",
+        danger: true,
+      }))
+    )
       return;
     setBusyId(t.id);
     setError("");
