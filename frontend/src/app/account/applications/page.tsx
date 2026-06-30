@@ -48,7 +48,7 @@ export default function MyApplicationsPage() {
         <Card className="text-center text-ink-500 py-12">טוען...</Card>
       ) : items.length === 0 ? (
         <Card className="text-center text-ink-500 py-12">
-          עדיין לא הגשת מועמדות. עיין/ני ב
+          עדיין לא הגשת מועמדות. עיין ב
           <Link
             href="/jobs"
             className="text-navy-600 font-semibold hover:underline"
@@ -74,7 +74,8 @@ export default function MyApplicationsPage() {
                     </p>
                   )}
                   <p className="text-xs text-ink-400 mt-1">
-                    הוגש ב-{new Date(app.presentedAt).toLocaleDateString("he-IL")}
+                    הוגש ב-
+                    {new Date(app.presentedAt).toLocaleDateString("he-IL")}
                   </p>
                 </div>
                 <span

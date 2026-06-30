@@ -48,7 +48,7 @@ export default function SavedJobsPage() {
         <Card className="text-center text-ink-500 py-12">טוען...</Card>
       ) : items.length === 0 ? (
         <Card className="text-center text-ink-500 py-12">
-          אין משרות שמורות עדיין. סמן/י ♡ על משרה ב
+          אין משרות שמורות עדיין. סמן ♡ על משרה ב
           <Link
             href="/jobs"
             className="text-navy-600 font-semibold hover:underline"

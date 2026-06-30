@@ -47,7 +47,14 @@ export default function NewPortalJobPage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!title || !descriptionPublic || !descriptionInternal || !field || !region || !scope) {
+    if (
+      !title ||
+      !descriptionPublic ||
+      !descriptionInternal ||
+      !field ||
+      !region ||
+      !scope
+    ) {
       setError("נא למלא את כל שדות החובה (*).");
       return;
     }
@@ -90,7 +97,7 @@ export default function NewPortalJobPage() {
           <Input
             id="title"
             label="שם התפקיד *"
-            placeholder="לדוגמה: מנהל/ת חשבונות"
+            placeholder="לדוגמה: מנהל חשבונות"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
@@ -119,7 +126,7 @@ export default function NewPortalJobPage() {
             value={field}
             onChange={(e) => setField(e.target.value as JobField | "")}
           >
-            <option value="">בחר/י תחום...</option>
+            <option value="">בחר תחום...</option>
             {Object.entries(FIELD_LABELS).map(([val, label]) => (
               <option key={val} value={val}>
                 {label}
@@ -141,7 +148,7 @@ export default function NewPortalJobPage() {
             value={scope}
             onChange={(e) => setScope(e.target.value)}
           >
-            <option value="">בחר/י היקף...</option>
+            <option value="">בחר היקף...</option>
             {SCOPE_OPTIONS.map((s) => (
               <option key={s} value={s}>
                 {s}

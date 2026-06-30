@@ -120,7 +120,7 @@ export default function AccountProfilePage() {
           value={preferredField}
           onChange={(e) => setPreferredField(e.target.value as JobField | "")}
         >
-          <option value="">בחר/י תחום...</option>
+          <option value="">בחר תחום...</option>
           {Object.entries(FIELD_LABELS).map(([val, label]) => (
             <option key={val} value={val}>
               {label}

@@ -84,7 +84,7 @@ export default function AdminLayout({
         <aside className="md:col-span-1">
           <div className="sticky top-4">
             <div className="mb-3 px-2">
-              <p className="text-xs text-ink-400">מחובר/ת כ-</p>
+              <p className="text-xs text-ink-400">מחובר כ-</p>
               <p className="text-sm font-bold text-ink-900 truncate">
                 {user.fullName || user.email}
               </p>

@@ -427,7 +427,7 @@ function ContactCard({ c }: { c: CandidateDetail }) {
         {c.user ? (
           c.user.optInMarketing ? (
             <p className="text-sm text-olive-700">
-              ✓ הסכים/ה לדיוור
+              ✓ הסכים לדיוור
               {c.user.optInAt && (
                 <span className="text-ink-400">
                   {" "}
@@ -436,7 +436,7 @@ function ContactCard({ c }: { c: CandidateDetail }) {
               )}
             </p>
           ) : (
-            <p className="text-sm text-ink-400">לא הסכים/ה לדיוור</p>
+            <p className="text-sm text-ink-400">לא הסכים לדיוור</p>
           )
         ) : (
           <p className="text-sm text-ink-400">אין חשבון משתמש מקושר</p>

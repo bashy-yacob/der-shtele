@@ -31,7 +31,7 @@ export const CityCombobox = forwardRef<HTMLInputElement, CityComboboxProps>(
           id={id}
           list={listId}
           autoComplete="off"
-          placeholder="בחר/י עיר או הקלד/י עיר חדשה"
+          placeholder="בחר עיר או הקלד עיר חדשה"
           className={cn(
             "w-full px-4 py-2.5 border border-sand-300 rounded-xl text-sm bg-white text-ink-900 placeholder:text-ink-400",
             "focus:ring-2 focus:ring-navy-600/30 focus:border-navy-600 focus:outline-none transition-all",

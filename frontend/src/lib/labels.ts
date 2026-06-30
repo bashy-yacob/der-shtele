@@ -70,7 +70,7 @@ export const PLACEMENT_EVENT_LABELS: Record<PlacementEventType, string> = {
 };
 
 export const INQUIRY_TYPE_LABELS: Record<InquiryType, string> = {
-  candidate: "מועמד/ת",
+  candidate: "מועמד",
   employer: "מעסיק",
   general: "כללי",
 };

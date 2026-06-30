@@ -88,7 +88,7 @@ export function RegisterForm() {
             className="mt-1 h-4 w-4 accent-navy-600"
           />
           <span>
-            אני מאשר/ת קבלת עדכונים על משרות רלוונטיות בדואר אלקטרוני (חובה).
+            אני מאשר קבלת עדכונים על משרות רלוונטיות בדואר אלקטרוני (חובה).
           </span>
         </label>
         {errors.optInMarketing && (

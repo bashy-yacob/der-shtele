@@ -59,7 +59,7 @@ export default function LoginPage() {
   return (
     <AuthShell
       title="ברוך שובך"
-      subtitle="התחבר/י כדי לעקוב אחר ההגשות ולנהל את המשרות השמורות שלך."
+      subtitle="התחבר כדי לעקוב אחר ההגשות ולנהל את המשרות השמורות שלך."
       panelTitle="ממשיכים בדיוק מהמקום שעצרת."
       panelPoints={[
         "ההגשות שלך וההתקדמות במקום אחד",

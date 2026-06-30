@@ -296,7 +296,7 @@ export default function EmployersContactPage() {
                   type="text"
                   id="jobTitle"
                   label="שם התפקיד *"
-                  placeholder="לדוגמה: מנהל/ת חשבונות, נציג/ת מכירות"
+                  placeholder="לדוגמה: מנהל חשבונות, נציג מכירות"
                   error={errors.jobTitle?.message}
                 />
 

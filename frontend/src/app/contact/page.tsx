@@ -291,7 +291,7 @@ export default function ContactPage() {
                     error={errors.inquiry_type ? "בחרו סוג פנייה" : undefined}
                   >
                     <option value="">בחרו...</option>
-                    <option value="candidate">מועמד/ת מחפש/ת עבודה</option>
+                    <option value="candidate">מועמד מחפש עבודה</option>
                     <option value="employer">מעסיק מחפש כוח אדם</option>
                     <option value="general">שאלה כללית</option>
                   </Select>
@@ -338,7 +338,7 @@ export default function ContactPage() {
                       className="mt-0.5 accent-navy-600"
                     />
                     <span className="leading-relaxed">
-                      אני מאשר/ת לקבל עדכונים על משרות ותוכן רלוונטי במייל. ניתן
+                      אני מאשר לקבל עדכונים על משרות ותוכן רלוונטי במייל. ניתן
                       לבטל בכל עת.
                     </span>
                   </label>

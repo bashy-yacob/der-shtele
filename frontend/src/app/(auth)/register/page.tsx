@@ -29,7 +29,7 @@ export default function RegisterPage({
       ]}
       footer={
         <>
-          כבר רשום/ה?{" "}
+          כבר רשום?{" "}
           <Link
             href={loginHref}
             className="text-navy-600 font-semibold hover:underline"
