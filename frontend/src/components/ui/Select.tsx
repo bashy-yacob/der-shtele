@@ -1,5 +1,10 @@
 import { cn } from "@/lib/utils";
-import { forwardRef, type SelectHTMLAttributes, type ReactNode } from "react";
+import {
+  forwardRef,
+  useId,
+  type SelectHTMLAttributes,
+  type ReactNode,
+} from "react";
 
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
@@ -10,11 +15,14 @@ interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
 /** רשימה נפתחת עם label ושגיאה — תואם react-hook-form. */
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   ({ label, error, id, className, children, ...props }, ref) => {
+    // אם לא הועבר id — מייצרים אחד יציב כדי שה-label יקושר לשדה (a11y).
+    const reactId = useId();
+    const selectId = id ?? reactId;
     return (
       <div className="w-full">
         {label && (
           <label
-            htmlFor={id}
+            htmlFor={selectId}
             className="block text-sm font-semibold text-ink-700 mb-1.5"
           >
             {label}
@@ -22,7 +30,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         )}
         <select
           ref={ref}
-          id={id}
+          id={selectId}
           className={cn(
             "w-full px-4 py-2.5 border border-sand-300 rounded-xl text-sm bg-white text-ink-900",
             "focus:ring-2 focus:ring-navy-600/30 focus:border-navy-600 focus:outline-none transition-all",

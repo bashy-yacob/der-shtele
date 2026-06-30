@@ -157,8 +157,16 @@ function DetailsCard({
 
   const nextStatuses = CANDIDATE_TRANSITIONS[c.status];
 
-  // שינוי סטטוס בלחיצה אחת — פעולה ברורה ומיידית
+  // שינוי סטטוס בלחיצה אחת — פעולה ברורה ומיידית.
+  // סימון "לא מתאים" הוא פעולה כבדה — מאשרים לפני ביצוע.
   const changeStatus = async (status: CandidateStatus) => {
+    if (
+      status === "not_suitable" &&
+      !window.confirm(
+        `לסמן את ${c.fullName} כ"לא מתאים"? המועמד יוסר מהטיפול הפעיל (ניתן להחזירו בהמשך).`,
+      )
+    )
+      return;
     setBusy(true);
     setErr("");
     setMsg("");

@@ -138,6 +138,26 @@ export default function AdvertisementsPage() {
     }
   }
 
+  // הפעלת מודעה — אכיפת כלל הברזל: מודעה עם תמונה מחייבת אישור מפורש שאין בה
+  // תמונות אנשים, וכן אזהרה אם טרם סומן תשלום (prepaid).
+  async function activate(a: Advertisement) {
+    if (
+      a.imagePath &&
+      !window.confirm(
+        "המודעה כוללת תמונה. אני מאשר שהתמונה אינה כוללת תמונות אנשים (כלל ברזל) — להפעיל?",
+      )
+    )
+      return;
+    if (
+      a.paymentStatus !== "paid" &&
+      !window.confirm(
+        "המודעה עדיין מסומנת כלא שולמה. להפעיל בכל זאת? (מודעה תוצג באתר רק לאחר סימון תשלום)",
+      )
+    )
+      return;
+    await patch(a, { status: "active" });
+  }
+
   async function remove(a: Advertisement) {
     if (!window.confirm(`למחוק את המודעה "${a.title}"? פעולה לא הפיכה.`))
       return;
@@ -197,7 +217,7 @@ export default function AdvertisementsPage() {
       ) : error ? (
         <ErrorNote message={error} />
       ) : items.length === 0 ? (
-        <EmptyState message="אין מודעות עדיין. הוסיפו מודעה כדי שתופיע באתר." />
+        <EmptyState message="אין מודעות עדיין. הוסף מודעה כדי שתופיע באתר." />
       ) : (
         <div className="space-y-4">
           {items.map((a) =>
@@ -282,7 +302,7 @@ export default function AdvertisementsPage() {
                       size="sm"
                       variant="secondary"
                       disabled={busyId === a.id}
-                      onClick={() => patch(a, { status: "active" })}
+                      onClick={() => activate(a)}
                     >
                       הפעלה
                     </Button>

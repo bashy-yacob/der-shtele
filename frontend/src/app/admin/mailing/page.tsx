@@ -220,6 +220,13 @@ function SendCard({ filter, count }: { filter: Filter; count: number }) {
       setErr("יש למלא נושא ותוכן");
       return;
     }
+    // אישור לפני שליחה המונית — פעולה בלתי-הפיכה.
+    if (
+      !window.confirm(
+        `לשלוח את ההודעה "${subject.trim()}" ל-${count} מנויים? לא ניתן לבטל שליחה.`,
+      )
+    )
+      return;
     setBusy(true);
     setErr("");
     setMsg("");

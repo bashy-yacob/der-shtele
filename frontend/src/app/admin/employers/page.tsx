@@ -156,6 +156,12 @@ function PendingEmployerCard({
   const [err, setErr] = useState("");
 
   const approve = async () => {
+    if (
+      !window.confirm(
+        `לאשר את "${employer.companyName}"? המעסיק יקבל גישה לפורטל ויוכל לפרסם משרות, ויישלח לו מייל אישור.`,
+      )
+    )
+      return;
     setErr("");
     setBusy(true);
     try {
@@ -239,8 +245,8 @@ function PortalCredentials({ employer }: { employer: Employer }) {
     <div className="pt-2 border-t border-sand-100">
       {done ? (
         <p className="text-sm text-olive-700 bg-olive-50 rounded-lg p-2">
-          ✓ נוצר משתמש פורטל: <b>{done}</b>. מסרו למעסיק את המייל והסיסמה +
-          קישור ל-/portal/login.
+          ✓ נוצר משתמש פורטל: <b>{done}</b>. מסור למעסיק את המייל והסיסמה יחד עם
+          קישור לכניסה לפורטל.
         </p>
       ) : !open ? (
         <button

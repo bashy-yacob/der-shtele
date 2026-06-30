@@ -241,7 +241,52 @@ function StatusCard({
   const [err, setErr] = useState("");
   const next = JOB_TRANSITIONS[job.status];
 
-  const change = async (status: JobStatus) => {
+  // תווית/גוון/אישור לכל מעבר — תלוי גם בסטטוס המקור (אישור מול דחייה מול סגירה).
+  const meta = (
+    s: JobStatus,
+  ): {
+    label: string;
+    variant: "secondary" | "outline";
+    danger?: boolean;
+    confirm?: string;
+  } => {
+    if (s === "active")
+      return {
+        label:
+          job.status === "pending"
+            ? "אשר ופרסם"
+            : job.status === "paused"
+              ? "החזר לאתר"
+              : "פרסם באתר",
+        variant: "secondary",
+      };
+    if (s === "closed")
+      return job.status === "pending"
+        ? {
+            label: "דחה משרה",
+            variant: "outline",
+            danger: true,
+            confirm:
+              "דחיית המשרה תסגור אותה והיא לא תפורסם באתר. פעולה זו סופית — להמשיך?",
+          }
+        : {
+            label: "סגור משרה",
+            variant: "outline",
+            danger: true,
+            confirm: "סגירת משרה היא סופית ולא ניתן להחזירה. להמשיך?",
+          };
+    if (s === "filled")
+      return {
+        label: "סמן כאוישה",
+        variant: "outline",
+        confirm: "סימון המשרה כאוישה הוא סופי. להמשיך?",
+      };
+    if (s === "paused") return { label: "השהה", variant: "outline" };
+    return { label: JOB_STATUS_LABELS[s], variant: "outline" };
+  };
+
+  const change = async (status: JobStatus, confirmMsg?: string) => {
+    if (confirmMsg && !window.confirm(confirmMsg)) return;
     setBusy(true);
     setErr("");
     try {
@@ -259,8 +304,8 @@ function StatusCard({
       <h2 className="text-lg font-display text-ink-900">סטטוס ופרסום</h2>
       {job.status === "pending" && (
         <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2">
-          ⏳ משרה זו פורסמה על ידי מעסיק וממתינה לאישור. לחצו &quot;פרסם
-          באתר&quot; כדי לאשר אותה.
+          ⏳ משרה זו פורסמה על ידי מעסיק וממתינה לאישור. לחץ על &quot;אשר
+          ופרסם&quot; כדי לאשר אותה, או &quot;דחה משרה&quot; כדי לדחות.
         </p>
       )}
       <p className="text-sm text-ink-500">
@@ -278,17 +323,23 @@ function StatusCard({
         <p className="text-sm text-ink-400">סטטוס סופי — אין מעברים נוספים.</p>
       ) : (
         <div className="flex flex-wrap gap-2">
-          {next.map((s) => (
-            <Button
-              key={s}
-              size="sm"
-              variant={s === "active" ? "secondary" : "outline"}
-              onClick={() => change(s)}
-              disabled={busy}
-            >
-              {s === "active" ? "פרסם באתר" : JOB_STATUS_LABELS[s]}
-            </Button>
-          ))}
+          {next.map((s) => {
+            const m = meta(s);
+            return (
+              <Button
+                key={s}
+                size="sm"
+                variant={m.variant}
+                className={
+                  m.danger ? "text-red-600 hover:bg-red-50" : undefined
+                }
+                onClick={() => change(s, m.confirm)}
+                disabled={busy}
+              >
+                {m.label}
+              </Button>
+            );
+          })}
         </div>
       )}
       {err && <ErrorNote message={err} />}

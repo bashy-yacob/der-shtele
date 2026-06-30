@@ -9,7 +9,10 @@ import { Loading, ErrorNote, EmptyState } from "@/components/admin/Feedback";
 import { Button } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { COMMISSION_STATUS_LABELS } from "@/lib/labels";
-import { buildInvoiceNumber, effectiveCommissionStatus } from "@/lib/commission";
+import {
+  buildInvoiceNumber,
+  effectiveCommissionStatus,
+} from "@/lib/commission";
 
 export default function InvoicePage() {
   const { id } = useParams<{ id: string }>();
@@ -28,21 +31,23 @@ export default function InvoicePage() {
   if (error) return <ErrorNote message={error} />;
   if (!p) return <EmptyState message="גיוס לא נמצא" />;
 
+  // שיעור המע״מ בישראל — 18% מ-1.1.2025. מקור אמת אחד לחישוב ולתווית.
+  const VAT_RATE = 0.18;
   const amount = p.commissionAmount ?? 0;
-  const vat = Math.round(amount * 0.17);
+  const vat = Math.round(amount * VAT_RATE);
   const total = amount + vat;
 
   // מספר חשבונית יציב + תאריך ההפקה (אירוע "חשבונית נשלחה" אם קיים, אחרת היום).
   const invoiceNo = buildInvoiceNumber(p.id);
-  const invoicedEvent = p.events?.find(
-    (e) => e.type === "commission_invoiced",
-  );
+  const invoicedEvent = p.events?.find((e) => e.type === "commission_invoiced");
   const invoiceDate = invoicedEvent?.createdAt ?? new Date();
   const status = effectiveCommissionStatus(
     p.status,
     p.commissionStatus,
     p.guaranteeEndsAt,
   );
+  // אין להפיק חשבונית כל עוד הגיוס בתקופת הערבות — חוק עסקי קריטי.
+  const notDue = status === "not_due";
 
   return (
     <div>
@@ -53,8 +58,20 @@ export default function InvoicePage() {
         >
           → חזרה לעמלות
         </Link>
-        <Button onClick={() => window.print()}>הדפסה / שמירה כ-PDF</Button>
+        <Button onClick={() => window.print()} disabled={notDue}>
+          הדפסה / שמירה כ-PDF
+        </Button>
       </div>
+
+      {notDue && (
+        <div className="max-w-2xl mx-auto mb-4 print:hidden">
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            הגיוס עדיין בתקופת ערבות — אין להפיק חשבונית עד תום 3 חודשי הערבות
+            {p.guaranteeEndsAt ? ` (${formatDate(p.guaranteeEndsAt)})` : ""}.
+            ההדפסה חסומה עד אז.
+          </div>
+        </div>
+      )}
 
       <div className="bg-white rounded-2xl border border-sand-200 shadow-soft p-8 max-w-2xl mx-auto">
         <div className="flex items-start justify-between border-b border-sand-200 pb-4 mb-6">
@@ -62,10 +79,12 @@ export default function InvoicePage() {
             <h1 className="text-2xl font-display text-ink-900">דער שטעלע</h1>
             <p className="text-sm text-ink-500">סוכנות השמה דיגיטלית</p>
           </div>
-          <div className="text-start">
+          <div className="text-end">
             <p className="text-lg font-bold text-ink-900">חשבון עמלה</p>
             <p className="text-xs text-ink-400">מס׳ {invoiceNo}</p>
-            <p className="text-xs text-ink-400">{formatDate(invoiceDate)}</p>
+            <p className="text-xs text-ink-400">
+              תאריך: {formatDate(invoiceDate)}
+            </p>
           </div>
         </div>
 
@@ -99,7 +118,9 @@ export default function InvoicePage() {
           </tbody>
           <tfoot>
             <tr className="text-ink-500">
-              <td className="py-2 text-start">מע״מ (17%)</td>
+              <td className="py-2 text-start">
+                מע״מ ({Math.round(VAT_RATE * 100)}%)
+              </td>
               <td className="py-2">{formatCurrency(vat)}</td>
             </tr>
             <tr className="font-bold text-ink-900 border-t border-sand-200">

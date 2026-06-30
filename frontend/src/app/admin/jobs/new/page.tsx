@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -144,6 +144,10 @@ export default function NewJobPage() {
     setShowEmployerForm(false);
   };
 
+  // שומר את id המשרה שכבר נוצרה — כדי ששליחה חוזרת אחרי כשל בשלב הסטטוס
+  // לא תיצור משרה כפולה, אלא רק תנסה שוב את עדכון הסטטוס + הניווט.
+  const createdJobId = useRef<string | null>(null);
+
   const submit = async () => {
     if (
       !form.employerId ||
@@ -161,22 +165,25 @@ export default function NewJobPage() {
     setBusy(true);
     setErr("");
     try {
-      const job = await createJob({
-        employerId: form.employerId,
-        title: form.title,
-        descriptionPublic: form.descriptionPublic,
-        descriptionInternal: form.descriptionInternal,
-        field: form.field as JobField,
-        region: form.region as Region,
-        scope: form.scope,
-        experience: form.experience || undefined,
-        salary: form.salary || undefined,
-      });
+      if (!createdJobId.current) {
+        const job = await createJob({
+          employerId: form.employerId,
+          title: form.title,
+          descriptionPublic: form.descriptionPublic,
+          descriptionInternal: form.descriptionInternal,
+          field: form.field as JobField,
+          region: form.region as Region,
+          scope: form.scope,
+          experience: form.experience || undefined,
+          salary: form.salary || undefined,
+        });
+        createdJobId.current = job.id;
+      }
       // אישור לפני פרסום: משרה חדשה נשמרת כטיוטה (מושהית) אלא אם נבחר לפרסם מיד.
       if (!publishNow) {
-        await updateJob(job.id, { status: "paused" });
+        await updateJob(createdJobId.current, { status: "paused" });
       }
-      router.push(`/admin/jobs/${job.id}`);
+      router.push(`/admin/jobs/${createdJobId.current}`);
     } catch (e) {
       setErr((e as Error).message);
       setBusy(false);

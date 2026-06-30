@@ -59,6 +59,14 @@ export default function CommissionsPage() {
   }, []);
 
   const setStatus = async (id: string, status: CommissionStatus) => {
+    // אישור על מעברים כספיים — פעולות בלתי-הפיכות שסוגרות גבייה.
+    const confirmMsg =
+      status === "paid"
+        ? "לסמן את העמלה כשולמה? פעולה זו סוגרת את הגבייה ואינה הפיכה."
+        : status === "invoiced"
+          ? "לסמן שנשלחה חשבונית למעסיק על עמלה זו?"
+          : "";
+    if (confirmMsg && !window.confirm(confirmMsg)) return;
     setError("");
     setMsg("");
     try {
