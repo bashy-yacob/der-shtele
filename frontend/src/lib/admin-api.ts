@@ -77,6 +77,9 @@ export const setContactHandled = (id: string, handled: boolean) =>
     method: "PATCH",
     body: { handled },
   });
+/** signed URL זמני לקו"ח שצורף לפנייה (צוות בלבד). */
+export const getContactResume = (id: string) =>
+  adminFetch<{ url: string }>(`contact/${id}/resume`);
 
 // ---- מועמדים ----
 export const listCandidates = () =>

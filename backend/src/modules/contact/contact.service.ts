@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
 import { EmailService } from "../email/email.service";
 import { CreateContactDto, InquiryType } from "./dto/create-contact.dto";
@@ -117,5 +117,16 @@ export class ContactService {
       where: { id },
       data: { handledAt: handled ? new Date() : null },
     });
+  }
+
+  /** נתיב הקו"ח שצורף לפנייה — לחתימת URL בבקר (צוות בלבד). */
+  async getResumePath(id: string): Promise<string> {
+    const contact = await this.prisma.contact.findUnique({
+      where: { id },
+      select: { resumePath: true },
+    });
+    if (!contact?.resumePath)
+      throw new NotFoundException("אין קורות חיים לפנייה זו");
+    return contact.resumePath;
   }
 }

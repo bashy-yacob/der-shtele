@@ -53,4 +53,14 @@ export class ContactController {
   setHandled(@Param("id") id: string, @Body() dto: UpdateContactHandledDto) {
     return this.contactService.setHandled(id, dto.handled);
   }
+
+  /** signed URL זמני לצפייה בקו"ח שצורף לפנייה — צוות בלבד. */
+  @Get(":id/resume")
+  @UseGuards(RolesGuard)
+  @Roles("staff", "admin")
+  async resume(@Param("id") id: string) {
+    const path = await this.contactService.getResumePath(id);
+    const url = await this.storage.getSignedUrl(path);
+    return { url };
+  }
 }

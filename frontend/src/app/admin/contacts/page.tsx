@@ -2,7 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { listContacts, setContactHandled } from "@/lib/admin-api";
+import {
+  listContacts,
+  setContactHandled,
+  getContactResume,
+} from "@/lib/admin-api";
 import type { Contact, InquiryType } from "@/types";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import {
@@ -71,6 +75,9 @@ export default function ContactsPage() {
   const [typeFilter, setTypeFilter] = useState<InquiryType | "">("");
   const [handledFilter, setHandledFilter] = useState<HandledFilter>("all");
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [resumeBusyId, setResumeBusyId] = useState<string | null>(null);
+  // שגיאת פעולה (סימון/פתיחת קו"ח) — נפרדת משגיאת הטעינה כדי לא להעלים את הרשימה.
+  const [actionError, setActionError] = useState("");
 
   useEffect(() => {
     listContacts()
@@ -82,7 +89,7 @@ export default function ContactsPage() {
   // סימון/ביטול "טופל" — עדכון אופטימי של ה-state המקומי לאחר אישור השרת.
   async function toggleHandled(c: Contact) {
     setBusyId(c.id);
-    setError("");
+    setActionError("");
     try {
       const updated = await setContactHandled(c.id, !c.handledAt);
       setContacts((prev) =>
@@ -91,9 +98,30 @@ export default function ContactsPage() {
         ),
       );
     } catch (e) {
-      setError((e as Error).message);
+      setActionError((e as Error).message);
     } finally {
       setBusyId(null);
+    }
+  }
+
+  // פתיחת הקו"ח שצורף לפנייה — לשונית נפתחת מיד (כדי לא להיחסם ע"י חוסם-פופאפים).
+  async function openResume(c: Contact) {
+    setResumeBusyId(c.id);
+    setActionError("");
+    const tab = window.open("about:blank", "_blank");
+    try {
+      const { url } = await getContactResume(c.id);
+      if (tab) {
+        tab.opener = null;
+        tab.location.href = url;
+      } else {
+        window.location.href = url;
+      }
+    } catch (e) {
+      tab?.close();
+      setActionError((e as Error).message);
+    } finally {
+      setResumeBusyId(null);
     }
   }
 
@@ -143,6 +171,12 @@ export default function ContactsPage() {
           </Select>
         </div>
       </Card>
+
+      {actionError && (
+        <div className="mb-4">
+          <ErrorNote message={actionError} />
+        </div>
+      )}
 
       {loading ? (
         <Loading />
@@ -229,7 +263,7 @@ export default function ContactsPage() {
                 </p>
               )}
 
-              {/* פעולות הצוות — יצירת משרה (למעסיק) וסימון טיפול */}
+              {/* פעולות הצוות — יצירת משרה (למעסיק), פתיחת קו"ח וסימון טיפול */}
               <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-sand-100">
                 {c.inquiry_type === "employer" && (
                   <Link href={buildJobLink(c)}>
@@ -237,6 +271,16 @@ export default function ContactsPage() {
                       צור משרה מפנייה זו ←
                     </Button>
                   </Link>
+                )}
+                {c.resumePath && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={resumeBusyId === c.id}
+                    onClick={() => openResume(c)}
+                  >
+                    {resumeBusyId === c.id ? "טוען…" : "פתח קו״ח"}
+                  </Button>
                 )}
                 <Button
                   size="sm"
