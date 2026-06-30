@@ -10,6 +10,7 @@ import type {
   Region,
 } from "@/types";
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { AdminPager } from "@/components/admin/AdminPager";
 import {
   Loading,
   ErrorNote,
@@ -59,6 +60,13 @@ export default function CandidatesListPage() {
       return true;
     });
   }, [candidates, search, field, region, status]);
+
+  // עימוד — איפוס לעמוד 1 כשמשתנה הסינון.
+  const PAGE_SIZE = 15;
+  const [page, setPage] = useState(1);
+  useEffect(() => setPage(1), [search, field, region, status]);
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div>
@@ -131,66 +139,69 @@ export default function CandidatesListPage() {
           }
         />
       ) : (
-        <Card className="p-0 overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-sand-50 text-ink-500">
-              <tr className="text-start">
-                <th className="px-4 py-3 text-start font-semibold">שם</th>
-                <th className="px-4 py-3 text-start font-semibold">תחום</th>
-                <th className="px-4 py-3 text-start font-semibold">אזור</th>
-                <th className="px-4 py-3 text-start font-semibold">
-                  הוגש למשרה
-                </th>
-                <th className="px-4 py-3 text-start font-semibold">סטטוס</th>
-                <th className="px-4 py-3 text-start font-semibold">נוצר</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-sand-100">
-              {filtered.map((c) => (
-                <tr key={c.id} className="hover:bg-sand-50 transition-colors">
-                  <td className="px-4 py-3">
-                    <Link
-                      href={`/admin/candidates/${c.id}`}
-                      className="font-semibold text-navy-600 hover:underline"
-                    >
-                      {c.fullName}
-                    </Link>
-                    <div className="text-xs text-ink-400">{c.phone}</div>
-                  </td>
-                  <td className="px-4 py-3 text-ink-700">
-                    {FIELD_LABELS[c.field]}
-                  </td>
-                  <td className="px-4 py-3 text-ink-700">
-                    {regionLabel(c.region)}
-                  </td>
-                  <td className="px-4 py-3">
-                    {c.presentations.length > 0 ? (
-                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-olive-700 bg-olive-50 rounded-full px-2.5 py-1">
-                        {c.presentations[0].job?.title ?? "משרה"}
-                        {c.presentations.length > 1 && (
-                          <span className="text-ink-400">
-                            +{c.presentations.length - 1}
-                          </span>
-                        )}
-                      </span>
-                    ) : (
-                      <span className="text-xs text-ink-400">ללא שיוך</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <StatusBadge
-                      status={c.status}
-                      label={CANDIDATE_STATUS_LABELS[c.status]}
-                    />
-                  </td>
-                  <td className="px-4 py-3 text-ink-400 whitespace-nowrap">
-                    {formatDate(c.createdAt)}
-                  </td>
+        <>
+          <Card className="p-0 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-sand-50 text-ink-500">
+                <tr className="text-start">
+                  <th className="px-4 py-3 text-start font-semibold">שם</th>
+                  <th className="px-4 py-3 text-start font-semibold">תחום</th>
+                  <th className="px-4 py-3 text-start font-semibold">אזור</th>
+                  <th className="px-4 py-3 text-start font-semibold">
+                    הוגש למשרה
+                  </th>
+                  <th className="px-4 py-3 text-start font-semibold">סטטוס</th>
+                  <th className="px-4 py-3 text-start font-semibold">נוצר</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </Card>
+              </thead>
+              <tbody className="divide-y divide-sand-100">
+                {pageItems.map((c) => (
+                  <tr key={c.id} className="hover:bg-sand-50 transition-colors">
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/admin/candidates/${c.id}`}
+                        className="font-semibold text-navy-600 hover:underline"
+                      >
+                        {c.fullName}
+                      </Link>
+                      <div className="text-xs text-ink-400">{c.phone}</div>
+                    </td>
+                    <td className="px-4 py-3 text-ink-700">
+                      {FIELD_LABELS[c.field]}
+                    </td>
+                    <td className="px-4 py-3 text-ink-700">
+                      {regionLabel(c.region)}
+                    </td>
+                    <td className="px-4 py-3">
+                      {c.presentations.length > 0 ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-olive-700 bg-olive-50 rounded-full px-2.5 py-1">
+                          {c.presentations[0].job?.title ?? "משרה"}
+                          {c.presentations.length > 1 && (
+                            <span className="text-ink-400">
+                              +{c.presentations.length - 1}
+                            </span>
+                          )}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-ink-400">ללא שיוך</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <StatusBadge
+                        status={c.status}
+                        label={CANDIDATE_STATUS_LABELS[c.status]}
+                      />
+                    </td>
+                    <td className="px-4 py-3 text-ink-400 whitespace-nowrap">
+                      {formatDate(c.createdAt)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Card>
+          <AdminPager page={page} totalPages={totalPages} onPage={setPage} />
+        </>
       )}
     </div>
   );

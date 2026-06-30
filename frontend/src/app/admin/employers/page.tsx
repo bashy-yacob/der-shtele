@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   listEmployers,
   createEmployer,
@@ -16,8 +16,9 @@ import {
   EmptyState,
   PageHeader,
 } from "@/components/admin/Feedback";
-import { Card, Button, Input, Textarea } from "@/components/ui";
+import { Card, Button, Input, Textarea, Select } from "@/components/ui";
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { AdminPager } from "@/components/admin/AdminPager";
 import { useConfirm, usePrompt } from "@/components/admin/ConfirmDialog";
 import { EMPLOYER_STATUS_LABELS } from "@/lib/labels";
 import { formatDate } from "@/lib/utils";
@@ -29,6 +30,11 @@ export default function EmployersPage() {
   const [showForm, setShowForm] = useState(false);
   // הודעת הצלחה ברמת העמוד — נשארת גלויה גם אחרי שהטופס נסגר.
   const [msg, setMsg] = useState("");
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "approved" | "rejected"
+  >("all");
+  const [page, setPage] = useState(1);
 
   const reload = () =>
     listEmployers()
@@ -39,6 +45,38 @@ export default function EmployersPage() {
   useEffect(() => {
     reload();
   }, []);
+
+  useEffect(() => setPage(1), [search, statusFilter]);
+
+  const PAGE_SIZE = 12;
+  // מעסיקים שאינם "ממתינים" — מסוננים, ממוינים (נדחים בסוף) ומעומדים.
+  const others = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return employers
+      .filter((e) => e.status !== "pending")
+      .filter((e) => {
+        if (statusFilter === "approved" && e.status === "rejected")
+          return false;
+        if (statusFilter === "rejected" && e.status !== "rejected")
+          return false;
+        if (q) {
+          const hay =
+            `${e.companyName} ${e.contactName} ${e.contactPhone}`.toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      })
+      .sort((a, b) => {
+        // נדחים לתחתית; בתוך כל קבוצה — לפי תאריך יורד.
+        const ra = a.status === "rejected" ? 1 : 0;
+        const rb = b.status === "rejected" ? 1 : 0;
+        if (ra !== rb) return ra - rb;
+        return +new Date(b.createdAt) - +new Date(a.createdAt);
+      });
+  }, [employers, search, statusFilter]);
+
+  const othersTotalPages = Math.ceil(others.length / PAGE_SIZE);
+  const othersPage = others.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div>
@@ -104,55 +142,89 @@ export default function EmployersPage() {
             </section>
           )}
 
-          <div className="grid md:grid-cols-2 gap-4">
-            {employers
-              .filter((e) => e.status !== "pending")
-              .map((e) => (
-                <Card key={e.id} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-display text-lg text-ink-900">
-                      {e.companyName}
-                    </h3>
-                    <span className="text-xs text-ink-400">
-                      {formatDate(e.createdAt)}
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <StatusBadge
-                      status={e.status}
-                      label={EMPLOYER_STATUS_LABELS[e.status]}
-                    />
-                    <span className="inline-block rounded-full bg-navy-50 px-2.5 py-0.5 text-xs font-semibold text-navy-600">
-                      {e._count?.jobs ?? 0}{" "}
-                      {e._count?.jobs === 1 ? "משרה" : "משרות"}
-                    </span>
-                  </div>
-                  <p className="text-sm text-ink-700">
-                    איש קשר: {e.contactName} · {e.contactPhone}
-                  </p>
-                  <p className="text-sm text-ink-500">{e.contactEmail}</p>
-                  {e.businessNumber && (
-                    <p className="text-xs text-ink-400">
-                      ח.פ {e.businessNumber}
+          <section>
+            <h2 className="text-lg font-display text-ink-900 mb-3">מעסיקים</h2>
+            <Card className="mb-4">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Input
+                  label="חיפוש"
+                  placeholder="שם חברה / איש קשר / טלפון"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+                <Select
+                  label="מצב"
+                  value={statusFilter}
+                  onChange={(e) =>
+                    setStatusFilter(
+                      e.target.value as "all" | "approved" | "rejected",
+                    )
+                  }
+                >
+                  <option value="all">הכל</option>
+                  <option value="approved">מאושרים</option>
+                  <option value="rejected">נדחים</option>
+                </Select>
+              </div>
+            </Card>
+
+            {othersPage.length === 0 ? (
+              <EmptyState message="לא נמצאו מעסיקים התואמים לסינון." />
+            ) : (
+              <div className="grid md:grid-cols-2 gap-4">
+                {othersPage.map((e) => (
+                  <Card key={e.id} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-display text-lg text-ink-900">
+                        {e.companyName}
+                      </h3>
+                      <span className="text-xs text-ink-400">
+                        {formatDate(e.createdAt)}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <StatusBadge
+                        status={e.status}
+                        label={EMPLOYER_STATUS_LABELS[e.status]}
+                      />
+                      <span className="inline-block rounded-full bg-navy-50 px-2.5 py-0.5 text-xs font-semibold text-navy-600">
+                        {e._count?.jobs ?? 0}{" "}
+                        {e._count?.jobs === 1 ? "משרה" : "משרות"}
+                      </span>
+                    </div>
+                    <p className="text-sm text-ink-700">
+                      איש קשר: {e.contactName} · {e.contactPhone}
                     </p>
-                  )}
-                  {e.address && (
-                    <p className="text-xs text-ink-400">{e.address}</p>
-                  )}
-                  {e.status === "rejected" && e.rejectionReason && (
-                    <p className="text-xs text-red-600">
-                      סיבת דחייה: {e.rejectionReason}
-                    </p>
-                  )}
-                  {e.notes && (
-                    <p className="text-sm text-ink-700 bg-sand-50 rounded-lg p-2 mt-1">
-                      {e.notes}
-                    </p>
-                  )}
-                  <PortalCredentials employer={e} />
-                </Card>
-              ))}
-          </div>
+                    <p className="text-sm text-ink-500">{e.contactEmail}</p>
+                    {e.businessNumber && (
+                      <p className="text-xs text-ink-400">
+                        ח.פ {e.businessNumber}
+                      </p>
+                    )}
+                    {e.address && (
+                      <p className="text-xs text-ink-400">{e.address}</p>
+                    )}
+                    {e.status === "rejected" && e.rejectionReason && (
+                      <p className="text-xs text-red-600">
+                        סיבת דחייה: {e.rejectionReason}
+                      </p>
+                    )}
+                    {e.notes && (
+                      <p className="text-sm text-ink-700 bg-sand-50 rounded-lg p-2 mt-1">
+                        {e.notes}
+                      </p>
+                    )}
+                    <PortalCredentials employer={e} />
+                  </Card>
+                ))}
+              </div>
+            )}
+            <AdminPager
+              page={page}
+              totalPages={othersTotalPages}
+              onPage={setPage}
+            />
+          </section>
         </>
       )}
     </div>

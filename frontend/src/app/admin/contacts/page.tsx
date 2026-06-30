@@ -15,9 +15,12 @@ import {
   EmptyState,
   PageHeader,
 } from "@/components/admin/Feedback";
-import { Card, Button, Select } from "@/components/ui";
+import { Card, Button, Select, Input } from "@/components/ui";
+import { AdminPager } from "@/components/admin/AdminPager";
 import { INQUIRY_TYPE_LABELS, FIELD_LABELS } from "@/lib/labels";
 import { formatDate } from "@/lib/utils";
+
+const PAGE_SIZE = 15;
 
 // מצב סינון "טופל" — כל הפניות / רק שטופלו / רק שטרם טופלו.
 type HandledFilter = "all" | "handled" | "open";
@@ -72,8 +75,10 @@ export default function ContactsPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
+  const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<InquiryType | "">("");
   const [handledFilter, setHandledFilter] = useState<HandledFilter>("all");
+  const [page, setPage] = useState(1);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [resumeBusyId, setResumeBusyId] = useState<string | null>(null);
   // שגיאת פעולה (סימון/פתיחת קו"ח) — נפרדת משגיאת הטעינה כדי לא להעלים את הרשימה.
@@ -130,16 +135,24 @@ export default function ContactsPage() {
     [contacts],
   );
 
-  const filtered = useMemo(
-    () =>
-      contacts.filter((c) => {
-        if (typeFilter && c.inquiry_type !== typeFilter) return false;
-        if (handledFilter === "handled" && !c.handledAt) return false;
-        if (handledFilter === "open" && c.handledAt) return false;
-        return true;
-      }),
-    [contacts, typeFilter, handledFilter],
-  );
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return contacts.filter((c) => {
+      if (typeFilter && c.inquiry_type !== typeFilter) return false;
+      if (handledFilter === "handled" && !c.handledAt) return false;
+      if (handledFilter === "open" && c.handledAt) return false;
+      if (q) {
+        const hay =
+          `${c.name} ${c.phone} ${c.companyName ?? ""} ${c.email ?? ""}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [contacts, search, typeFilter, handledFilter]);
+
+  useEffect(() => setPage(1), [search, typeFilter, handledFilter]);
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div>
@@ -149,8 +162,15 @@ export default function ContactsPage() {
       />
 
       <Card className="mb-6">
-        <div className="grid sm:grid-cols-2 gap-3">
+        <div className="grid sm:grid-cols-3 gap-3">
+          <Input
+            label="חיפוש"
+            placeholder="שם / טלפון / חברה / מייל"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
           <Select
+            label="סוג פנייה"
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value as InquiryType | "")}
           >
@@ -162,6 +182,7 @@ export default function ContactsPage() {
             ))}
           </Select>
           <Select
+            label="סטטוס טיפול"
             value={handledFilter}
             onChange={(e) => setHandledFilter(e.target.value as HandledFilter)}
           >
@@ -188,7 +209,7 @@ export default function ContactsPage() {
         <EmptyState message="לא נמצאו פניות התואמות לסינון." />
       ) : (
         <div className="space-y-3">
-          {filtered.map((c) => (
+          {pageItems.map((c) => (
             <Card
               key={c.id}
               className={`space-y-3 ${c.handledAt ? "opacity-70" : ""}`}
@@ -297,6 +318,7 @@ export default function ContactsPage() {
               </div>
             </Card>
           ))}
+          <AdminPager page={page} totalPages={totalPages} onPage={setPage} />
         </div>
       )}
     </div>

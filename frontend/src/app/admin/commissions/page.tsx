@@ -22,7 +22,8 @@ import {
   EmptyState,
   PageHeader,
 } from "@/components/admin/Feedback";
-import { Card, Button, Input } from "@/components/ui";
+import { Card, Button, Input, Select } from "@/components/ui";
+import { AdminPager } from "@/components/admin/AdminPager";
 import {
   COMMISSION_STATUS_LABELS,
   PLACEMENT_STATUS_LABELS,
@@ -45,6 +46,10 @@ export default function CommissionsPage() {
   const [editing, setEditing] = useState<string | null>(null);
   const [amountDraft, setAmountDraft] = useState("");
   const [savingAmount, setSavingAmount] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<
+    "" | "collectible" | "guarantee" | "paid"
+  >("");
+  const [page, setPage] = useState(1);
   const confirm = useConfirm();
 
   const reload = () =>
@@ -59,6 +64,8 @@ export default function CommissionsPage() {
   useEffect(() => {
     reload();
   }, []);
+
+  useEffect(() => setPage(1), [statusFilter]);
 
   const setStatus = async (id: string, status: CommissionStatus) => {
     // אישור על מעברים כספיים — פעולות בלתי-הפיכות שסוגרות גבייה.
@@ -151,6 +158,27 @@ export default function CommissionsPage() {
   );
   const paidTotal = paidRows.reduce((s, p) => s + (p.commissionAmount ?? 0), 0);
 
+  // קטגוריית שורה לסינון: לגבייה / בערבות / שולם.
+  const rowCategory = (p: Placement): "collectible" | "guarantee" | "paid" => {
+    if (
+      effectiveCommissionStatus(
+        p.status,
+        p.commissionStatus,
+        p.guaranteeEndsAt,
+      ) === "paid"
+    )
+      return "paid";
+    if (isCollectibleNow(p.status, p.commissionStatus, p.guaranteeEndsAt))
+      return "collectible";
+    return "guarantee";
+  };
+  const PAGE_SIZE = 15;
+  const filteredRows = statusFilter
+    ? rows.filter((p) => rowCategory(p) === statusFilter)
+    : rows;
+  const totalPages = Math.ceil(filteredRows.length / PAGE_SIZE);
+  const pageRows = filteredRows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
   return (
     <div>
       <PageHeader
@@ -191,8 +219,29 @@ export default function CommissionsPage() {
         </div>
       )}
 
+      {rows.length > 0 && (
+        <Card className="mb-4 sm:max-w-xs">
+          <Select
+            label="סינון לפי מצב"
+            value={statusFilter}
+            onChange={(e) =>
+              setStatusFilter(
+                e.target.value as "" | "collectible" | "guarantee" | "paid",
+              )
+            }
+          >
+            <option value="">הכל</option>
+            <option value="collectible">לגבייה עכשיו</option>
+            <option value="guarantee">בתקופת ערבות</option>
+            <option value="paid">שולם</option>
+          </Select>
+        </Card>
+      )}
+
       {rows.length === 0 ? (
         <EmptyState message="אין עמלות לרישום עדיין" />
+      ) : filteredRows.length === 0 ? (
+        <EmptyState message="אין עמלות במצב שנבחר" />
       ) : (
         <Card className="p-0 overflow-x-auto">
           <table className="w-full text-sm">
@@ -209,7 +258,7 @@ export default function CommissionsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-sand-100">
-              {rows.map((p) => {
+              {pageRows.map((p) => {
                 // הסטטוס האפקטיבי — מקדם not_due→due אם הערבות כבר עברה
                 const status = effectiveCommissionStatus(
                   p.status,
@@ -386,6 +435,7 @@ export default function CommissionsPage() {
               })}
             </tbody>
           </table>
+          <AdminPager page={page} totalPages={totalPages} onPage={setPage} />
         </Card>
       )}
 
