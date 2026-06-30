@@ -1,13 +1,21 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import type { Icon } from "@/lib/icons";
-import { Lock, HandHeart, ShieldCheck, UsersThree } from "@/lib/icons";
+import {
+  Lock,
+  HandHeart,
+  ShieldCheck,
+  UsersThree,
+  ArrowLeft,
+} from "@/lib/icons";
 import { SITE_CONTENT } from "@/lib/constants";
 import { Card, SectionHeading, Reveal } from "@/components/ui";
+import { buttonClass } from "@/components/ui/Button";
 
 export const metadata: Metadata = {
   title: "לעובדים",
   description:
-    "מחפשים עבודה? דער שטעלע — סוכנות השמה שנבנתה מתוך הציבור החרדי ובשבילו. מכירים את הציבור, שומרים על צניעות ופרטיות, ומלווים כל גיוס באופן אישי.",
+    "מחפש עבודה? דער שטעלע — סוכנות השמה שנבנתה מתוך הציבור החרדי ובשבילו. מכירים את הציבור, שומרים על צניעות ופרטיות, ומלווים כל גיוס באופן אישי.",
   alternates: { canonical: "/about" },
 };
 
@@ -22,7 +30,7 @@ const VALUE_ICONS: Icon[] = [
 const PROCESS_STEPS = [
   {
     title: "שולחים קורות חיים",
-    desc: "דרך האתר, עם הפרטים ותחום העיסוק המועדף עליכם",
+    desc: "דרך האתר — עם הפרטים ותחום העיסוק שמעניין אותך",
   },
   {
     title: "הצוות עובר על הפנייה",
@@ -34,11 +42,11 @@ const PROCESS_STEPS = [
   },
   {
     title: "הצגה למעסיק",
-    desc: "מציגים אתכם למעסיק המתאים — רק לאחר אישורכם",
+    desc: "מציגים אותך למעסיק המתאים — רק לאחר אישורך",
   },
   {
     title: "גיוס מוצלח",
-    desc: "מלווים אתכם עד הקליטה — ונשארים זמינים גם אחריה",
+    desc: "מלווים אותך עד הקליטה — ונשארים זמינים גם אחריה",
   },
 ];
 
@@ -82,7 +90,7 @@ export default function AboutPage() {
             <SectionHeading
               eyebrow="העקרונות שלנו"
               title="ערכי הסוכנות"
-              align="center"
+              align="start"
               className="mb-14"
             />
           </Reveal>
@@ -138,6 +146,25 @@ export default function AboutPage() {
             </Reveal>
           ))}
         </div>
+      </section>
+
+      {/* CTA סוגר */}
+      <section className="bg-sand-100 py-20 px-4 border-t border-sand-200">
+        <Reveal>
+          <div className="max-w-3xl mx-auto bg-navy-600 rounded-2xl px-8 py-12 sm:py-14 text-center">
+            <h2 className="font-display text-white text-3xl font-bold mb-4">
+              מוכן למצוא את המקום הנכון?
+            </h2>
+            <p className="text-sand-200 mb-8 max-w-md mx-auto leading-relaxed">
+              הרשמה לוקחת דקה, והשירות חינמי לחלוטין. מכאן — אנחנו כבר דואגים
+              לכל השאר.
+            </p>
+            <Link href="/register" className={buttonClass("secondary", "lg")}>
+              הרשמה ושליחת קורות חיים
+              <ArrowLeft className="w-5 h-5 shrink-0" weight="bold" />
+            </Link>
+          </div>
+        </Reveal>
       </section>
     </main>
   );
