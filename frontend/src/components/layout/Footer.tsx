@@ -72,7 +72,16 @@ export function Footer() {
             © {new Date().getFullYear()} {SITE_NAME}. כל הזכויות שמורות.
           </span>
           <span>
-            האתר נבנה על ידי Bashy Klein ·{" "}
+            האתר נבנה על ידי{" "}
+            <a
+              href="https://bashy-yacob.github.io/portfolio/#hero"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sand-300 hover:text-olive-300 transition-colors underline-offset-2 hover:underline"
+            >
+              Bashy Klein
+            </a>{" "}
+            ·{" "}
             <a
               href="mailto:bashy3309@gmail.com"
               className="text-sand-300 hover:text-olive-300 transition-colors"
