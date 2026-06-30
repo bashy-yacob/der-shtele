@@ -1,6 +1,7 @@
 import { getPublicJobs, getRegions } from "@/lib/api";
 import { JobFilters } from "@/components/jobs/JobFilters";
 import { JobList } from "@/components/jobs/JobList";
+import { Pagination } from "@/components/jobs/Pagination";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { buttonClass } from "@/components/ui/Button";
 import type { JobField, Region } from "@/types";
@@ -24,15 +25,19 @@ const JOBS_CONTENT = {
     "מגוון משרות איכותיות, מותאמות לצרכים של הציבור החרדי. כל המשרות מועברות דרך הצוות.",
   empty: {
     title: "לא נמצאו משרות התואמות את החיפוש",
-    desc: "המשרות מתעדכנות באופן שוטף. הירשמו ושלחו קורות חיים — ונחפש עבורכם גם משרות דיסקרטיות שאינן בלוח.",
+    desc: "המשרות מתעדכנות באופן שוטף. הירשם ושלח קורות חיים — ונחפש עבורך גם משרות דיסקרטיות שאינן בלוח.",
     button: "הרשמה ושליחת קורות חיים ←",
   },
 };
+
+// כמות משרות לעמוד — מונע רינדור של עשרות כרטיסים בבת אחת (עומס DOM).
+const PAGE_SIZE = 12;
 
 interface SearchParams {
   field?: string;
   region?: string;
   experience?: string;
+  page?: string;
 }
 
 export default async function JobsPage({
@@ -48,6 +53,18 @@ export default async function JobsPage({
     }),
     getRegions(),
   ]);
+
+  // עימוד בצד שרת — מרנדרים רק את עמוד התוצאות הנוכחי. שומר על DOM קל.
+  const total = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const currentPage = Math.min(
+    Math.max(1, parseInt(searchParams.page ?? "1", 10) || 1),
+    totalPages,
+  );
+  const pageJobs = filtered.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  );
 
   return (
     <div dir="rtl">
@@ -85,7 +102,24 @@ export default async function JobsPage({
             </Link>
           </div>
         ) : (
-          <JobList jobs={filtered} />
+          <>
+            <p className="text-sm text-ink-500 mb-6">
+              {total} משרות פתוחות
+              {totalPages > 1
+                ? ` · עמוד ${currentPage} מתוך ${totalPages}`
+                : ""}
+            </p>
+            <JobList jobs={pageJobs} />
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              params={{
+                field: searchParams.field,
+                region: searchParams.region,
+                experience: searchParams.experience,
+              }}
+            />
+          </>
         )}
       </section>
     </div>
