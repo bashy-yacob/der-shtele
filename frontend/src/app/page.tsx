@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { getPublicJobs, getPublishedTestimonials } from "@/lib/api";
+import {
+  getPublicJobs,
+  getPublishedTestimonials,
+  getPublicStats,
+} from "@/lib/api";
 import { JobCard } from "@/components/jobs/JobCard";
 import { TestimonialsCarousel } from "@/components/marketing/TestimonialsCarousel";
 import { SectionHeading } from "@/components/ui/SectionHeading";
@@ -130,17 +134,20 @@ const CONTENT = {
 };
 
 export default async function HomePage() {
-  const [jobs, testimonials] = await Promise.all([
+  const [jobs, testimonials, siteStats] = await Promise.all([
     getPublicJobs(),
     getPublishedTestimonials(),
+    getPublicStats(),
   ]);
   const latest = jobs.slice(0, 4);
 
   const stats = [
     { to: jobs.length, suffix: "+", label: "משרות פתוחות עכשיו" },
     { to: 100, suffix: "%", label: "דיסקרטי — הפרטים נשארים אצלנו" },
-    { to: 0, suffix: " ₪", label: "להרשמה ולהגשה — תמיד" },
-    { to: 3, suffix: "", label: "חודשי ערבות על כל השמה" },
+    // ערך זמני (placeholder) — להחליף ב-SLA האמיתי של הצוות.
+    { to: 48, suffix: "", label: "שעות עד מענה מהצוות" },
+    // נמשך חי מהמערכת — ספירת המעסיקים המאושרים.
+    { to: siteStats.employers, suffix: "", label: "מעסיקים שעובדים איתנו" },
   ];
 
   return (

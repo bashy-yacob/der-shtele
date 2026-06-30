@@ -26,6 +26,7 @@ import { TestimonialsModule } from "./modules/testimonials/testimonials.module";
 import { AdvertisementsModule } from "./modules/advertisements/advertisements.module";
 import { TasksModule } from "./modules/tasks/tasks.module";
 import { PortalModule } from "./modules/portal/portal.module";
+import { StatsModule } from "./modules/stats/stats.module";
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { PortalModule } from "./modules/portal/portal.module";
     AdvertisementsModule,
     TasksModule,
     PortalModule,
+    StatsModule,
   ],
   controllers: [AppController],
   providers: [

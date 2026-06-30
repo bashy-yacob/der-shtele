@@ -121,6 +121,18 @@ export async function submitApplication(
   await unwrap<unknown>(res);
 }
 
+/** מדדים ציבוריים לעמוד הבית (ספירת מעסיקים וכו'). נכשל בעדינות → 0. */
+export async function getPublicStats(): Promise<{ employers: number }> {
+  try {
+    const res = await fetch(`${BASE_URL}/api/stats`, {
+      next: { revalidate: 60 },
+    });
+    return await unwrap<{ employers: number }>(res);
+  } catch {
+    return { employers: 0 };
+  }
+}
+
 /** המלצות לקוחות מפורסמות — לדף הבית. נכשל בעדינות → [] אם אין תקשורת. */
 export async function getPublishedTestimonials(): Promise<PublicTestimonial[]> {
   try {
