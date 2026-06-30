@@ -234,6 +234,8 @@ export const updateReminder = (
   id: string,
   body: Partial<{ message: string; remindAt: string; done: boolean }>,
 ) => adminFetch<Reminder>(`reminders/${id}`, { method: "PATCH", body });
+export const deleteReminder = (id: string) =>
+  adminFetch<{ id: string }>(`reminders/${id}`, { method: "DELETE" });
 
 // ---- רשימת תפוצה ----
 export const listSubscribers = (
@@ -259,6 +261,11 @@ export const sendMailing = (body: {
     method: "POST",
     body,
   });
+/** מצב שבת/חג נוכחי — לחסימת שליחה בצד-לקוח. */
+export const getShabbatStatus = () =>
+  adminFetch<{ forbidden: boolean; until: string | null }>(
+    "mailing/shabbat-status",
+  );
 
 // ---- המלצות לקוחות ----
 // כל ההמלצות (כולל לא-מפורסמות) — לניהול הצוות.

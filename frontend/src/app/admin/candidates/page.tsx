@@ -51,7 +51,8 @@ export default function CandidatesListPage() {
     const q = search.trim().toLowerCase();
     return candidates.filter((c) => {
       if (field && c.field !== field) return false;
-      if (region && c.region !== region) return false;
+      // השוואה דרך regionLabel — תואם גם רשומות עם slug ישן (bnei_brak וכו').
+      if (region && regionLabel(c.region) !== region) return false;
       if (status && c.status !== status) return false;
       if (q) {
         const hay = `${c.fullName} ${c.phone} ${c.email}`.toLowerCase();

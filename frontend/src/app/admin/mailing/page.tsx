@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { listSubscribers, sendMailing, listRegions } from "@/lib/admin-api";
+import {
+  listSubscribers,
+  sendMailing,
+  listRegions,
+  getShabbatStatus,
+} from "@/lib/admin-api";
 import type { CandidateStatus, JobField, Region, Subscriber } from "@/types";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { StatCard } from "@/components/admin/StatCard";
@@ -218,11 +223,26 @@ function SendCard({ filter, count }: { filter: Filter; count: number }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [msg, setMsg] = useState("");
+  const [shabbat, setShabbat] = useState<{
+    forbidden: boolean;
+    until: string | null;
+  } | null>(null);
   const confirm = useConfirm();
+
+  // מצב שבת/חג — לחסימת שליחה בצד-לקוח (מתעדכן בכל טעינת העמוד).
+  useEffect(() => {
+    getShabbatStatus()
+      .then(setShabbat)
+      .catch(() => undefined);
+  }, []);
 
   const send = async () => {
     if (subject.trim().length < 2 || body.trim().length < 1) {
       setErr("יש למלא נושא ותוכן");
+      return;
+    }
+    if (shabbat?.forbidden) {
+      setErr("כעת שבת או יום טוב — לא ניתן לשלוח דיוור.");
       return;
     }
     // אישור לפני שליחה המונית — פעולה בלתי-הפיכה.
@@ -256,6 +276,15 @@ function SendCard({ filter, count }: { filter: Filter; count: number }) {
         ההודעה תישלח ל-{count} המנויים שבסינון הנוכחי. לא ניתן לשלוח בשבת או
         ביום טוב.
       </p>
+      {shabbat?.forbidden && (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          🕯️ כעת שבת/יום טוב — השליחה חסומה
+          {shabbat.until
+            ? ` עד צאת השבת/החג (${formatDate(shabbat.until)})`
+            : ""}
+          .
+        </p>
+      )}
       <Input
         label="נושא"
         value={subject}
@@ -269,7 +298,10 @@ function SendCard({ filter, count }: { filter: Filter; count: number }) {
       />
       {err && <ErrorNote message={err} />}
       {msg && <SuccessNote message={msg} />}
-      <Button onClick={send} disabled={busy || count === 0}>
+      <Button
+        onClick={send}
+        disabled={busy || count === 0 || !!shabbat?.forbidden}
+      >
         {busy ? "שולח..." : `שליחה ל-${count} מנויים`}
       </Button>
     </Card>

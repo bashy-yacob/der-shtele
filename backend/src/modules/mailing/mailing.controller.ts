@@ -22,6 +22,12 @@ export class MailingController {
     return this.mailingService.subscribers({ field, region, status });
   }
 
+  /** מצב שבת/חג נוכחי — לאינדיקטור חי בדשבורד (חוסם שליחה בצד-לקוח). */
+  @Get("shabbat-status")
+  shabbatStatus() {
+    return this.mailingService.shabbatStatus();
+  }
+
   /** שליחה ידנית — חסומה בשבת/חג. */
   @Post("send")
   send(@Body() dto: SendMailingDto) {

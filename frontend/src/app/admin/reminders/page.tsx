@@ -1,10 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { listReminders, createReminder, updateReminder } from "@/lib/admin-api";
+import {
+  listReminders,
+  createReminder,
+  updateReminder,
+  deleteReminder,
+} from "@/lib/admin-api";
 import type { Reminder } from "@/types";
 import { useAuth } from "@/hooks/useAuth";
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { useConfirm } from "@/components/admin/ConfirmDialog";
 import {
   Loading,
   ErrorNote,
@@ -105,12 +111,7 @@ export default function RemindersPage() {
       ) : (
         <div className="space-y-2">
           {reminders.map((r) => (
-            <ReminderRow
-              key={r.id}
-              r={r}
-              onChanged={reload}
-              onError={setError}
-            />
+            <ReminderRow key={r.id} r={r} onChanged={reload} />
           ))}
         </div>
       )}
@@ -126,19 +127,14 @@ function toLocalInput(iso: string): string {
 }
 
 /** שורת תזכורת — תצוגה + מצב עריכה (תוכן ומועד). */
-function ReminderRow({
-  r,
-  onChanged,
-  onError,
-}: {
-  r: Reminder;
-  onChanged: () => void;
-  onError: (msg: string) => void;
-}) {
+function ReminderRow({ r, onChanged }: { r: Reminder; onChanged: () => void }) {
   const [editing, setEditing] = useState(false);
   const [message, setMessage] = useState(r.message);
   const [remindAt, setRemindAt] = useState(toLocalInput(r.remindAt));
   const [busy, setBusy] = useState(false);
+  // שגיאה מקומית לשורה — מוצגת ליד התזכורת, לא בראש העמוד.
+  const [rowError, setRowError] = useState("");
+  const confirm = useConfirm();
 
   const overdue = !r.done && new Date(r.remindAt) < new Date();
 
@@ -150,11 +146,11 @@ function ReminderRow({
 
   const save = async () => {
     if (message.trim().length < 2 || !remindAt) {
-      onError("יש למלא תוכן תזכורת ומועד");
+      setRowError("יש למלא תוכן תזכורת ומועד");
       return;
     }
     setBusy(true);
-    onError("");
+    setRowError("");
     try {
       await updateReminder(r.id, {
         message,
@@ -163,7 +159,7 @@ function ReminderRow({
       setEditing(false);
       onChanged();
     } catch (e) {
-      onError((e as Error).message);
+      setRowError((e as Error).message);
     } finally {
       setBusy(false);
     }
@@ -171,12 +167,34 @@ function ReminderRow({
 
   const markDone = async () => {
     setBusy(true);
+    setRowError("");
     try {
       await updateReminder(r.id, { done: true });
       onChanged();
     } catch (e) {
-      onError((e as Error).message);
+      setRowError((e as Error).message);
     } finally {
+      setBusy(false);
+    }
+  };
+
+  const remove = async () => {
+    if (
+      !(await confirm({
+        title: "מחיקת תזכורת",
+        message: "למחוק את התזכורת? פעולה לא הפיכה.",
+        confirmLabel: "מחק",
+        danger: true,
+      }))
+    )
+      return;
+    setBusy(true);
+    setRowError("");
+    try {
+      await deleteReminder(r.id);
+      onChanged();
+    } catch (e) {
+      setRowError((e as Error).message);
       setBusy(false);
     }
   };
@@ -195,6 +213,7 @@ function ReminderRow({
           value={remindAt}
           onChange={(e) => setRemindAt(e.target.value)}
         />
+        {rowError && <ErrorNote message={rowError} />}
         <div className="flex gap-2">
           <Button size="sm" onClick={save} disabled={busy}>
             {busy ? "שומר..." : "שמירה"}
@@ -213,42 +232,58 @@ function ReminderRow({
   }
 
   return (
-    <Card className="flex items-center justify-between gap-3 py-3">
-      <div>
-        <p
-          className={`text-sm ${r.done ? "text-ink-400 line-through" : "text-ink-900"}`}
-        >
-          {r.message}
-        </p>
-        <p className="text-xs text-ink-400">
-          {formatDateTime(r.remindAt)} · {r.createdBy}
-        </p>
+    <Card className="py-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p
+            className={`text-sm ${r.done ? "text-ink-400 line-through" : "text-ink-900"}`}
+          >
+            {r.message}
+          </p>
+          <p className="text-xs text-ink-400">
+            {formatDateTime(r.remindAt)} · {r.createdBy}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {r.done ? (
+            <StatusBadge status="completed" label="טופל" />
+          ) : (
+            <>
+              {overdue && <StatusBadge status="cancelled" label="באיחור" />}
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={startEdit}
+                disabled={busy}
+              >
+                עריכה
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={markDone}
+                disabled={busy}
+              >
+                סמן כטופל
+              </Button>
+            </>
+          )}
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={remove}
+            disabled={busy}
+            className="text-red-600 hover:bg-red-50"
+          >
+            מחק
+          </Button>
+        </div>
       </div>
-      <div className="flex items-center gap-2 shrink-0">
-        {r.done ? (
-          <StatusBadge status="completed" label="טופל" />
-        ) : (
-          <>
-            {overdue && <StatusBadge status="cancelled" label="באיחור" />}
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={startEdit}
-              disabled={busy}
-            >
-              עריכה
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={markDone}
-              disabled={busy}
-            >
-              סמן כטופל
-            </Button>
-          </>
-        )}
-      </div>
+      {rowError && (
+        <div className="mt-2">
+          <ErrorNote message={rowError} />
+        </div>
+      )}
     </Card>
   );
 }

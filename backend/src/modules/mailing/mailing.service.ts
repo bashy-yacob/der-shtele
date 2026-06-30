@@ -33,6 +33,15 @@ export class MailingService {
     private readonly config: ConfigService,
   ) {}
 
+  /** מצב שבת/חג נוכחי — לאינדיקטור חי בדשבורד (קריאה בלבד, אינו משנה לוגיקה). */
+  async shabbatStatus(): Promise<{ forbidden: boolean; until: string | null }> {
+    const forbidden = await this.shabbat.isForbidden();
+    const until = forbidden
+      ? (await this.shabbat.nextAllowedSendTime()).toISOString()
+      : null;
+    return { forbidden, until };
+  }
+
   /**
    * דיוור "משרה חדשה רלוונטית" (סעיף 8.2) — למנויים שתחומם תואם למשרה.
    * דבר פרסומת → רק למנויים עם הסכמה (subscribers() מסנן optInMarketing).
