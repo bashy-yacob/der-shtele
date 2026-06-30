@@ -113,6 +113,8 @@ export default function AdvertisementsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  // הודעת הצלחה ברמת העמוד — נשארת גלויה גם אחרי שהטופס נסגר.
+  const [msg, setMsg] = useState("");
 
   const reload = () =>
     listAds()
@@ -187,6 +189,7 @@ export default function AdvertisementsPage() {
             onClick={() => {
               setShowForm((s) => !s);
               setEditingId(null);
+              setMsg("");
             }}
           >
             {showForm ? "ביטול" : "מודעה חדשה +"}
@@ -199,6 +202,12 @@ export default function AdvertisementsPage() {
         חלון התאריכים. כלל ברזל: ללא תמונות אנשים — כל מודעה מאושרת ידנית.
       </p>
 
+      {msg && (
+        <div className="mb-4">
+          <SuccessNote message={msg} />
+        </div>
+      )}
+
       {showForm && (
         <AdForm
           title="הוספת מודעה"
@@ -207,6 +216,7 @@ export default function AdvertisementsPage() {
           onSubmit={async (values) => {
             await createAd(toInput(values));
             setShowForm(false);
+            setMsg("המודעה נוספה בהצלחה");
             reload();
           }}
         />

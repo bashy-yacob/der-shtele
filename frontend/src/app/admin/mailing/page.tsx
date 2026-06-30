@@ -101,7 +101,7 @@ export default function MailingPage() {
         }
       />
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+      <div className="mb-6 sm:max-w-xs">
         <StatCard
           label="מנויים בסינון הנוכחי"
           value={subscribers.length}
@@ -112,6 +112,7 @@ export default function MailingPage() {
       <Card className="mb-6">
         <div className="grid md:grid-cols-3 gap-3">
           <Select
+            label="תחום"
             value={filter.field ?? ""}
             onChange={(e) =>
               applyFilter({ field: (e.target.value || undefined) as JobField })
@@ -125,6 +126,7 @@ export default function MailingPage() {
             ))}
           </Select>
           <Select
+            label="אזור"
             value={filter.region ?? ""}
             onChange={(e) =>
               applyFilter({ region: (e.target.value || undefined) as Region })
@@ -138,6 +140,7 @@ export default function MailingPage() {
             ))}
           </Select>
           <Select
+            label="סטטוס"
             value={filter.status ?? ""}
             onChange={(e) =>
               applyFilter({

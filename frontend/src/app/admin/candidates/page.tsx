@@ -64,17 +64,23 @@ export default function CandidatesListPage() {
     <div>
       <PageHeader
         title="ניהול מועמדים"
-        subtitle={`${candidates.length} מועמדים במערכת`}
+        subtitle={
+          filtered.length === candidates.length
+            ? `${candidates.length} מועמדים במערכת`
+            : `מציג ${filtered.length} מתוך ${candidates.length} מועמדים`
+        }
       />
 
       <Card className="mb-6">
         <div className="grid md:grid-cols-4 gap-3">
           <Input
-            placeholder="חיפוש לפי שם / טלפון / מייל"
+            label="חיפוש"
+            placeholder="שם / טלפון / מייל"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
           <Select
+            label="תחום"
             value={field}
             onChange={(e) => setField(e.target.value as JobField | "")}
           >
@@ -86,6 +92,7 @@ export default function CandidatesListPage() {
             ))}
           </Select>
           <Select
+            label="אזור"
             value={region}
             onChange={(e) => setRegion(e.target.value as Region | "")}
           >
@@ -97,6 +104,7 @@ export default function CandidatesListPage() {
             ))}
           </Select>
           <Select
+            label="סטטוס"
             value={status}
             onChange={(e) => setStatus(e.target.value as CandidateStatus | "")}
           >
@@ -115,7 +123,13 @@ export default function CandidatesListPage() {
       ) : error ? (
         <ErrorNote message={error} />
       ) : filtered.length === 0 ? (
-        <EmptyState message="לא נמצאו מועמדים התואמים לסינון" />
+        <EmptyState
+          message={
+            candidates.length === 0
+              ? "עדיין אין מועמדים במערכת"
+              : "לא נמצאו מועמדים התואמים לסינון"
+          }
+        />
       ) : (
         <Card className="p-0 overflow-x-auto">
           <table className="w-full text-sm">
@@ -128,7 +142,7 @@ export default function CandidatesListPage() {
                   הוגש למשרה
                 </th>
                 <th className="px-4 py-3 text-start font-semibold">סטטוס</th>
-                <th className="px-4 py-3 text-start font-semibold">נכנס</th>
+                <th className="px-4 py-3 text-start font-semibold">נוצר</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-sand-100">
@@ -160,7 +174,7 @@ export default function CandidatesListPage() {
                         )}
                       </span>
                     ) : (
-                      <span className="text-xs text-ink-400">כללי</span>
+                      <span className="text-xs text-ink-400">ללא שיוך</span>
                     )}
                   </td>
                   <td className="px-4 py-3">

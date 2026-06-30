@@ -1,6 +1,5 @@
 // labels — מיפוי ערכי enum לתוויות עברית. מקור אמת אחד לכל הדשבורד.
 import type {
-  JobField,
   JobStatus,
   CandidateStatus,
   PlacementStatus,
@@ -9,19 +8,14 @@ import type {
   InquiryType,
 } from "@/types";
 
-// עיר/אזור — טקסט חופשי. הכלים נמצאים ב-constants ומיוצאים מחדש כאן לנוחות.
-export { DEFAULT_CITIES, regionLabel, buildCityOptions } from "./constants";
-
-export const FIELD_LABELS: Record<JobField, string> = {
-  logistics: "לוגיסטיקה",
-  admin: "אדמיניסטרציה",
-  sales: "מכירות",
-  education: "חינוך",
-  tech: "מחשבים",
-  finance: "כספים",
-  healthcare: "בריאות",
-  other: "אחר",
-};
+// עיר/אזור + תחומים — מקור אמת אחד ב-constants, מיוצא מחדש כאן לנוחות.
+// FIELD_LABELS משותף לאתר הציבורי ולדשבורד כדי שתחום יוצג זהה בשני המקומות.
+export {
+  DEFAULT_CITIES,
+  regionLabel,
+  buildCityOptions,
+  FIELD_LABELS,
+} from "./constants";
 
 export const JOB_STATUS_LABELS: Record<JobStatus, string> = {
   pending: "ממתינה לאישור",
@@ -48,7 +42,7 @@ export const PLACEMENT_STATUS_LABELS: Record<PlacementStatus, string> = {
 };
 
 export const COMMISSION_STATUS_LABELS: Record<CommissionStatus, string> = {
-  not_due: "בתקופת ערבות",
+  not_due: "טרם לגבייה",
   due: "לגבייה",
   invoiced: "חשבונית נשלחה",
   paid: "שולם",

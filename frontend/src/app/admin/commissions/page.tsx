@@ -123,6 +123,24 @@ export default function CommissionsPage() {
 
   if (loading) return <Loading />;
 
+  // מדדים מחושבים מהשורות — ממלאים את שורת הסטטיסטיקה לצד "עמלות פתוחות".
+  const collectibleRows = rows.filter((p) =>
+    isCollectibleNow(p.status, p.commissionStatus, p.guaranteeEndsAt),
+  );
+  const collectibleTotal = collectibleRows.reduce(
+    (s, p) => s + (p.commissionAmount ?? 0),
+    0,
+  );
+  const paidRows = rows.filter(
+    (p) =>
+      effectiveCommissionStatus(
+        p.status,
+        p.commissionStatus,
+        p.guaranteeEndsAt,
+      ) === "paid",
+  );
+  const paidTotal = paidRows.reduce((s, p) => s + (p.commissionAmount ?? 0), 0);
+
   return (
     <div>
       <PageHeader
@@ -137,6 +155,17 @@ export default function CommissionsPage() {
             value={formatCurrency(summary.pendingTotal)}
             hint={`${summary.count} גיוסים`}
             tone="accent"
+          />
+          <StatCard
+            label="לגבייה עכשיו"
+            value={formatCurrency(collectibleTotal)}
+            hint={`${collectibleRows.length} גיוסים`}
+            tone={collectibleRows.length > 0 ? "warn" : "default"}
+          />
+          <StatCard
+            label="שולם"
+            value={formatCurrency(paidTotal)}
+            hint={`${paidRows.length} גיוסים`}
           />
         </div>
       )}
@@ -236,13 +265,18 @@ export default function CommissionsPage() {
                                 ? formatCurrency(p.commissionAmount)
                                 : "—"}
                             </span>
-                            <button
-                              type="button"
-                              onClick={() => startEdit(p)}
-                              className="text-xs text-navy-600 hover:underline font-normal"
-                            >
-                              עריכה
-                            </button>
+                            {/* אין לערוך סכום לאחר שנשלחה חשבונית/שולם — שלמות נתונים */}
+                            {status !== "paid" &&
+                              status !== "invoiced" &&
+                              status !== "partial_refund" && (
+                                <button
+                                  type="button"
+                                  onClick={() => startEdit(p)}
+                                  className="text-xs text-navy-600 hover:underline font-normal"
+                                >
+                                  עריכה
+                                </button>
+                              )}
                           </div>
                         )}
                       </td>

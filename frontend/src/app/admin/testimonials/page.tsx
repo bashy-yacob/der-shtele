@@ -51,6 +51,8 @@ export default function TestimonialsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  // הודעת הצלחה ברמת העמוד — נשארת גלויה גם אחרי שהטופס נסגר.
+  const [msg, setMsg] = useState("");
 
   const reload = () =>
     listTestimonials()
@@ -67,7 +69,9 @@ export default function TestimonialsPage() {
     setBusyId(t.id);
     setError("");
     try {
-      const updated = await updateTestimonial(t.id, { published: !t.published });
+      const updated = await updateTestimonial(t.id, {
+        published: !t.published,
+      });
       setItems((prev) => prev.map((x) => (x.id === t.id ? updated : x)));
     } catch (e) {
       setError((e as Error).message);
@@ -103,6 +107,7 @@ export default function TestimonialsPage() {
             onClick={() => {
               setShowForm((s) => !s);
               setEditingId(null);
+              setMsg("");
             }}
           >
             {showForm ? "ביטול" : "המלצה חדשה +"}
@@ -118,9 +123,16 @@ export default function TestimonialsPage() {
           onSubmit={async (values) => {
             await createTestimonial(values);
             setShowForm(false);
+            setMsg("ההמלצה נוספה בהצלחה");
             reload();
           }}
         />
+      )}
+
+      {msg && (
+        <div className="mb-4">
+          <SuccessNote message={msg} />
+        </div>
       )}
 
       {loading ? (
@@ -240,10 +252,8 @@ function TestimonialForm({
   const [err, setErr] = useState("");
   const [msg, setMsg] = useState("");
 
-  const set =
-    (k: keyof FormValues) =>
-    (v: string | boolean) =>
-      setForm((f) => ({ ...f, [k]: v }));
+  const set = (k: keyof FormValues) => (v: string | boolean) =>
+    setForm((f) => ({ ...f, [k]: v }));
 
   const submit = async () => {
     if (form.authorName.trim().length < 2) {

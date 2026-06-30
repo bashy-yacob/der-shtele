@@ -26,6 +26,8 @@ export default function EmployersPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  // הודעת הצלחה ברמת העמוד — נשארת גלויה גם אחרי שהטופס נסגר.
+  const [msg, setMsg] = useState("");
 
   const reload = () =>
     listEmployers()
@@ -43,7 +45,12 @@ export default function EmployersPage() {
         title="ניהול מעסיקים"
         subtitle="פרטי מעסיקים — פנימי בלבד, לא חשוף לציבור"
         action={
-          <Button onClick={() => setShowForm((s) => !s)}>
+          <Button
+            onClick={() => {
+              setShowForm((s) => !s);
+              setMsg("");
+            }}
+          >
             {showForm ? "ביטול" : "מעסיק חדש +"}
           </Button>
         }
@@ -53,9 +60,16 @@ export default function EmployersPage() {
         <EmployerForm
           onCreated={() => {
             setShowForm(false);
+            setMsg("המעסיק נוסף בהצלחה");
             reload();
           }}
         />
+      )}
+
+      {msg && (
+        <div className="mb-4">
+          <SuccessNote message={msg} />
+        </div>
       )}
 
       {loading ? (
