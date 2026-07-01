@@ -53,6 +53,8 @@ export default function NewJobPage() {
     salary: "",
   });
   const [publishNow, setPublishNow] = useState(false);
+  // סומן כשתיאור הפנייה הועתק לפנימי — כדי להזכיר לכתוב תיאור ציבורי אנונימי.
+  const [descriptionPrefilled, setDescriptionPrefilled] = useState(false);
   // פרטי מעסיק שהגיעו מפנייה (?company=...&contactName=...&phone=...) לטעינת הטופס המוטמע
   const [employerPrefill, setEmployerPrefill] = useState<{
     companyName?: string;
@@ -103,10 +105,11 @@ export default function NewJobPage() {
         ? experience
         : f.experience,
       salary: salary || f.salary,
-      // התיאור מהפנייה משמש בסיס לשני התיאורים; את הציבורי יש לאנונימז ידנית
+      // התיאור מהפנייה מועתק לתיאור הפנימי בלבד; את הציבורי כותבים אנונימי ידנית
+      // כדי לא לדלוף שם חברה/פרטים מזהים לאתר הציבורי (מודל התיווך).
       descriptionInternal: description || f.descriptionInternal,
-      descriptionPublic: description || f.descriptionPublic,
     }));
+    if (description) setDescriptionPrefilled(true);
 
     const companyName = q.get("company");
     const contactName = q.get("contactName");
@@ -297,7 +300,13 @@ export default function NewJobPage() {
           />
         </div>
 
-        <div className="rounded-xl border border-olive-300 bg-olive-50 p-3">
+        <div className="rounded-xl border border-olive-300 bg-olive-50 p-3 space-y-2">
+          {descriptionPrefilled && (
+            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+              התיאור מהפנייה הועתק לתיאור הפנימי בלבד. כתוב כאן תיאור ציבורי
+              אנונימי — ללא שם החברה, טלפונים או פרטים מזהים.
+            </p>
+          )}
           <Textarea
             label="תיאור ציבורי (אנונימי — עולה לאתר) *"
             value={form.descriptionPublic}
