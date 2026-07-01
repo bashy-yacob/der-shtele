@@ -17,7 +17,15 @@ import {
   EmptyState,
   PageHeader,
 } from "@/components/admin/Feedback";
-import { Card, Button, Input, Textarea, Select } from "@/components/ui";
+import {
+  Card,
+  Button,
+  Input,
+  Textarea,
+  Select,
+  PhoneLink,
+  EmailLink,
+} from "@/components/ui";
 import { useConfirm } from "@/components/admin/ConfirmDialog";
 import { formatDate } from "@/lib/utils";
 
@@ -276,8 +284,14 @@ export default function AdvertisementsPage() {
                 </div>
 
                 <p className="text-sm text-ink-500">
-                  מפרסם (פנימי): {a.advertiserName} · {a.contactPhone}
-                  {a.contactEmail ? ` · ${a.contactEmail}` : ""}
+                  מפרסם (פנימי): {a.advertiserName} ·{" "}
+                  <PhoneLink phone={a.contactPhone} />
+                  {a.contactEmail ? (
+                    <>
+                      {" · "}
+                      <EmailLink email={a.contactEmail} />
+                    </>
+                  ) : null}
                 </p>
                 {a.body && (
                   <p className="rounded-xl bg-sand-50 p-3 text-sm text-ink-700">
@@ -285,10 +299,26 @@ export default function AdvertisementsPage() {
                   </p>
                 )}
                 <p className="text-xs text-ink-400">
-                  {a.agreedPrice != null ? `מחיר: ${a.agreedPrice} ₪ · ` : ""}
-                  {a.startDate ? `מ-${formatDate(a.startDate)} ` : ""}
-                  {a.endDate ? `עד ${formatDate(a.endDate)}` : ""}
-                  {a.paidAt ? ` · שולם: ${formatDate(a.paidAt)}` : ""}
+                  {a.agreedPrice != null && (
+                    <>
+                      מחיר: <bdi>{a.agreedPrice} ₪</bdi> ·{" "}
+                    </>
+                  )}
+                  {a.startDate && (
+                    <>
+                      מ-<bdi>{formatDate(a.startDate)}</bdi>{" "}
+                    </>
+                  )}
+                  {a.endDate && (
+                    <>
+                      עד <bdi>{formatDate(a.endDate)}</bdi>
+                    </>
+                  )}
+                  {a.paidAt && (
+                    <>
+                      {" · "}שולם: <bdi>{formatDate(a.paidAt)}</bdi>
+                    </>
+                  )}
                 </p>
 
                 <div className="flex flex-wrap gap-2">
@@ -517,7 +547,18 @@ function AdForm({
           value={form.placement}
           onChange={(e) => set("placement")(e.target.value)}
         >
-          {FORMAT_OPTIONS.map((o) => (
+          {/* אם ל-מודעה קיימת placement ישן (footer) שאינו ברשימת הפורמטים —
+              מוסיפים אותו כאופציה כדי לא לאפס אותו בשקט בעריכה. */}
+          {(FORMAT_OPTIONS.some((o) => o.value === form.placement)
+            ? FORMAT_OPTIONS
+            : [
+                ...FORMAT_OPTIONS,
+                {
+                  value: form.placement,
+                  label: PLACEMENT_LABELS[form.placement] ?? form.placement,
+                },
+              ]
+          ).map((o) => (
             <option key={o.value} value={o.value}>
               {o.label}
             </option>

@@ -35,6 +35,8 @@ import {
   Textarea,
   CityCombobox,
   BackLink,
+  PhoneLink,
+  EmailLink,
 } from "@/components/ui";
 import {
   FIELD_LABELS,
@@ -476,9 +478,11 @@ function EmployerCard({ job }: { job: JobDetail }) {
         <>
           <p className="font-semibold text-ink-900">{e.companyName}</p>
           <p className="text-sm text-ink-700">
-            {e.contactName} · {e.contactPhone}
+            {e.contactName} · <PhoneLink phone={e.contactPhone} />
           </p>
-          <p className="text-sm text-ink-500">{e.contactEmail}</p>
+          <p className="text-sm text-ink-500">
+            <EmailLink email={e.contactEmail} />
+          </p>
           <p className="text-xs text-red-600 bg-red-50 rounded-lg p-2 mt-2">
             פרטי מעסיק אלה אינם חשופים לציבור או למועמדים.
           </p>

@@ -16,7 +16,15 @@ import {
   EmptyState,
   PageHeader,
 } from "@/components/admin/Feedback";
-import { Card, Button, Input, Textarea, Select } from "@/components/ui";
+import {
+  Card,
+  Button,
+  Input,
+  Textarea,
+  Select,
+  PhoneLink,
+  EmailLink,
+} from "@/components/ui";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { AdminPager } from "@/components/admin/AdminPager";
 import { useConfirm, usePrompt } from "@/components/admin/ConfirmDialog";
@@ -193,9 +201,12 @@ export default function EmployersPage() {
                       </span>
                     </div>
                     <p className="text-sm text-ink-700">
-                      איש קשר: {e.contactName} · {e.contactPhone}
+                      איש קשר: {e.contactName} ·{" "}
+                      <PhoneLink phone={e.contactPhone} />
                     </p>
-                    <p className="text-sm text-ink-500">{e.contactEmail}</p>
+                    <p className="text-sm text-ink-500">
+                      <EmailLink email={e.contactEmail} />
+                    </p>
                     {e.businessNumber && (
                       <p className="text-xs text-ink-400">
                         ח.פ {e.businessNumber}
@@ -296,9 +307,12 @@ function PendingEmployerCard({
       </div>
       <StatusBadge status="pending" label={EMPLOYER_STATUS_LABELS.pending} />
       <p className="text-sm text-ink-700">
-        איש קשר: {employer.contactName} · {employer.contactPhone}
+        איש קשר: {employer.contactName} ·{" "}
+        <PhoneLink phone={employer.contactPhone} />
       </p>
-      <p className="text-sm text-ink-500">{employer.contactEmail}</p>
+      <p className="text-sm text-ink-500">
+        <EmailLink email={employer.contactEmail} />
+      </p>
       {err && <ErrorNote message={err} />}
       <div className="flex gap-2 pt-2 border-t border-sand-100">
         <Button size="sm" onClick={approve} disabled={busy}>
