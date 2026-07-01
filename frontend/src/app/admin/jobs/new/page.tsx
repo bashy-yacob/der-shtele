@@ -31,6 +31,7 @@ import {
   EXPERIENCE_OPTIONS,
   buildCityOptions,
 } from "@/lib/labels";
+import { jobFormSchema } from "@/lib/validations";
 
 export default function NewJobPage() {
   const router = useRouter();
@@ -55,6 +56,10 @@ export default function NewJobPage() {
   const [publishNow, setPublishNow] = useState(false);
   // סומן כשתיאור הפנייה הועתק לפנימי — כדי להזכיר לכתוב תיאור ציבורי אנונימי.
   const [descriptionPrefilled, setDescriptionPrefilled] = useState(false);
+  // שגיאות ולידציה per-field (Zod) — מפתח השדה → הודעה.
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof typeof form, string>>
+  >({});
   // פרטי מעסיק שהגיעו מפנייה (?company=...&contactName=...&phone=...) לטעינת הטופס המוטמע
   const [employerPrefill, setEmployerPrefill] = useState<{
     companyName?: string;
@@ -137,8 +142,11 @@ export default function NewJobPage() {
     }
   }, []);
 
-  const set = (k: keyof typeof form) => (v: string) =>
+  const set = (k: keyof typeof form) => (v: string) => {
     setForm((f) => ({ ...f, [k]: v }));
+    // ניקוי שגיאת השדה ברגע שמתקנים אותו.
+    setErrors((e) => (e[k] ? { ...e, [k]: undefined } : e));
+  };
 
   // נקרא כשנוצר מעסיק חדש מתוך הטופס המוטמע — מוסיף לרשימה ובוחר אותו אוטומטית
   const onEmployerCreated = (employer: Employer) => {
@@ -152,19 +160,19 @@ export default function NewJobPage() {
   const createdJobId = useRef<string | null>(null);
 
   const submit = async () => {
-    if (
-      !form.employerId ||
-      form.title.trim().length < 2 ||
-      form.descriptionPublic.trim().length < 10 ||
-      !form.descriptionInternal ||
-      !form.field ||
-      !form.region
-    ) {
-      setErr(
-        "יש למלא מעסיק, תפקיד, תיאור ציבורי (10 תווים+), תיאור פנימי, תחום ואזור",
-      );
+    // ולידציה per-field מול הסכימה — כל שדה מקבל את שגיאתו שלו.
+    const parsed = jobFormSchema.safeParse(form);
+    if (!parsed.success) {
+      const fieldErrors: Partial<Record<keyof typeof form, string>> = {};
+      for (const issue of parsed.error.issues) {
+        const key = issue.path[0] as keyof typeof form;
+        if (key && !fieldErrors[key]) fieldErrors[key] = issue.message;
+      }
+      setErrors(fieldErrors);
+      setErr("יש לתקן את השדות המסומנים");
       return;
     }
+    setErrors({});
     setBusy(true);
     setErr("");
     try {
@@ -213,6 +221,7 @@ export default function NewJobPage() {
                 value={form.employerId}
                 onChange={(e) => set("employerId")(e.target.value)}
                 disabled={showEmployerForm}
+                error={errors.employerId}
               >
                 <option value="">— בחר מעסיק —</option>
                 {employers.map((e) => (
@@ -246,6 +255,7 @@ export default function NewJobPage() {
           label="שם התפקיד *"
           value={form.title}
           onChange={(e) => set("title")(e.target.value)}
+          error={errors.title}
         />
 
         <div className="grid md:grid-cols-3 gap-3">
@@ -253,6 +263,7 @@ export default function NewJobPage() {
             label="תחום *"
             value={form.field}
             onChange={(e) => set("field")(e.target.value)}
+            error={errors.field}
           >
             <option value="">— בחר —</option>
             {Object.entries(FIELD_LABELS).map(([k, v]) => (
@@ -266,11 +277,13 @@ export default function NewJobPage() {
             options={cityOptions}
             value={form.region}
             onChange={(e) => set("region")(e.target.value)}
+            error={errors.region}
           />
           <Select
             label="היקף משרה *"
             value={form.scope}
             onChange={(e) => set("scope")(e.target.value)}
+            error={errors.scope}
           >
             {SCOPE_OPTIONS.map((s) => (
               <option key={s} value={s}>
@@ -312,6 +325,7 @@ export default function NewJobPage() {
             value={form.descriptionPublic}
             onChange={(e) => set("descriptionPublic")(e.target.value)}
             placeholder="ללא שם מעסיק או פרטים מזהים"
+            error={errors.descriptionPublic}
           />
         </div>
 
@@ -321,6 +335,7 @@ export default function NewJobPage() {
             value={form.descriptionInternal}
             onChange={(e) => set("descriptionInternal")(e.target.value)}
             placeholder="דרישות מפורטות, תנאים, הערות פנימיות"
+            error={errors.descriptionInternal}
           />
         </div>
 
