@@ -86,7 +86,7 @@ export default function MailingPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "subscribers.csv";
+    a.download = `subscribers-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -298,6 +298,10 @@ function SendCard({ filter, count }: { filter: Filter; count: number }) {
       />
       {err && <ErrorNote message={err} />}
       {msg && <SuccessNote message={msg} />}
+      <p className="text-xs text-ink-400">
+        לכל דיוור מתווספת אוטומטית הערת הסרה בתחתית המייל (ביטול מהאזור האישי),
+        בהתאם לחוק הספאם.
+      </p>
       <Button
         onClick={send}
         disabled={busy || count === 0 || !!shabbat?.forbidden}
