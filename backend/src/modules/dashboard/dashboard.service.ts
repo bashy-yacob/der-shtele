@@ -1,6 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
-import { isCommissionDue } from "../../common/commission/commission";
+import {
+  isCommissionDue,
+  effectiveCommissionStatus,
+} from "../../common/commission/commission";
 
 /**
  * שירות לוח הבקרה — מרכז את כל מדדי הצוות במקום אחד (סעיף 7.1 באיפיון).
@@ -28,6 +31,8 @@ export class DashboardService {
       activeJobsList,
       openReminders,
       duePlacements,
+      newContactsCount,
+      queueCount,
     ] = await Promise.all([
       // קו"ח שנכנסו השבוע
       this.prisma.candidate.count({ where: { createdAt: { gte: weekAgo } } }),
@@ -95,6 +100,10 @@ export class DashboardService {
           guaranteeEndsAt: true,
         },
       }),
+      // פניות שטרם טופלו (handledAt = null)
+      this.prisma.contact.count({ where: { handledAt: null } }),
+      // תור טיפול — מספר מדויק (לא מוגבל ל-10 כמו הרשימה)
+      this.prisma.candidate.count({ where: { status: "new" } }),
     ]);
 
     // סכום עמלות פתוחות (בשקלים) — רק עמלות שכבר ניתנות לגבייה (תום ערבות)
@@ -103,6 +112,16 @@ export class DashboardService {
         isCommissionDue(p.status, p.commissionStatus, p.guaranteeEndsAt),
       )
       .reduce((sum, p) => sum + (p.commissionAmount ?? 0), 0);
+
+    // עמלות בשלות לחיוב = סטטוס אפקטיבי 'due' (הערבות הסתיימה, טרם הופקה חשבונית)
+    const commissionsDueCount = duePlacements.filter(
+      (p) =>
+        effectiveCommissionStatus(
+          p.status,
+          p.commissionStatus,
+          p.guaranteeEndsAt,
+        ) === "due",
+    ).length;
 
     return {
       stats: {
@@ -113,7 +132,9 @@ export class DashboardService {
         pendingCommissions,
         overdueReminders,
         activeSubscribers,
-        queueCount: queue.length,
+        queueCount,
+        commissionsDueCount,
+        newContactsCount,
       },
       queue: queue.map((c) => ({
         id: c.id,

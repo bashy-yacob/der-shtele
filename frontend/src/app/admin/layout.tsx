@@ -81,7 +81,7 @@ export default function AdminLayout({
 
   return (
     <ConfirmProvider>
-      <main className="max-w-6xl mx-auto px-4 py-8" dir="rtl">
+      <main className="max-w-[1400px] mx-auto px-4 py-8" dir="rtl">
         <div className="grid md:grid-cols-5 gap-6">
           <aside className="md:col-span-1">
             <div className="sticky top-4">

@@ -234,6 +234,8 @@ export interface DashboardStats {
   overdueReminders: number;
   activeSubscribers: number;
   queueCount: number;
+  commissionsDueCount: number; // עמלות בשלות לחיוב (סטטוס אפקטיבי 'due')
+  newContactsCount: number; // פניות שטרם טופלו
 }
 
 /** קישור מינימלי למשרה (לתצוגת שיוך) */
@@ -385,11 +387,7 @@ export type AdPlacement = "homepage" | "jobs_list" | "footer";
 
 /** מחזור חיים של מודעה — מקביל ל-AdStatus ב-backend */
 export type AdStatus =
-  | "draft"
-  | "pending_payment"
-  | "active"
-  | "paused"
-  | "expired";
+  "draft" | "pending_payment" | "active" | "paused" | "expired";
 
 /** סטטוס תשלום — משותף למודעות ולמשרות ממומנות */
 export type AdPaymentStatus = "unpaid" | "paid";

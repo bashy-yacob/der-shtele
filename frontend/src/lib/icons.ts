@@ -57,6 +57,7 @@ export {
   ListChecks,
   UserPlus,
   Coins,
+  Plus,
   // אזור אישי
   UserCircle,
   IdentificationCard,
