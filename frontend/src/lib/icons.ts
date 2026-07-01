@@ -21,6 +21,7 @@ export {
   X,
   SquaresFour,
   ArrowLeft,
+  CaretRight,
   CaretDown,
   // יצירת קשר / פוטר
   Phone,

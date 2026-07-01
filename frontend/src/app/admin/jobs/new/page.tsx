@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
   listEmployers,
   createJob,
@@ -24,6 +23,7 @@ import {
   Select,
   Textarea,
   CityCombobox,
+  BackLink,
 } from "@/components/ui";
 import {
   FIELD_LABELS,
@@ -198,12 +198,7 @@ export default function NewJobPage() {
         title="משרה חדשה"
         subtitle="הפרדה בין מידע פנימי לתיאור ציבורי"
       />
-      <Link
-        href="/admin/jobs"
-        className="text-sm text-navy-600 hover:underline mb-4 inline-block"
-      >
-        → חזרה לרשימת המשרות
-      </Link>
+      <BackLink href="/admin/jobs">חזרה לרשימת המשרות</BackLink>
 
       <Card className="space-y-4">
         {/* מעסיק — בחירה מהרשימה או הוספה מהירה כאן */}

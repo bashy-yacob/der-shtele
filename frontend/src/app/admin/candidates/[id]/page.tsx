@@ -22,7 +22,7 @@ import {
   EmptyState,
   PageHeader,
 } from "@/components/admin/Feedback";
-import { Card, Button, Textarea, Input } from "@/components/ui";
+import { Card, Button, Textarea, Input, BackLink } from "@/components/ui";
 import {
   FIELD_LABELS,
   regionLabel,
@@ -69,12 +69,7 @@ export default function CandidateDetailPage() {
           />
         }
       />
-      <Link
-        href="/admin/candidates"
-        className="text-sm text-navy-600 hover:underline mb-4 inline-block"
-      >
-        → חזרה לרשימת המועמדים
-      </Link>
+      <BackLink href="/admin/candidates">חזרה לרשימת המועמדים</BackLink>
 
       {/* שיוך למשרה — בולט, כדי שהצוות יראה מיד לאיזו משרה הוגש */}
       {c.presentations.length > 0 ? (

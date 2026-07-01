@@ -1,4 +1,5 @@
 export { Button, buttonClass } from "./Button";
+export { BackLink } from "./BackLink";
 export { Input } from "./Input";
 export { Select } from "./Select";
 export { CityCombobox } from "./CityCombobox";

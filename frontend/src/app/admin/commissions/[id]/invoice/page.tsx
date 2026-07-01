@@ -2,11 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import Link from "next/link";
 import { getPlacement } from "@/lib/admin-api";
 import type { Placement } from "@/types";
 import { Loading, ErrorNote, EmptyState } from "@/components/admin/Feedback";
-import { Button } from "@/components/ui";
+import { Button, BackLink } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { COMMISSION_STATUS_LABELS } from "@/lib/labels";
 import {
@@ -52,12 +51,9 @@ export default function InvoicePage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4 print:hidden">
-        <Link
-          href="/admin/commissions"
-          className="text-sm text-navy-600 hover:underline"
-        >
-          → חזרה לעמלות
-        </Link>
+        <BackLink href="/admin/commissions" className="mb-0">
+          חזרה לעמלות
+        </BackLink>
         <Button onClick={() => window.print()} disabled={notDue}>
           הדפסה / שמירה כ-PDF
         </Button>
