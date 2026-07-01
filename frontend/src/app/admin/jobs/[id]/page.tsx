@@ -12,7 +12,7 @@ import {
   listRegions,
 } from "@/lib/admin-api";
 import type {
-  Candidate,
+  CandidateListItem,
   CandidateStatus,
   JobDetail,
   JobField,
@@ -34,6 +34,7 @@ import {
   Select,
   Textarea,
   CityCombobox,
+  BackLink,
 } from "@/components/ui";
 import {
   FIELD_LABELS,
@@ -46,7 +47,7 @@ import {
 } from "@/lib/labels";
 import { JOB_TRANSITIONS, CANDIDATE_TRANSITIONS } from "@/lib/status-machine";
 import { useConfirm } from "@/components/admin/ConfirmDialog";
-import { formatDate } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 
 export default function JobDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -81,12 +82,7 @@ export default function JobDetailPage() {
           />
         }
       />
-      <Link
-        href="/admin/jobs"
-        className="text-sm text-navy-600 hover:underline mb-4 inline-block"
-      >
-        → חזרה לרשימת המשרות
-      </Link>
+      <BackLink href="/admin/jobs">חזרה לרשימת המשרות</BackLink>
 
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
@@ -499,8 +495,10 @@ function PresentationsCard({
   job: JobDetail;
   onChanged: () => void;
 }) {
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [candidates, setCandidates] = useState<CandidateListItem[]>([]);
   const [pick, setPick] = useState("");
+  const [query, setQuery] = useState("");
+  const [onlyField, setOnlyField] = useState(true);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
 
@@ -512,6 +510,13 @@ function PresentationsCard({
 
   const presentedIds = new Set(job.presentations.map((p) => p.candidateId));
   const available = candidates.filter((c) => !presentedIds.has(c.id));
+  // בורר מסונן: קודם לפי תחום המשרה (ברירת מחדל), ואז חיפוש חופשי בשם.
+  const q = query.trim();
+  const matches = available.filter(
+    (c) =>
+      (!onlyField || c.field === job.field) &&
+      (q === "" || c.fullName.includes(q)),
+  );
 
   const present = async () => {
     if (!pick) return;
@@ -520,6 +525,7 @@ function PresentationsCard({
     try {
       await createPresentation({ jobId: job.id, candidateId: pick });
       setPick("");
+      setQuery("");
       onChanged();
     } catch (e) {
       setErr((e as Error).message);
@@ -529,11 +535,15 @@ function PresentationsCard({
   };
 
   const changeStatus = async (presId: string, status: CandidateStatus) => {
+    setBusy(true);
+    setErr("");
     try {
       await updatePresentation(presId, { status });
       onChanged();
     } catch (e) {
       setErr((e as Error).message);
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -543,24 +553,62 @@ function PresentationsCard({
         מועמדים שהוצגו ({job.presentations.length})
       </h2>
 
-      <div className="flex gap-2 items-end bg-sand-50 rounded-xl p-3">
-        <div className="flex-1">
-          <Select
-            label="הצגת מועמד למשרה"
-            value={pick}
-            onChange={(e) => setPick(e.target.value)}
-          >
-            <option value="">— בחר מועמד —</option>
-            {available.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.fullName} ({FIELD_LABELS[c.field]})
-              </option>
-            ))}
-          </Select>
+      <div className="bg-sand-50 rounded-xl p-3 space-y-2">
+        <div className="flex flex-wrap items-end gap-2">
+          <div className="flex-1 min-w-[12rem]">
+            <Input
+              label="הצגת מועמד למשרה"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="חיפוש לפי שם המועמד"
+            />
+          </div>
+          <label className="flex items-center gap-1.5 text-xs text-ink-600 pb-3 whitespace-nowrap">
+            <input
+              type="checkbox"
+              checked={onlyField}
+              onChange={(e) => setOnlyField(e.target.checked)}
+              className="rounded border-sand-300 text-navy-600 focus:ring-2 focus:ring-navy-600/30"
+            />
+            רק מתחום המשרה ({FIELD_LABELS[job.field]})
+          </label>
         </div>
-        <Button size="sm" onClick={present} disabled={busy || !pick}>
-          הצג
-        </Button>
+        {matches.length === 0 ? (
+          <p className="text-xs text-ink-400 py-1">
+            {available.length === 0
+              ? "כל המועמדים כבר הוצגו למשרה זו."
+              : "אין מועמדים תואמים לחיפוש."}
+          </p>
+        ) : (
+          <ul className="max-h-52 overflow-y-auto rounded-lg border border-sand-200 bg-white divide-y divide-sand-100">
+            {matches.map((c) => (
+              <li key={c.id}>
+                <button
+                  type="button"
+                  onClick={() => setPick(pick === c.id ? "" : c.id)}
+                  className={cn(
+                    "w-full flex items-center justify-between gap-2 px-3 py-2 text-start transition-colors",
+                    pick === c.id
+                      ? "bg-navy-50 ring-1 ring-inset ring-navy-200"
+                      : "hover:bg-sand-50",
+                  )}
+                >
+                  <span className="text-sm font-semibold text-ink-900">
+                    {c.fullName}
+                  </span>
+                  <span className="text-xs text-ink-400">
+                    {FIELD_LABELS[c.field]}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="flex justify-end">
+          <Button size="sm" onClick={present} disabled={busy || !pick}>
+            הצג מועמד
+          </Button>
+        </div>
       </div>
 
       {err && <ErrorNote message={err} />}
@@ -582,27 +630,36 @@ function PresentationsCard({
                 >
                   {p.candidate?.fullName ?? "מועמד"}
                 </Link>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center justify-end gap-1.5">
                   <StatusBadge
                     status={p.status}
                     label={CANDIDATE_STATUS_LABELS[p.status]}
                   />
-                  {transitions.length > 0 && (
-                    <select
-                      className="text-xs border border-sand-300 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-navy-600/30 focus:border-navy-600"
-                      value=""
-                      onChange={(e) =>
-                        e.target.value &&
-                        changeStatus(p.id, e.target.value as CandidateStatus)
-                      }
-                    >
-                      <option value="">שנה...</option>
-                      {transitions.map((t) => (
-                        <option key={t} value={t}>
-                          {CANDIDATE_STATUS_LABELS[t]}
-                        </option>
-                      ))}
-                    </select>
+                  {transitions.map((t) =>
+                    // גיוס מתבצע דרך "סמן כגויס" בכרטיס המועמד (בחירת משרה + סכום
+                    // עמלה + פתיחת ערבות) — לא כעדכון סטטוס הצגה, שלא יוצר גיוס.
+                    t === "hired" ? (
+                      <Link key={t} href={`/admin/candidates/${p.candidateId}`}>
+                        <Button size="sm" variant="secondary">
+                          סמן כגויס
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Button
+                        key={t}
+                        size="sm"
+                        variant="outline"
+                        className={
+                          t === "not_suitable"
+                            ? "text-red-600 border-red-200 hover:bg-red-50"
+                            : undefined
+                        }
+                        onClick={() => changeStatus(p.id, t)}
+                        disabled={busy}
+                      >
+                        {CANDIDATE_STATUS_LABELS[t]}
+                      </Button>
+                    ),
                   )}
                 </div>
               </li>
