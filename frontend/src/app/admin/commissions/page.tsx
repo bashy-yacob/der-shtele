@@ -80,7 +80,7 @@ export default function CommissionsPage() {
       !(await confirm({
         title: status === "paid" ? "סימון כשולם" : "סימון חשבונית",
         message: confirmMsg,
-        confirmLabel: status === "paid" ? "סמן כשולם" : "אישור",
+        confirmLabel: status === "paid" ? "סמן כשולם" : "סמן שנשלחה חשבונית",
       }))
     )
       return;
@@ -399,10 +399,10 @@ export default function CommissionsPage() {
                               variant="outline"
                               onClick={() => setStatus(p.id, "invoiced")}
                             >
-                              סמן כחויב
+                              סמן שנשלחה חשבונית
                             </Button>
                           )}
-                          {collectible && (
+                          {collectible && status === "invoiced" && (
                             <Button
                               size="sm"
                               variant="secondary"
