@@ -6,6 +6,7 @@ import {
   HandHeart,
   ShieldCheck,
   UsersThree,
+  CheckCircle,
   ArrowLeft,
 } from "@/lib/icons";
 import { SITE_CONTENT } from "@/lib/constants";
@@ -25,6 +26,14 @@ const VALUE_ICONS: Icon[] = [
   HandHeart, // צניעות
   ShieldCheck, // אמינות
   UsersThree, // קהילה
+];
+
+// רצועת הבטחות — מזוקקת מהערכים והכללים הקיימים (לא ניסוח שיווקי חדש).
+const PROMISES = [
+  "חינמי לחלוטין",
+  "בלי תמונות אנשים",
+  "בלי קשר ישיר ללא אישורך",
+  "ליווי אישי לאורך כל הדרך",
 ];
 
 const PROCESS_STEPS = [
@@ -53,18 +62,53 @@ const PROCESS_STEPS = [
 export default function AboutPage() {
   return (
     <main dir="rtl">
-      {/* Hero Section */}
-      <section className="bg-sand-100 py-16 sm:py-20 px-4 border-b border-sand-200">
-        <div className="max-w-3xl mx-auto text-center">
-          <h1 className="font-display text-ink-900 text-4xl sm:text-5xl font-bold leading-tight mb-4 animate-fade-up">
+      {/* Hero — רצועת מותג כהה (אמון-first) */}
+      <section className="relative overflow-hidden bg-gradient-to-bl from-navy-600 to-navy-800 px-4 py-16 sm:py-24">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-12 -start-12 h-56 w-56 rounded-full bg-white/5"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -bottom-20 -end-10 h-72 w-72 rounded-full bg-olive-500/10"
+        />
+        <div className="relative max-w-3xl mx-auto text-center">
+          <p className="text-xs font-bold tracking-widest text-olive-300 mb-4 animate-fade-up">
+            אודות · למחפשי עבודה
+          </p>
+          <h1 className="font-display text-white text-4xl sm:text-5xl font-bold leading-tight mb-4 animate-fade-up">
             {SITE_CONTENT.about.title}
           </h1>
           <p
-            className="text-lg sm:text-xl text-ink-500 leading-relaxed animate-fade-up"
+            className="text-lg sm:text-xl text-navy-100 leading-relaxed animate-fade-up"
             style={{ animationDelay: "120ms" }}
           >
             {SITE_CONTENT.about.subtitle}
           </p>
+          <div
+            className="mt-8 animate-fade-up"
+            style={{ animationDelay: "200ms" }}
+          >
+            <Link href="/register" className={buttonClass("secondary", "lg")}>
+              הרשמה ושליחת קורות חיים
+              <ArrowLeft className="w-5 h-5 shrink-0" weight="bold" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* רצועת הבטחות */}
+      <section className="bg-navy-900 px-4 py-5">
+        <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-x-6 gap-y-2.5 text-sm text-navy-100">
+          {PROMISES.map((promise) => (
+            <span key={promise} className="inline-flex items-center gap-1.5">
+              <CheckCircle
+                className="w-4 h-4 text-olive-300 shrink-0"
+                weight="fill"
+              />
+              {promise}
+            </span>
+          ))}
         </div>
       </section>
 
@@ -83,32 +127,34 @@ export default function AboutPage() {
         </Reveal>
       </section>
 
-      {/* Values */}
+      {/* Values — רשת-אמון */}
       <section className="bg-sand-50 py-20 px-4 border-y border-sand-200">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <Reveal>
             <SectionHeading
               eyebrow="העקרונות שלנו"
               title="ערכי הסוכנות"
               align="start"
-              className="mb-14"
+              className="mb-10"
             />
           </Reveal>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid sm:grid-cols-2 gap-4">
             {SITE_CONTENT.about.values.map((value, idx) => {
               const Icon = VALUE_ICONS[idx % VALUE_ICONS.length];
               return (
                 <Reveal key={idx} delay={idx * 90} className="h-full">
-                  <Card className="h-full p-6 text-center transition-shadow hover:shadow-lift">
-                    <span className="mx-auto mb-4 flex items-center justify-center w-12 h-12 rounded-full bg-olive-100 text-olive-700">
-                      <Icon className="w-7 h-7" />
+                  <Card className="h-full flex items-start gap-4 p-5 transition-shadow hover:shadow-lift">
+                    <span className="flex items-center justify-center w-11 h-11 rounded-xl bg-olive-100 text-olive-700 shrink-0">
+                      <Icon className="w-6 h-6" />
                     </span>
-                    <h3 className="font-display text-ink-900 text-lg font-bold mb-2">
-                      {value.title}
-                    </h3>
-                    <p className="text-ink-700 leading-relaxed text-sm">
-                      {value.desc}
-                    </p>
+                    <div>
+                      <h3 className="font-display text-ink-900 text-lg font-bold mb-1">
+                        {value.title}
+                      </h3>
+                      <p className="text-ink-700 leading-relaxed text-sm">
+                        {value.desc}
+                      </p>
+                    </div>
                   </Card>
                 </Reveal>
               );
