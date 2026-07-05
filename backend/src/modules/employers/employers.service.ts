@@ -4,11 +4,14 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import * as bcrypt from "bcryptjs";
+import { Prisma } from "@prisma/client";
 import { PrismaService } from "../../prisma/prisma.service";
 import { EmailService } from "../email/email.service";
 import { CreateEmployerDto } from "./dto/create-employer.dto";
 import { UpdateEmployerDto } from "./dto/update-employer.dto";
 import { CreatePortalUserDto } from "./dto/create-portal-user.dto";
+import { QueryEmployersDto } from "./dto/query-employers.dto";
+import { pageArgs } from "../../common/pagination/pagination";
 
 /** מעסיקים — פנימי לחלוטין, לעולם לא חשוף לאתר הציבורי. */
 @Injectable()
@@ -18,12 +21,51 @@ export class EmployersService {
     private readonly email: EmailService,
   ) {}
 
+  /** רשימה מלאה — לבוררי-בחירה (בחירת מעסיק במשרה חדשה). לא לרשימת הניהול הגדולה. */
   findAll() {
     // _count.jobs — מספר המשרות של כל מעסיק, לתצוגה בכרטיס בדשבורד.
     return this.prisma.employer.findMany({
       orderBy: { createdAt: "desc" },
       include: { _count: { select: { jobs: true } } },
     });
+  }
+
+  /**
+   * רשימת ניהול המעסיקים עם עימוד/סינון בצד שרת.
+   * items = מעסיקים שאינם ממתינים (מסוננים/מחופשים/מעומדים), נדחים בסוף.
+   * pending = כל הבקשות הממתינות (מוצגות ככרטיסים נפרדים, תמיד במלואן — מספרן קטן).
+   */
+  async findAllPaged(query: QueryEmployersDto) {
+    const { skip, take, page, pageSize } = pageArgs(query);
+    const where: Prisma.EmployerWhereInput = query.status
+      ? { status: query.status }
+      : { status: { not: "pending" } };
+    const search = query.search?.trim();
+    if (search) {
+      where.OR = [
+        { companyName: { contains: search, mode: "insensitive" } },
+        { contactName: { contains: search, mode: "insensitive" } },
+        { contactPhone: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    const [items, total, pending] = await this.prisma.$transaction([
+      this.prisma.employer.findMany({
+        where,
+        // סדר enum: approved(1) לפני rejected(2) → נדחים בתחתית. ואז לפי תאריך יורד.
+        orderBy: [{ status: "asc" }, { createdAt: "desc" }],
+        include: { _count: { select: { jobs: true } } },
+        skip,
+        take,
+      }),
+      this.prisma.employer.count({ where }),
+      this.prisma.employer.findMany({
+        where: { status: "pending" },
+        orderBy: { createdAt: "desc" },
+        include: { _count: { select: { jobs: true } } },
+      }),
+    ]);
+    return { items, total, page, pageSize, pending };
   }
 
   async findOne(id: string) {

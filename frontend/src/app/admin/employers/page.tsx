@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  listEmployers,
+  listEmployersPaged,
   createEmployer,
   createPortalUser,
   approveEmployer,
@@ -32,59 +32,61 @@ import { EMPLOYER_STATUS_LABELS } from "@/lib/labels";
 import { formatDate } from "@/lib/utils";
 
 export default function EmployersPage() {
-  const [employers, setEmployers] = useState<Employer[]>([]);
+  const [items, setItems] = useState<Employer[]>([]);
+  const [pending, setPending] = useState<Employer[]>([]);
+  const [total, setTotal] = useState(0);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   // הודעת הצלחה ברמת העמוד — נשארת גלויה גם אחרי שהטופס נסגר.
   const [msg, setMsg] = useState("");
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<
     "all" | "approved" | "rejected"
   >("all");
   const [page, setPage] = useState(1);
-
-  const reload = () =>
-    listEmployers()
-      .then(setEmployers)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
-
-  useEffect(() => {
-    reload();
-  }, []);
-
-  useEffect(() => setPage(1), [search, statusFilter]);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const PAGE_SIZE = 12;
-  // מעסיקים שאינם "ממתינים" — מסוננים, ממוינים (נדחים בסוף) ומעומדים.
-  const others = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return employers
-      .filter((e) => e.status !== "pending")
-      .filter((e) => {
-        if (statusFilter === "approved" && e.status === "rejected")
-          return false;
-        if (statusFilter === "rejected" && e.status !== "rejected")
-          return false;
-        if (q) {
-          const hay =
-            `${e.companyName} ${e.contactName} ${e.contactPhone}`.toLowerCase();
-          if (!hay.includes(q)) return false;
-        }
-        return true;
-      })
-      .sort((a, b) => {
-        // נדחים לתחתית; בתוך כל קבוצה — לפי תאריך יורד.
-        const ra = a.status === "rejected" ? 1 : 0;
-        const rb = b.status === "rejected" ? 1 : 0;
-        if (ra !== rb) return ra - rb;
-        return +new Date(b.createdAt) - +new Date(a.createdAt);
-      });
-  }, [employers, search, statusFilter]);
 
-  const othersTotalPages = Math.ceil(others.length / PAGE_SIZE);
-  const othersPage = others.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  // debounce לחיפוש.
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  useEffect(() => setPage(1), [debouncedSearch, statusFilter]);
+
+  // רענון הרשימה — לאחר יצירה/אישור/דחייה. טוען מחדש את העמוד הנוכחי.
+  const reload = () => setRefreshKey((k) => k + 1);
+
+  // טעינת עמוד מהשרת: items = מעסיקים (מעומדים/מסוננים), pending = כל הבקשות הממתינות.
+  useEffect(() => {
+    let alive = true;
+    setLoading(true);
+    listEmployersPaged({
+      page,
+      pageSize: PAGE_SIZE,
+      search: debouncedSearch || undefined,
+      status: statusFilter === "all" ? undefined : statusFilter,
+    })
+      .then((res) => {
+        if (!alive) return;
+        setItems(res.items);
+        setPending(res.pending);
+        setTotal(res.total);
+        setError("");
+      })
+      .catch((e) => alive && setError(e.message))
+      .finally(() => alive && setLoading(false));
+    return () => {
+      alive = false;
+    };
+  }, [page, debouncedSearch, statusFilter, refreshKey]);
+
+  const othersTotalPages = Math.ceil(total / PAGE_SIZE);
+  const hasFilter = !!(debouncedSearch || statusFilter !== "all");
 
   return (
     <div>
@@ -119,16 +121,16 @@ export default function EmployersPage() {
         </div>
       )}
 
-      {loading ? (
+      {loading && items.length === 0 && pending.length === 0 ? (
         <Loading />
       ) : error ? (
         <ErrorNote message={error} />
-      ) : employers.length === 0 ? (
+      ) : total === 0 && pending.length === 0 && !hasFilter ? (
         <EmptyState message="אין מעסיקים במערכת. הוסף מעסיק כדי לפתוח משרה." />
       ) : (
         <>
           {/* בקשות גישה ממתינות — מעסיקים שנרשמו עצמאית וטרם אושרו (סעיף 6). */}
-          {employers.some((e) => e.status === "pending") && (
+          {pending.length > 0 && (
             <section className="mb-8">
               <h2 className="text-lg font-display text-ink-900 mb-1">
                 בקשות גישה ממתינות
@@ -137,15 +139,13 @@ export default function EmployersPage() {
                 מעסיקים שנרשמו דרך האתר. לאמת טלפונית ואז לאשר או לדחות.
               </p>
               <div className="grid md:grid-cols-2 gap-4">
-                {employers
-                  .filter((e) => e.status === "pending")
-                  .map((e) => (
-                    <PendingEmployerCard
-                      key={e.id}
-                      employer={e}
-                      onChanged={reload}
-                    />
-                  ))}
+                {pending.map((e) => (
+                  <PendingEmployerCard
+                    key={e.id}
+                    employer={e}
+                    onChanged={reload}
+                  />
+                ))}
               </div>
             </section>
           )}
@@ -176,11 +176,11 @@ export default function EmployersPage() {
               </div>
             </Card>
 
-            {othersPage.length === 0 ? (
+            {items.length === 0 ? (
               <EmptyState message="לא נמצאו מעסיקים התואמים לסינון." />
             ) : (
-              <div className="grid md:grid-cols-2 gap-4">
-                {othersPage.map((e) => (
+              <div className="grid md:grid-cols-2 gap-4" aria-busy={loading}>
+                {items.map((e) => (
                   <Card key={e.id} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <h3 className="font-display text-lg text-ink-900">

@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { EmployersService } from './employers.service';
@@ -13,6 +14,7 @@ import { CreateEmployerDto } from './dto/create-employer.dto';
 import { UpdateEmployerDto } from './dto/update-employer.dto';
 import { CreatePortalUserDto } from './dto/create-portal-user.dto';
 import { RejectEmployerDto } from './dto/reject-employer.dto';
+import { QueryEmployersDto } from './dto/query-employers.dto';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
 
@@ -26,6 +28,12 @@ export class EmployersController {
   @Get()
   findAll() {
     return this.employersService.findAll();
+  }
+
+  /** רשימת הניהול עם עימוד/סינון בצד שרת. חייב לבוא לפני ":id". */
+  @Get('paged')
+  findAllPaged(@Query() query: QueryEmployersDto) {
+    return this.employersService.findAllPaged(query);
   }
 
   @Get(':id')

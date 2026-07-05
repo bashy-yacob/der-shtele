@@ -5,6 +5,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -15,6 +16,7 @@ import { CreateCandidateDto } from "./dto/create-candidate.dto";
 import { UpdateCandidateDto } from "./dto/update-candidate.dto";
 import { CreateCallLogDto } from "./dto/create-call-log.dto";
 import { HireCandidateDto } from "./dto/hire-candidate.dto";
+import { QueryCandidatesDto } from "./dto/query-candidates.dto";
 import { Roles } from "../../common/decorators/roles.decorator";
 import { RolesGuard } from "../../common/guards/roles.guard";
 import { StorageService } from "../../common/storage/storage.service";
@@ -77,6 +79,14 @@ export class CandidatesController {
   @Roles("staff", "admin")
   findAll() {
     return this.candidatesService.findAll();
+  }
+
+  /** רשימת ה-CRM עם עימוד/סינון בצד שרת. חייב לבוא לפני ":id". */
+  @Get("paged")
+  @UseGuards(RolesGuard)
+  @Roles("staff", "admin")
+  findAllPaged(@Query() query: QueryCandidatesDto) {
+    return this.candidatesService.findAllPaged(query);
   }
 
   @Get(":id")

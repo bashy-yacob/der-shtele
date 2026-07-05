@@ -14,6 +14,7 @@ import type {
   Contact,
   DashboardSummary,
   Employer,
+  InquiryType,
   InternalJob,
   JobDetail,
   JobField,
@@ -29,6 +30,24 @@ import type {
 } from "@/types";
 
 const TOKEN_KEY = "ds_token";
+
+/** מעטפת עימוד אחידה מהשרת — items של העמוד + total כולל לחישוב מספר העמודים. */
+export interface Paginated<T> {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+/** בונה query string — מדלג על ערכים ריקים/undefined (ה-backend דוחה פרמטרים לא-מוכרים). */
+function qs(params: Record<string, string | number | undefined>): string {
+  const p = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) {
+    if (v !== undefined && v !== "") p.set(k, String(v));
+  }
+  const s = p.toString();
+  return s ? `?${s}` : "";
+}
 
 function token(): string | null {
   return typeof window === "undefined" ? null : localStorage.getItem(TOKEN_KEY);
@@ -71,6 +90,17 @@ export const getDashboard = () =>
 // ---- פניות (טופס "צור קשר" + פניות מעסיקים) ----
 // GET /api/contact — staff/admin בלבד. הפניות נשמרות בטבלת contacts ומיון יורד לפי תאריך.
 export const listContacts = () => adminFetch<Contact[]>("contact");
+/** רשימת הפניות עם עימוד/סינון בצד שרת; openCount = פניות שטרם טופלו (בכל המערכת). */
+export const listContactsPaged = (params: {
+  page: number;
+  pageSize: number;
+  search?: string;
+  type?: InquiryType;
+  handled?: "open" | "handled";
+}) =>
+  adminFetch<Paginated<Contact> & { openCount: number }>(
+    `contact/paged${qs(params)}`,
+  );
 /** סימון פנייה כטופלה / ביטול — מחזיר את הפנייה המעודכנת. */
 export const setContactHandled = (id: string, handled: boolean) =>
   adminFetch<Contact>(`contact/${id}/handled`, {
@@ -82,8 +112,19 @@ export const getContactResume = (id: string) =>
   adminFetch<{ url: string }>(`contact/${id}/resume`);
 
 // ---- מועמדים ----
+/** רשימה מלאה — לבוררי-בחירה (בחירת מועמד למשרה). לרשימת הניהול השתמש ב-listCandidatesPaged. */
 export const listCandidates = () =>
   adminFetch<CandidateListItem[]>("candidates");
+/** רשימת הניהול עם עימוד/סינון בצד שרת. */
+export const listCandidatesPaged = (params: {
+  page: number;
+  pageSize: number;
+  search?: string;
+  field?: JobField;
+  region?: string;
+  status?: CandidateStatus;
+}) =>
+  adminFetch<Paginated<CandidateListItem>>(`candidates/paged${qs(params)}`);
 export const getCandidate = (id: string) =>
   adminFetch<CandidateDetail>(`candidates/${id}`);
 export const updateCandidate = (
@@ -107,7 +148,18 @@ export const addCallLog = (
 ) => adminFetch<CallLog>(`candidates/${id}/calls`, { method: "POST", body });
 
 // ---- מעסיקים ----
+/** רשימה מלאה — לבוררי-בחירה (בחירת מעסיק במשרה חדשה). לניהול השתמש ב-listEmployersPaged. */
 export const listEmployers = () => adminFetch<Employer[]>("employers");
+/** רשימת הניהול עם עימוד/סינון בצד שרת; pending = כל הבקשות הממתינות (כרטיסים נפרדים). */
+export const listEmployersPaged = (params: {
+  page: number;
+  pageSize: number;
+  search?: string;
+  status?: "approved" | "rejected";
+}) =>
+  adminFetch<Paginated<Employer> & { pending: Employer[] }>(
+    `employers/paged${qs(params)}`,
+  );
 export const createEmployer = (body: {
   companyName: string;
   contactName: string;

@@ -5,6 +5,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -13,6 +14,7 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import { ContactService } from "./contact.service";
 import { CreateContactDto } from "./dto/create-contact.dto";
 import { UpdateContactHandledDto } from "./dto/update-contact-handled.dto";
+import { QueryContactsDto } from "./dto/query-contacts.dto";
 import { Public } from "../../common/decorators/public.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
 import { RolesGuard } from "../../common/guards/roles.guard";
@@ -44,6 +46,14 @@ export class ContactController {
   @Roles("staff", "admin")
   findAll() {
     return this.contactService.findAll();
+  }
+
+  /** רשימת הפניות עם עימוד/סינון בצד שרת. */
+  @Get("paged")
+  @UseGuards(RolesGuard)
+  @Roles("staff", "admin")
+  findAllPaged(@Query() query: QueryContactsDto) {
+    return this.contactService.findAllPaged(query);
   }
 
   /** סימון פנייה כטופלה / ביטול הסימון — צוות בלבד. */

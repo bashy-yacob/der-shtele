@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { listCandidates, listRegions } from "@/lib/admin-api";
+import { listCandidatesPaged, listRegions } from "@/lib/admin-api";
 import type {
   CandidateListItem,
   CandidateStatus,
@@ -26,57 +26,74 @@ import {
 } from "@/lib/labels";
 import { formatDate } from "@/lib/utils";
 
+const PAGE_SIZE = 15;
+
 export default function CandidatesListPage() {
-  const [candidates, setCandidates] = useState<CandidateListItem[]>([]);
+  const [items, setItems] = useState<CandidateListItem[]>([]);
+  const [total, setTotal] = useState(0);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [field, setField] = useState<JobField | "">("");
   const [region, setRegion] = useState<Region | "">("");
   const [status, setStatus] = useState<CandidateStatus | "">("");
   const [cityOptions, setCityOptions] = useState<string[]>(buildCityOptions());
+  const [page, setPage] = useState(1);
 
+  // debounce לחיפוש — לא שולחים בקשה על כל הקשה.
   useEffect(() => {
-    listCandidates()
-      .then(setCandidates)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  // איפוס לעמוד 1 כשהסינון משתנה.
+  useEffect(() => setPage(1), [debouncedSearch, field, region, status]);
+
+  // רשימת הערים לבחירה — פעם אחת.
+  useEffect(() => {
     listRegions()
       .then((r) => setCityOptions(buildCityOptions(r)))
       .catch(() => undefined);
   }, []);
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return candidates.filter((c) => {
-      if (field && c.field !== field) return false;
-      // השוואה דרך regionLabel — תואם גם רשומות עם slug ישן (bnei_brak וכו').
-      if (region && regionLabel(c.region) !== region) return false;
-      if (status && c.status !== status) return false;
-      if (q) {
-        const hay = `${c.fullName} ${c.phone} ${c.email}`.toLowerCase();
-        if (!hay.includes(q)) return false;
-      }
-      return true;
-    });
-  }, [candidates, search, field, region, status]);
+  // טעינת העמוד מהשרת בכל שינוי סינון/עמוד.
+  useEffect(() => {
+    let alive = true;
+    setLoading(true);
+    listCandidatesPaged({
+      page,
+      pageSize: PAGE_SIZE,
+      search: debouncedSearch || undefined,
+      field: field || undefined,
+      region: region || undefined,
+      status: status || undefined,
+    })
+      .then((res) => {
+        if (!alive) return;
+        setItems(res.items);
+        setTotal(res.total);
+        setError("");
+      })
+      .catch((e) => alive && setError(e.message))
+      .finally(() => alive && setLoading(false));
+    return () => {
+      alive = false;
+    };
+  }, [page, debouncedSearch, field, region, status]);
 
-  // עימוד — איפוס לעמוד 1 כשמשתנה הסינון.
-  const PAGE_SIZE = 15;
-  const [page, setPage] = useState(1);
-  useEffect(() => setPage(1), [search, field, region, status]);
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const hasFilter = !!(debouncedSearch || field || region || status);
 
   return (
     <div>
       <PageHeader
         title="ניהול מועמדים"
         subtitle={
-          filtered.length === candidates.length
-            ? `${candidates.length} מועמדים במערכת`
-            : `מציג ${filtered.length} מתוך ${candidates.length} מועמדים`
+          hasFilter
+            ? `נמצאו ${total} מועמדים`
+            : `${total} מועמדים במערכת`
         }
       />
 
@@ -127,21 +144,21 @@ export default function CandidatesListPage() {
         </div>
       </Card>
 
-      {loading ? (
+      {loading && items.length === 0 ? (
         <Loading />
       ) : error ? (
         <ErrorNote message={error} />
-      ) : filtered.length === 0 ? (
+      ) : total === 0 ? (
         <EmptyState
           message={
-            candidates.length === 0
-              ? "עדיין אין מועמדים במערכת"
-              : "לא נמצאו מועמדים התואמים לסינון"
+            hasFilter
+              ? "לא נמצאו מועמדים התואמים לסינון"
+              : "עדיין אין מועמדים במערכת"
           }
         />
       ) : (
         <>
-          <Card className="p-0 overflow-x-auto">
+          <Card className="p-0 overflow-x-auto" aria-busy={loading}>
             <table className="w-full text-sm">
               <thead className="bg-sand-50 text-ink-500">
                 <tr className="text-start">
@@ -156,7 +173,7 @@ export default function CandidatesListPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-sand-100">
-                {pageItems.map((c) => (
+                {items.map((c) => (
                   <tr key={c.id} className="hover:bg-sand-50 transition-colors">
                     <td className="px-4 py-3">
                       <Link
