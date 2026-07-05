@@ -224,7 +224,7 @@ function TagMultiSelect({
   }, [options, search, selected]);
 
   return (
-    <div>
+    <div ref={containerRef}>
       <label className="mb-2 block text-sm font-semibold text-ink-700">
         {label}
       </label>
