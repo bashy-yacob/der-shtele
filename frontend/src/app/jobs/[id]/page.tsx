@@ -8,6 +8,15 @@ import {
 } from "@/lib/constants";
 import type { Metadata } from "next";
 import Link from "next/link";
+import type { Icon } from "@/lib/icons";
+import {
+  Briefcase,
+  MapPin,
+  Clock,
+  ChartLineUp,
+  Buildings,
+  ShieldCheck,
+} from "@/lib/icons";
 import ApplicationForm from "@/components/forms/ApplicationForm";
 import { SaveJobButton } from "@/components/jobs/SaveJobButton";
 
@@ -38,6 +47,15 @@ export default async function JobPage({ params }: Props) {
 
   // Anonymize company name
   const companyLabel = `ארגון ב${regionLabel(job.region)}`;
+
+  // עובדות-מהירות לרצועת ה-hero (התחום מוצג כתגית נפרדת מעל).
+  const facts: { icon: Icon; label: string; value: string }[] = [
+    { icon: MapPin, label: "אזור", value: regionLabel(job.region) },
+    { icon: Clock, label: "היקף", value: job.scope },
+    ...(job.experience
+      ? [{ icon: ChartLineUp, label: "ניסיון", value: job.experience }]
+      : []),
+  ];
 
   // Structured data — מאפשר הופעה ב"גוגל למשרות" (Google Jobs).
   // המעסיק האמיתי חסוי; הסוכנות עצמה רשומה כ-hiringOrganization (היא המפרסמת).
@@ -77,49 +95,53 @@ export default async function JobPage({ params }: Props) {
           __html: JSON.stringify(jobPostingLd).replace(/</g, "\\u003c"),
         }}
       />
-      <div className="max-w-4xl mx-auto px-4 py-16">
+      <div className="max-w-5xl mx-auto px-4 py-12">
         <Link
           href="/jobs"
-          className="text-navy-600 font-medium mb-8 inline-block hover:underline"
+          className="text-navy-600 font-medium mb-4 inline-block hover:underline"
         >
           ← חזרה לכל המשרות
         </Link>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {/* Job Details */}
-          <section className="md:col-span-2">
-            {/* Header */}
-            <div className="mb-8">
-              <div className="flex justify-between items-start gap-4 mb-4">
+        {/* Hero header — כותרת + תגית תחום + עובדות-מהירות */}
+        <div className="bg-white border border-sand-200 rounded-2xl shadow-soft p-6 sm:p-8 mb-6">
+          <span className="inline-flex items-center gap-1.5 bg-olive-100 text-olive-700 rounded-full px-3 py-1 text-xs font-bold mb-3">
+            <Briefcase className="w-3.5 h-3.5" weight="bold" />
+            {FIELD_LABELS[job.field]}
+          </span>
+          <h1 className="font-display text-3xl sm:text-4xl font-bold text-ink-900">
+            {job.title}
+          </h1>
+          <p className="text-ink-500 font-medium mt-2 inline-flex items-center gap-1.5">
+            <Buildings className="w-4 h-4 text-ink-400" />
+            {companyLabel} · פורסם{" "}
+            {new Date(job.createdAt).toLocaleDateString("he-IL")}
+          </p>
+          <div className="flex flex-wrap gap-x-8 gap-y-4 mt-6 pt-6 border-t border-sand-200">
+            {facts.map(({ icon: FactIcon, label, value }) => (
+              <div key={label} className="flex items-center gap-2.5">
+                <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-navy-50 text-navy-600 shrink-0">
+                  <FactIcon className="w-5 h-5" />
+                </span>
                 <div>
-                  <h1 className="font-display text-4xl font-bold text-ink-900 mb-2">
-                    {job.title}
-                  </h1>
-                  <p className="text-ink-500 font-medium">
-                    {companyLabel} ·{" "}
-                    {new Date(job.createdAt).toLocaleDateString("he-IL")} ·
-                    פורסם
-                  </p>
+                  <div className="text-[11px] text-ink-400">{label}</div>
+                  <div className="text-sm font-bold text-ink-900">{value}</div>
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
 
-              {/* Tags */}
-              <div className="flex flex-wrap gap-2">
-                <Tag label="תחום" value={FIELD_LABELS[job.field]} />
-                <Tag label="אזור" value={regionLabel(job.region)} />
-                <Tag label="היקף" value={job.scope} />
-                {job.experience && (
-                  <Tag label="ניסיון נדרש" value={job.experience} />
-                )}
-              </div>
-            </div>
-
-            {/* Description */}
-            <div className="bg-white border border-sand-200 rounded-2xl shadow-soft p-8">
-              <h2 className="font-display text-2xl font-bold text-ink-900 mb-4">
+        {/* גוף — תוכן + טופס הגשה בסרגל צד דביק */}
+        <div className="grid lg:grid-cols-3 gap-6">
+          <section className="lg:col-span-2 space-y-6">
+            <div className="bg-white border border-sand-200 rounded-2xl shadow-soft p-6 sm:p-8">
+              <h2 className="font-display text-2xl font-bold text-ink-900 mb-3">
                 אודות המשרה
               </h2>
-              <p className="text-ink-700 leading-relaxed">{job.description}</p>
+              <p className="text-ink-700 leading-relaxed whitespace-pre-line">
+                {job.description}
+              </p>
 
               <h3 className="font-display text-lg font-bold text-ink-900 mt-8 mb-3">
                 דרישות
@@ -144,33 +166,23 @@ export default async function JobPage({ params }: Props) {
               </ul>
             </div>
 
-            {/* Privacy Note */}
-            <div className="bg-olive-50 border border-olive-100 rounded-xl p-4 mt-8">
+            <div className="bg-olive-50 border border-olive-100 rounded-xl p-4 flex items-start gap-2.5">
+              <ShieldCheck className="w-5 h-5 text-olive-600 shrink-0 mt-0.5" />
               <p className="text-sm text-olive-700">
-                <span className="font-bold">פרטי המעסיק:</span> פרטי המעסיק
-                חסויים לחלוטין במסך הציבורי. פרטים אלו יועברו אליך רק לאחר שיחה
-                עם הצוות שלנו והסכמת המעסיק.
+                <span className="font-bold">פרטי המעסיק חסויים.</span> הם יימסרו
+                אליך רק לאחר שיחה עם הצוות שלנו והסכמת המעסיק.
               </p>
             </div>
           </section>
 
-          {/* Application Form - Sticky Sidebar */}
-          <section className="md:col-span-1">
-            <div className="md:sticky md:top-4 space-y-4">
+          <aside className="lg:col-span-1">
+            <div className="lg:sticky lg:top-4 space-y-4">
               <SaveJobButton jobId={job.id} variant="full" />
               <ApplicationForm jobId={job.id} jobTitle={job.title} />
             </div>
-          </section>
+          </aside>
         </div>
       </div>
     </main>
-  );
-}
-
-function Tag({ label, value }: { label: string; value: string }) {
-  return (
-    <span className="bg-sand-50 text-ink-700 border border-sand-200 px-3 py-2 rounded-xl text-sm font-medium">
-      <span className="text-ink-500 text-xs">{label}:</span> {value}
-    </span>
   );
 }

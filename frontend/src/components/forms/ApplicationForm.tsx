@@ -10,6 +10,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { Button, Card, Input, Textarea } from "@/components/ui";
+import { FileText } from "@/lib/icons";
 
 const ALLOWED_CV_TYPES = [
   "application/pdf",
@@ -244,16 +245,17 @@ export default function ApplicationForm({
           {...register("notes")}
           id="notes"
           rows={3}
-          label="הערות (אופציונלי)"
-          placeholder="כל מידע נוסף שרלוונטי..."
+          label="הערות לגבי המשרה (אופציונלי)"
+          placeholder="רוצה להוסיף משהו על ההתאמה שלך למשרה? נשמח לשמוע"
         />
 
         {/* Resume Upload */}
-        <div className="rounded-xl border border-olive-300 bg-olive-50 p-4">
+        <div className="rounded-xl border-2 border-dashed border-olive-300 bg-olive-50 p-4">
           <label
             htmlFor="resume"
-            className="block text-sm font-semibold text-olive-700 mb-1.5"
+            className="flex items-center gap-2 text-sm font-semibold text-olive-700 mb-2"
           >
+            <FileText className="w-5 h-5 shrink-0" weight="bold" />
             קורות חיים (PDF או Word) *
           </label>
 
@@ -286,13 +288,18 @@ export default function ApplicationForm({
           )}
 
           {!useExisting && (
-            <input
-              {...register("resume")}
-              type="file"
-              id="resume"
-              accept=".pdf,.doc,.docx"
-              className="w-full text-sm text-ink-500 file:me-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-olive-100 file:text-olive-700 hover:file:bg-olive-300 cursor-pointer"
-            />
+            <>
+              <input
+                {...register("resume")}
+                type="file"
+                id="resume"
+                accept=".pdf,.doc,.docx"
+                className="w-full text-sm text-ink-500 file:me-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-olive-100 file:text-olive-700 hover:file:bg-olive-300 cursor-pointer"
+              />
+              <p className="text-xs text-ink-400 mt-2">
+                בחר קובץ מהמכשיר · עד 5MB
+              </p>
+            </>
           )}
           {errors.resume && (
             <p className="text-red-600 text-xs mt-1">
