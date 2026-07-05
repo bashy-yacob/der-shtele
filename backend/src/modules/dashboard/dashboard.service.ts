@@ -33,6 +33,7 @@ export class DashboardService {
       duePlacements,
       newContactsCount,
       queueCount,
+      pendingJobsCount,
     ] = await Promise.all([
       // קו"ח שנכנסו השבוע
       this.prisma.candidate.count({ where: { createdAt: { gte: weekAgo } } }),
@@ -104,6 +105,8 @@ export class DashboardService {
       this.prisma.contact.count({ where: { handledAt: null } }),
       // תור טיפול — מספר מדויק (לא מוגבל ל-10 כמו הרשימה)
       this.prisma.candidate.count({ where: { status: "new" } }),
+      // משרות שמעסיק פרסם דרך הפורטל וממתינות לאישור הצוות
+      this.prisma.job.count({ where: { status: "pending" } }),
     ]);
 
     // סכום עמלות פתוחות (בשקלים) — רק עמלות שכבר ניתנות לגבייה (תום ערבות)
@@ -135,6 +138,7 @@ export class DashboardService {
         queueCount,
         commissionsDueCount,
         newContactsCount,
+        pendingJobs: pendingJobsCount,
       },
       queue: queue.map((c) => ({
         id: c.id,

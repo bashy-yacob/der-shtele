@@ -236,6 +236,7 @@ export interface DashboardStats {
   queueCount: number;
   commissionsDueCount: number; // עמלות בשלות לחיוב (סטטוס אפקטיבי 'due')
   newContactsCount: number; // פניות שטרם טופלו
+  pendingJobs: number; // משרות שמעסיק פרסם וממתינות לאישור הצוות
 }
 
 /** קישור מינימלי למשרה (לתצוגת שיוך) */

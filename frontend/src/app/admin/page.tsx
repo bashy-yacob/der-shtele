@@ -9,6 +9,9 @@ import {
   ChartLineUp,
   ChatCircleText,
   BellRinging,
+  Briefcase,
+  UserPlus,
+  EnvelopeSimple,
   Plus,
   ArrowLeft,
   WarningCircle,
@@ -36,6 +39,26 @@ type ActionItem = {
   label: string;
   danger?: boolean;
 };
+
+/** מדד-משנה בודד ברצועת "מבט מהיר". */
+type Metric = {
+  value: string | number;
+  label: string;
+  icon: Icon;
+  wide?: boolean;
+};
+
+/** כותרת-אזור עדינה עם קו-הפרדה — מחדדת את הקיבוץ בין חלקי הלוח. */
+function SectionLabel({ title }: { title: string }) {
+  return (
+    <div className="flex items-center gap-3 mb-3">
+      <h2 className="text-sm font-display font-semibold text-ink-700 shrink-0">
+        {title}
+      </h2>
+      <span className="h-px flex-1 bg-sand-200" aria-hidden />
+    </div>
+  );
+}
 
 export default function AdminDashboardPage() {
   const { user } = useAuth();
@@ -70,6 +93,14 @@ export default function AdminDashboardPage() {
             ? "תזכורת אחת עברה את זמנה"
             : `${stats.overdueReminders} תזכורות עברו זמנן`,
       },
+      stats.pendingJobs > 0 && {
+        href: "/admin/jobs",
+        icon: Briefcase,
+        label:
+          stats.pendingJobs === 1
+            ? "משרה אחת ממתינה לאישור"
+            : `${stats.pendingJobs} משרות ממתינות לאישור`,
+      },
       stats.commissionsDueCount > 0 && {
         href: "/admin/commissions",
         icon: Coins,
@@ -89,6 +120,28 @@ export default function AdminDashboardPage() {
     ] as (ActionItem | false)[]
   ).filter(Boolean) as ActionItem[];
 
+  // מדדי-משנה — רצועת "מבט מהיר" (לא דורש פעולה מיידית, רק תמונת מצב)
+  const metrics: Metric[] = [
+    {
+      value: stats.placementsThisMonth,
+      label: "גיוסים החודש",
+      icon: ChartLineUp,
+    },
+    {
+      value: formatCurrency(stats.pendingCommissions),
+      label: "עמלות פתוחות",
+      icon: Coins,
+    },
+    { value: stats.newCandidatesThisWeek, label: "קו״ח השבוע", icon: UserPlus },
+    { value: stats.activeJobs, label: "משרות פעילות", icon: Briefcase },
+    {
+      value: stats.activeSubscribers,
+      label: "מנויי מייל",
+      icon: EnvelopeSimple,
+      wide: true,
+    },
+  ];
+
   return (
     <div>
       {/* כותרת + פעולה ראשית */}
@@ -107,8 +160,8 @@ export default function AdminDashboardPage() {
         </Link>
       </div>
 
-      {/* כרטיס-על מאוחד — המדד הקריטי + מה שדורש טיפול עכשיו */}
-      <div className="bg-white rounded-2xl border border-sand-200 shadow-soft p-4 md:p-6 mb-4">
+      {/* אזור 1 — דורש טיפול: כרטיס-על מאוחד (המדד הקריטי + מה שדורש טיפול עכשיו) */}
+      <div className="bg-white rounded-2xl border border-sand-200 shadow-soft p-4 md:p-6 mb-6 md:mb-8">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div className="flex items-center gap-4">
             <span className="text-6xl md:text-7xl font-display font-bold text-navy-700 leading-none shrink-0">
@@ -147,9 +200,18 @@ export default function AdminDashboardPage() {
 
         {/* דורש טיפול עכשיו */}
         <div className="mt-5 pt-4 border-t border-sand-200">
-          <p className="text-xs font-bold text-ink-500 mb-2">
-            דורש טיפול עכשיו
-          </p>
+          <div className="flex items-center gap-1.5 mb-2.5">
+            <WarningCircle
+              className={cn(
+                "w-4 h-4",
+                actions.length > 0 ? "text-olive-600" : "text-ink-400",
+              )}
+              weight="fill"
+            />
+            <p className="text-xs font-bold text-ink-700 tracking-wide">
+              דורש טיפול עכשיו
+            </p>
+          </div>
           {actions.length === 0 ? (
             <p className="text-sm text-ink-400 inline-flex items-center gap-1.5">
               <CheckCircle className="w-4 h-4 text-olive-500" weight="fill" />
@@ -188,127 +250,121 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* מדדי-משנה */}
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2.5 md:gap-3 mb-4">
-        <div className="bg-white rounded-xl border border-sand-200 shadow-soft px-3.5 py-3">
-          <div className="text-xl md:text-2xl font-display font-bold text-ink-900 leading-none">
-            {stats.placementsThisMonth}
-          </div>
-          <div className="text-[11px] text-ink-500 mt-1 inline-flex items-center gap-1">
-            <ChartLineUp className="w-3.5 h-3.5 text-olive-500" /> גיוסים החודש
-          </div>
+      {/* אזור 2 — מבט מהיר: מדדי-משנה (תמונת מצב, לא דורש פעולה) */}
+      <section className="mb-6 md:mb-8">
+        <SectionLabel title="מבט מהיר" />
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2.5 md:gap-3">
+          {metrics.map((m) => {
+            const MIcon = m.icon;
+            return (
+              <div
+                key={m.label}
+                className={cn(
+                  "bg-white rounded-xl border border-sand-200 shadow-soft px-3.5 py-3",
+                  m.wide && "col-span-2 md:col-span-1",
+                )}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="text-xl md:text-2xl font-display font-bold text-ink-900 leading-none">
+                    {m.value}
+                  </div>
+                  <MIcon className="w-4 h-4 text-ink-400 shrink-0" />
+                </div>
+                <div className="text-[11px] text-ink-500 mt-1.5">{m.label}</div>
+              </div>
+            );
+          })}
         </div>
-        <div className="bg-white rounded-xl border border-sand-200 shadow-soft px-3.5 py-3">
-          <div className="text-xl md:text-2xl font-display font-bold text-ink-900 leading-none">
-            {formatCurrency(stats.pendingCommissions)}
-          </div>
-          <div className="text-[11px] text-ink-500 mt-1">עמלות פתוחות</div>
-        </div>
-        <div className="bg-white rounded-xl border border-sand-200 shadow-soft px-3.5 py-3">
-          <div className="text-xl md:text-2xl font-display font-bold text-ink-900 leading-none">
-            {stats.newCandidatesThisWeek}
-          </div>
-          <div className="text-[11px] text-ink-500 mt-1">קו״ח השבוע</div>
-        </div>
-        <div className="bg-white rounded-xl border border-sand-200 shadow-soft px-3.5 py-3">
-          <div className="text-xl md:text-2xl font-display font-bold text-ink-900 leading-none">
-            {stats.activeJobs}
-          </div>
-          <div className="text-[11px] text-ink-500 mt-1">משרות פעילות</div>
-        </div>
-        <div className="col-span-2 md:col-span-1 bg-white rounded-xl border border-sand-200 shadow-soft px-3.5 py-3">
-          <div className="text-xl md:text-2xl font-display font-bold text-ink-900 leading-none">
-            {stats.activeSubscribers}
-          </div>
-          <div className="text-[11px] text-ink-500 mt-1">מנויי מייל</div>
-        </div>
-      </div>
+      </section>
 
-      {/* רשימות עבודה */}
-      <div className="grid lg:grid-cols-2 gap-4">
-        {/* תור טיפול */}
-        <Card className="p-4">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-base font-display font-semibold text-ink-900">
-              תור טיפול
-            </h2>
-            <Link
-              href="/admin/candidates"
-              className="text-xs text-navy-600 font-semibold hover:underline"
-            >
-              לכל המועמדים ←
-            </Link>
-          </div>
-          {queue.length === 0 ? (
-            <EmptyState message="אין מועמדים חדשים הממתינים לטיפול 🎉" />
-          ) : (
-            <ul className="divide-y divide-sand-100">
-              {queue.map((c) => (
-                <li key={c.id}>
-                  <Link
-                    href={`/admin/candidates/${c.id}`}
-                    className="flex items-center justify-between gap-2 py-2 -mx-2 px-2 rounded-lg hover:bg-sand-50 transition-colors"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-ink-900 truncate">
-                        {c.fullName}
-                      </p>
-                      <p className="text-[11px] text-ink-500 truncate">
-                        {FIELD_LABELS[c.field]} · {regionLabel(c.region)}
-                        {c.job ? ` · ${c.job.title}` : ""}
-                      </p>
-                    </div>
-                    <span className="text-xs font-bold text-navy-600 shrink-0 whitespace-nowrap">
-                      טפל ←
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
+      {/* אזור 3 — רשימות עבודה */}
+      <section>
+        <SectionLabel title="רשימות עבודה" />
+        <div className="grid lg:grid-cols-2 gap-4">
+          {/* תור טיפול */}
+          <Card className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-base font-display font-semibold text-ink-900">
+                תור טיפול
+              </h2>
+              <Link
+                href="/admin/candidates"
+                className="text-xs text-navy-600 font-semibold hover:underline"
+              >
+                לכל המועמדים ←
+              </Link>
+            </div>
+            {queue.length === 0 ? (
+              <EmptyState message="אין מועמדים חדשים הממתינים לטיפול 🎉" />
+            ) : (
+              <ul className="divide-y divide-sand-100">
+                {queue.map((c) => (
+                  <li key={c.id}>
+                    <Link
+                      href={`/admin/candidates/${c.id}`}
+                      className="flex items-center justify-between gap-2 py-2 -mx-2 px-2 rounded-lg hover:bg-sand-50 transition-colors"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-ink-900 truncate">
+                          {c.fullName}
+                        </p>
+                        <p className="text-[11px] text-ink-500 truncate">
+                          {FIELD_LABELS[c.field]} · {regionLabel(c.region)}
+                          {c.job ? ` · ${c.job.title}` : ""}
+                        </p>
+                      </div>
+                      <span className="text-xs font-bold text-navy-600 shrink-0 whitespace-nowrap">
+                        טפל ←
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
 
-        {/* משרות פעילות */}
-        <Card className="p-4">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-base font-display font-semibold text-ink-900">
-              משרות פעילות
-            </h2>
-            <Link
-              href="/admin/jobs"
-              className="text-xs text-navy-600 font-semibold hover:underline"
-            >
-              לכל המשרות ←
-            </Link>
-          </div>
-          {activeJobs.length === 0 ? (
-            <EmptyState message="אין משרות פעילות" />
-          ) : (
-            <ul className="divide-y divide-sand-100">
-              {activeJobs.map((j) => (
-                <li key={j.id}>
-                  <Link
-                    href={`/admin/jobs/${j.id}`}
-                    className="flex items-center justify-between gap-2 py-2 -mx-2 px-2 rounded-lg hover:bg-sand-50 transition-colors"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-ink-900 truncate">
-                        {j.title}
-                      </p>
-                      <p className="text-[11px] text-ink-500 truncate">
-                        {FIELD_LABELS[j.field]} · {regionLabel(j.region)}
-                      </p>
-                    </div>
-                    <span className="text-[11px] text-ink-400 shrink-0 whitespace-nowrap">
-                      {j.presentedCount} הוצגו
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-      </div>
+          {/* משרות פעילות */}
+          <Card className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-base font-display font-semibold text-ink-900">
+                משרות פעילות
+              </h2>
+              <Link
+                href="/admin/jobs"
+                className="text-xs text-navy-600 font-semibold hover:underline"
+              >
+                לכל המשרות ←
+              </Link>
+            </div>
+            {activeJobs.length === 0 ? (
+              <EmptyState message="אין משרות פעילות" />
+            ) : (
+              <ul className="divide-y divide-sand-100">
+                {activeJobs.map((j) => (
+                  <li key={j.id}>
+                    <Link
+                      href={`/admin/jobs/${j.id}`}
+                      className="flex items-center justify-between gap-2 py-2 -mx-2 px-2 rounded-lg hover:bg-sand-50 transition-colors"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-ink-900 truncate">
+                          {j.title}
+                        </p>
+                        <p className="text-[11px] text-ink-500 truncate">
+                          {FIELD_LABELS[j.field]} · {regionLabel(j.region)}
+                        </p>
+                      </div>
+                      <span className="text-[11px] text-ink-400 shrink-0 whitespace-nowrap">
+                        {j.presentedCount} הוצגו
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+        </div>
+      </section>
     </div>
   );
 }
