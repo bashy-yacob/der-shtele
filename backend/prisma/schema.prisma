@@ -506,3 +506,24 @@ model Advertisement {
   @@index([placement, status])
   @@map("advertisements")
 }
+
+// ----------------------------------------------------------------
+// שותפים — לוגואים של חנויות/מעסיקים שהסכימו להופיע ("עם מי אנחנו עובדים").
+// מוצגים כרשת לוגואים באתר הציבורי, מנוהלים מהדשבורד. מוסיפים אחד-אחד ככל
+// שמעסיק מסכים ושולח לוגו. צניעות: לוגו בלבד — ללא תמונות אנשים/פנים.
+// ----------------------------------------------------------------
+
+model Partner {
+  id           String   @id @default(cuid())
+  partnerName  String   // שם החנות/המעסיק — מוצג כ-alt וכ-tooltip
+  logoPath     String   // נתיב ב-bucket ציבורי 'partners' (לא URL). ללא תמונות אנשים.
+  linkUrl      String?  // יעד בלחיצה (אופציונלי — אתר החנות)
+  displayOrder Int      @default(0) // סדר תצוגה — עולה (קטן קודם)
+  isActive     Boolean  @default(true) // האם מוצג באתר הציבורי
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([isActive, displayOrder])
+  @@map("partners")
+}

@@ -52,6 +52,7 @@ export {
   BellRinging,
   Quotes,
   Megaphone,
+  Storefront,
   SignOut,
   // מדדי דשבורד
   ListChecks,

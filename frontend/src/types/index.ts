@@ -426,6 +426,32 @@ export interface Advertisement {
   updatedAt: string;
 }
 
+// ----------------------------------------------------------------
+// שותפים — לוגואים של חנויות/מעסיקים ("עם מי אנחנו עובדים")
+// ----------------------------------------------------------------
+
+/** שותף ציבורי — מה שמוצג באתר (שם + לוגו + קישור). */
+export interface PublicPartner {
+  id: string;
+  partnerName: string;
+  linkUrl?: string | null;
+  displayOrder: number;
+  logoUrl: string;
+}
+
+/** שותף מלא — כפי שהצוות רואה ומנהל בדשבורד. */
+export interface Partner {
+  id: string;
+  partnerName: string;
+  logoPath: string;
+  logoUrl: string; // URL ציבורי מלא לתצוגה מקדימה (נגזר מ-logoPath בשרת)
+  linkUrl?: string | null;
+  displayOrder: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ApiResponse<T = void> {
   success: boolean;
   data?: T;

@@ -13,6 +13,10 @@ import {
   AD_IMAGE_ALLOWED_TYPES,
   AD_IMAGE_MAX_SIZE,
 } from "./ad-image-upload.options";
+import {
+  PARTNER_LOGO_ALLOWED_TYPES,
+  PARTNER_LOGO_MAX_SIZE,
+} from "./partner-logo-upload.options";
 
 /**
  * StorageService — אחסון קורות חיים.
@@ -33,6 +37,8 @@ export class StorageService {
   private readonly bucket: string;
   // bucket ציבורי לתמונות באנרים — שונה מ-resumes (פרטי). public URL ללא חתימה.
   private readonly adsBucket: string;
+  // bucket ציבורי ללוגואים של שותפים — ציבורי כמו ads, מופרד לוגית.
+  private readonly partnersBucket: string;
   private readonly supabaseUrl: string;
   private readonly supabaseKey: string;
   private readonly localDir: string;
@@ -40,6 +46,10 @@ export class StorageService {
   constructor(private readonly config: ConfigService) {
     this.bucket = this.config.get<string>("SUPABASE_RESUME_BUCKET", "resumes");
     this.adsBucket = this.config.get<string>("SUPABASE_ADS_BUCKET", "ads");
+    this.partnersBucket = this.config.get<string>(
+      "SUPABASE_PARTNERS_BUCKET",
+      "partners",
+    );
     this.supabaseUrl = this.config.get<string>("SUPABASE_URL", "");
     this.supabaseKey = this.config.get<string>("SUPABASE_SERVICE_ROLE_KEY", "");
     this.localDir = this.config.get<string>(
@@ -223,5 +233,86 @@ export class StorageService {
     }
     if (!this.useSupabase) return;
     await this.client.storage.from(this.adsBucket).remove([path]);
+  }
+
+  // ----------------------------------------------------------------
+  // לוגואים של שותפים — bucket ציבורי ('partners'). באותה תבנית של תמונות
+  // באנרים: URL ציבורי וקבוע, ללא חתימה/תפוגה. כלל ברזל: לוגו בלבד, ללא
+  // תמונות אנשים (נאכף ע"י אישור הצוות בעת ההוספה).
+  // ----------------------------------------------------------------
+
+  /** מאמת ומעלה לוגו שותף ל-bucket הציבורי, מחזיר את הנתיב לשמירה במסד. */
+  async uploadPartnerLogo(file: {
+    buffer: Buffer;
+    originalname: string;
+    mimetype: string;
+    size: number;
+  }): Promise<string> {
+    if (!PARTNER_LOGO_ALLOWED_TYPES.includes(file.mimetype)) {
+      throw new BadRequestException("לוגו שותף חייב להיות PNG, JPG או WebP.");
+    }
+    if (file.size > PARTNER_LOGO_MAX_SIZE) {
+      throw new BadRequestException("לוגו שותף גדול מדי. גודל מירבי הוא 1MB.");
+    }
+
+    const ext = (file.originalname.split(".").pop() ?? "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "")
+      .slice(0, 5);
+    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+    if (this.useSupabase) {
+      const { data, error } = await this.client.storage
+        .from(this.partnersBucket)
+        .upload(fileName, file.buffer, {
+          contentType: file.mimetype,
+          upsert: false,
+        });
+
+      if (error) {
+        this.logger.error("Supabase partner logo upload failed", error.message);
+        throw new InternalServerErrorException("שגיאה בהעלאת לוגו השותף.");
+      }
+      return data.path;
+    }
+
+    // --- אחסון מקומי dev-only (אין Supabase מוגדר) ---
+    try {
+      const partnersDir = join(this.localDir, "partners");
+      await fs.mkdir(partnersDir, { recursive: true });
+      await fs.writeFile(join(partnersDir, fileName), file.buffer);
+      this.logger.log(`לוגו שותף נשמר מקומית: ${fileName}`);
+      return `local/partners/${fileName}`;
+    } catch (err) {
+      this.logger.error("Local partner logo save failed", err as Error);
+      throw new InternalServerErrorException("שגיאה בשמירת לוגו השותף.");
+    }
+  }
+
+  /**
+   * מחזיר URL ציבורי ללוגו שותף (להצגה באתר). bucket ציבורי → getPublicUrl
+   * (סינכרוני). נתיב מקומי dev-only מוחזר כמו שהוא (לא נטען בדפדפן).
+   */
+  getPartnerLogoUrl(path: string): string {
+    if (!path) return "";
+    if (path.startsWith("local/")) return path;
+    if (!this.useSupabase) return path;
+    const { data } = this.client.storage
+      .from(this.partnersBucket)
+      .getPublicUrl(path);
+    return data.publicUrl;
+  }
+
+  /** מחיקת לוגו שותף (best-effort) — בעת מחיקת שותף. */
+  async deletePartnerLogo(path: string): Promise<void> {
+    if (!path) return;
+    if (path.startsWith("local/")) {
+      await fs
+        .unlink(join(this.localDir, path.replace(/^local\//, "")))
+        .catch(() => undefined);
+      return;
+    }
+    if (!this.useSupabase) return;
+    await this.client.storage.from(this.partnersBucket).remove([path]);
   }
 }

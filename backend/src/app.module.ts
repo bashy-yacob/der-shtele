@@ -24,6 +24,7 @@ import { MailingModule } from "./modules/mailing/mailing.module";
 import { SavedJobsModule } from "./modules/saved-jobs/saved-jobs.module";
 import { TestimonialsModule } from "./modules/testimonials/testimonials.module";
 import { AdvertisementsModule } from "./modules/advertisements/advertisements.module";
+import { PartnersModule } from "./modules/partners/partners.module";
 import { TasksModule } from "./modules/tasks/tasks.module";
 import { PortalModule } from "./modules/portal/portal.module";
 import { StatsModule } from "./modules/stats/stats.module";
@@ -50,6 +51,7 @@ import { StatsModule } from "./modules/stats/stats.module";
     SavedJobsModule,
     TestimonialsModule,
     AdvertisementsModule,
+    PartnersModule,
     TasksModule,
     PortalModule,
     StatsModule,

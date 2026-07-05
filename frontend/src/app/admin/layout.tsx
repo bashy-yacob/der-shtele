@@ -15,6 +15,7 @@ import {
   EnvelopeSimple,
   Quotes,
   Megaphone,
+  Storefront,
   SignOut,
 } from "@/lib/icons";
 import { useAuth } from "@/hooks/useAuth";
@@ -39,6 +40,7 @@ const ADMIN_NAV: {
   { href: "/admin/mailing", label: "רשימת תפוצה", icon: EnvelopeSimple },
   { href: "/admin/testimonials", label: "המלצות", icon: Quotes },
   { href: "/admin/advertisements", label: "פרסומות", icon: Megaphone },
+  { href: "/admin/partners", label: "שותפים", icon: Storefront },
 ];
 
 const ADMIN_ROLES = ["staff", "admin"];
