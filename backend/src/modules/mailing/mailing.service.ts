@@ -102,20 +102,20 @@ export class MailingService {
 
   /**
    * רשימת מנויים פעילים (הסכמה תקפה), עם נתוני פילוח לדיוור מותאם.
-   * עדיפות לפרטי הפרופיל שהמשתמש מילא בעצמו (city / preferredField);
+   * עדיפות לפרטי הפרופיל שהמשתמש מילא בעצמו (city / preferredFields);
    * אם לא מילא — נופלים לרשומת המועמד המקושרת (field / region).
    * סטטוס קיים רק ברמת המועמד.
    */
   async subscribers(filter: MailingFilterDto = {}): Promise<Subscriber[]> {
     const and: Prisma.UserWhereInput[] = [];
 
-    // תחום: התאמה לתחום שהמשתמש ביקש, או — אם לא הוגדר — לתחום המועמד.
+    // תחום: התאמה לאחד התחומים שהמשתמש ביקש, או — אם לא הגדיר — לתחום המועמד.
     if (filter.field) {
       and.push({
         OR: [
-          { preferredField: filter.field },
+          { preferredFields: { has: filter.field } },
           {
-            preferredField: null,
+            preferredFields: { isEmpty: true },
             candidate: { is: { field: filter.field } },
           },
         ],
@@ -147,7 +147,7 @@ export class MailingService {
         fullName: true,
         optInAt: true,
         city: true,
-        preferredField: true,
+        preferredFields: true,
         candidate: {
           select: { field: true, region: true, status: true },
         },
@@ -159,7 +159,8 @@ export class MailingService {
       email: u.email,
       fullName: u.fullName,
       optInAt: u.optInAt,
-      field: u.preferredField ?? u.candidate?.field ?? null,
+      // תחום מייצג לסגמנטציה — הראשון שהמשתמש בחר, אחרת תחום המועמד המקושר.
+      field: u.preferredFields[0] ?? u.candidate?.field ?? null,
       region: u.city ?? u.candidate?.region ?? null,
       status: u.candidate?.status ?? null,
     }));

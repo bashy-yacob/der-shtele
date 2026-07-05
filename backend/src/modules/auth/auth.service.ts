@@ -269,7 +269,7 @@ export class AuthService {
       // פרטי פרופיל לדיוור מותאם אישית
       phone: user.phone,
       city: user.city,
-      preferredField: user.preferredField,
+      preferredFields: user.preferredFields,
       yearsExperience: user.yearsExperience,
       // לתזכורת ה-opt-in החודשית בפרונט (משתמשי Google שלא אישרו דיוור)
       optInPromptedAt: user.optInPromptedAt,
@@ -300,8 +300,8 @@ export class AuthService {
     }
     if (dto.phone !== undefined) data.phone = dto.phone;
     if (dto.city !== undefined) data.city = dto.city;
-    if (dto.preferredField !== undefined) {
-      data.preferredField = dto.preferredField;
+    if (dto.preferredFields !== undefined) {
+      data.preferredFields = dto.preferredFields;
     }
     if (dto.yearsExperience !== undefined) {
       data.yearsExperience = dto.yearsExperience;
@@ -319,7 +319,7 @@ export class AuthService {
       optInMarketing: user.optInMarketing,
       phone: user.phone,
       city: user.city,
-      preferredField: user.preferredField,
+      preferredFields: user.preferredFields,
       yearsExperience: user.yearsExperience,
     };
   }

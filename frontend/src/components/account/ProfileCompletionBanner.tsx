@@ -15,7 +15,7 @@ function isProfileIncomplete(user: AuthUser): boolean {
   return (
     !user.phone ||
     !user.city ||
-    !user.preferredField ||
+    !user.preferredFields?.length ||
     user.yearsExperience == null
   );
 }

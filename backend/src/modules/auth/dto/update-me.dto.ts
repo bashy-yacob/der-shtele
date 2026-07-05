@@ -1,4 +1,5 @@
 import {
+  IsArray,
   IsBoolean,
   IsEnum,
   IsInt,
@@ -31,10 +32,12 @@ export class UpdateMeDto {
   @MaxLength(80)
   city?: string | null;
 
-  // תחום תעסוקה מבוקש — מפלח את הדיוור לפי תחום
+  // תחומי תעסוקה מבוקשים (רב-בחירה) — מפלחים את הדיוור לפי תחום.
+  // שליחת מערך ריק מנקה את הבחירה.
   @IsOptional()
-  @IsEnum(JobField)
-  preferredField?: JobField | null;
+  @IsArray()
+  @IsEnum(JobField, { each: true })
+  preferredFields?: JobField[];
 
   // שנות ניסיון — לסינון פנימי של הצוות (הפרונט שולח מספר או null, לא מחרוזת)
   @IsOptional()

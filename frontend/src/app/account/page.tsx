@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
-import { Button, Input, Select, CityCombobox } from "@/components/ui";
+import { Button, Input, CityCombobox, TagMultiSelect } from "@/components/ui";
 import { useAuth } from "@/hooks/useAuth";
 import { FIELD_LABELS, buildCityOptions } from "@/lib/constants";
 import { EmailVerificationBanner } from "@/components/account/EmailVerificationBanner";
@@ -15,8 +15,17 @@ export default function AccountProfilePage() {
 
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
-  const [preferredField, setPreferredField] = useState<JobField | "">("");
+  const [preferredFields, setPreferredFields] = useState<string[]>([]);
   const [years, setYears] = useState("");
+
+  const fieldOptions = Object.entries(FIELD_LABELS).map(([value, text]) => ({
+    value,
+    text,
+  }));
+  const togglePreferred = (v: string) =>
+    setPreferredFields((prev) =>
+      prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v],
+    );
 
   const [cityOptions, setCityOptions] = useState<string[]>(buildCityOptions());
   const [saving, setSaving] = useState(false);
@@ -27,13 +36,13 @@ export default function AccountProfilePage() {
   useEffect(() => {
     setPhone(user?.phone ?? "");
     setCity(user?.city ?? "");
-    setPreferredField((user?.preferredField as JobField) ?? "");
+    setPreferredFields(user?.preferredFields ?? []);
     setYears(
       typeof user?.yearsExperience === "number"
         ? String(user.yearsExperience)
         : "",
     );
-  }, [user?.phone, user?.city, user?.preferredField, user?.yearsExperience]);
+  }, [user?.phone, user?.city, user?.preferredFields, user?.yearsExperience]);
 
   // רשימת הערים הקיימות (same-origin proxy → לא נחסם ע"י NetFree). נכשל בעדינות.
   useEffect(() => {
@@ -60,7 +69,7 @@ export default function AccountProfilePage() {
       await updateProfile({
         phone: phone.trim() || null,
         city: city.trim() || null,
-        preferredField: preferredField || null,
+        preferredFields: preferredFields as JobField[],
         yearsExperience: parsedYears,
       });
       setMessage("הפרטים נשמרו בהצלחה.");
@@ -116,19 +125,14 @@ export default function AccountProfilePage() {
           onChange={(e) => setCity(e.target.value)}
         />
 
-        <Select
-          id="preferredField"
+        <TagMultiSelect
           label="תחום תעסוקה מבוקש"
-          value={preferredField}
-          onChange={(e) => setPreferredField(e.target.value as JobField | "")}
-        >
-          <option value="">בחר תחום...</option>
-          {Object.entries(FIELD_LABELS).map(([val, label]) => (
-            <option key={val} value={val}>
-              {label}
-            </option>
-          ))}
-        </Select>
+          placeholder="הוסף תחום…"
+          options={fieldOptions}
+          selected={preferredFields}
+          onToggle={togglePreferred}
+        />
+        <p className="-mt-2 text-xs text-ink-400">ניתן לבחור כמה תחומים</p>
 
         <Input
           id="years"

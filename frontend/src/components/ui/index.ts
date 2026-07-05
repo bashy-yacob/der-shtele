@@ -5,6 +5,8 @@ export { PhoneLink, EmailLink } from "./ContactLinks";
 export { Input } from "./Input";
 export { Select } from "./Select";
 export { CityCombobox } from "./CityCombobox";
+export { TagMultiSelect } from "./TagMultiSelect";
+export type { TagOption } from "./TagMultiSelect";
 export { Textarea } from "./Textarea";
 export { Card } from "./Card";
 export { SectionHeading } from "./SectionHeading";

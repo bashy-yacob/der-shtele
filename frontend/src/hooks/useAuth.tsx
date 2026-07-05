@@ -43,7 +43,7 @@ function touchLastActive() {
 export interface ProfileFields {
   phone?: string | null;
   city?: string | null;
-  preferredField?: JobField | null;
+  preferredFields?: JobField[];
   yearsExperience?: number | null;
 }
 
@@ -140,7 +140,7 @@ function useAuthState(): AuthContextValue {
             emailVerified: res.data.emailVerified,
             phone: res.data.phone ?? null,
             city: res.data.city ?? null,
-            preferredField: res.data.preferredField ?? null,
+            preferredFields: res.data.preferredFields ?? [],
             yearsExperience: res.data.yearsExperience ?? null,
             optInPromptedAt: res.data.optInPromptedAt ?? null,
             authProvider: res.data.authProvider,
@@ -300,7 +300,7 @@ function useAuthState(): AuthContextValue {
             ...u,
             phone: res.data.phone ?? null,
             city: res.data.city ?? null,
-            preferredField: res.data.preferredField ?? null,
+            preferredFields: res.data.preferredFields ?? [],
             yearsExperience: res.data.yearsExperience ?? null,
           }
         : u,
