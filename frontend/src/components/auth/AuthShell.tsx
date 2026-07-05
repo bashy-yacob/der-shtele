@@ -78,6 +78,28 @@ export function AuthShell({
 
         {/* טופס */}
         <div className="p-8 sm:p-10">
+          {/* סמל מותג עדין — נותן זהות גם במובייל (שם פאנל המיתוג הצדדי מוסתר).
+              סמל גאומטרי בלבד, ללא פנים/אנשים (כלל הצניעות). מקושר לעמוד הבית. */}
+          <Link
+            href="/"
+            aria-label="דער שטעלע — לעמוד הבית"
+            className="mb-6 inline-flex"
+          >
+            <svg
+              width="44"
+              height="44"
+              viewBox="0 0 40 40"
+              fill="none"
+              aria-hidden="true"
+            >
+              <rect width="40" height="40" rx="10" fill="#2f4ac0" />
+              <path
+                d="M12 27V13h5.5a7 7 0 0 1 0 14H12Zm4-3.2h1.5a3.8 3.8 0 0 0 0-7.6H16v7.6Z"
+                fill="#fff"
+              />
+              <circle cx="28.5" cy="14" r="2.5" fill="#dde6ff" />
+            </svg>
+          </Link>
           <h1 className="font-display text-3xl font-bold text-ink-900 mb-1">
             {title}
           </h1>

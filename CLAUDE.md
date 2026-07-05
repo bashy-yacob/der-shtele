@@ -37,13 +37,28 @@
 - **לוח שנה יהודי:** Hebcal API
 - **מבנה:** monorepo עם `frontend/` ו-`backend/`
 
+## מפת קוד — היכן יושבת הלוגיקה הקריטית
+
+- **בק (NestJS)** מאורגן כמודולים תחת `backend/src/modules/*` (לכל פיצ'ר `*.controller.ts` + `*.service.ts` + `dto/`). לוגיקה עסקית טהורה/משותפת תחת `backend/src/common/*`:
+  - עמלות: `common/commission/commission.ts` (`isCommissionDue`, `deriveCommissionStatus`).
+  - מכונות מצב (משרה/מועמד/עמלה): `common/status-machine/status-machine.ts`.
+  - שבת/חג מול Hebcal: `common/shabbat/shabbat.service.ts`.
+  - כללי מודעות: `common/ads/ads.ts`. אחסון קו"ח/מודעות: `common/storage/storage.service.ts`.
+  - הרשאות: `common/guards/*` + דקורטורים `common/decorators/*` (`@Public`, `@Roles`). שער אישור מעסיק: `requireApprovedEmployer`.
+- **פרונט (Next.js App Router)** תחת `frontend/src/app`. הדפדפן **לעולם לא פונה ישירות לבק** — הכל דרך **proxy routes** ב-`frontend/src/app/api/*` (same-origin, עוקף NetFree). שני catch-all מרכזיים: `api/admin/[...path]` ו-`api/portal/[...path]` מעבירים לבק; auth/jobs/candidates הם routes ייעודיים.
+
 ## פקודות
 
-> לאמת מול הסקריפטים האמיתיים ב-`package.json` ולתקן אם שונה.
+> אומת מול `package.json` בפועל (2026-07-01).
 
-Frontend (`frontend/`): `npm run dev` · `npm run build` · `npm run lint`
-Backend (`backend/`): `npm run start:dev` · `npm run build` · `npm run test` · `npm run lint`
-Prisma (backend): `npx prisma migrate dev` · `npx prisma generate` · `npx prisma studio`
+**שורש הריפו** (npm workspaces): `npm run dev` מריץ בק+פרונט יחד · `npm run build` · `npm run lint`. להרצה בנפרד: `npm run dev:backend` / `npm run dev:frontend`.
+Frontend (`frontend/`): `npm run dev` · `npm run build` · `npm run lint` (next lint).
+Backend (`backend/`): `npm run start:dev` (watch) · `npm run build` · `npm run lint` (eslint --fix) · `npm run test`.
+
+- **בדיקות = Vitest** (לא Jest). קבצים ב-`backend/test/*.spec.ts`. בדיקה בודדת: `npx vitest run test/commission.spec.ts`, או לפי שם: `npx vitest run -t "commission"`. watch: `npm run test:watch`.
+  Prisma (backend): `npm run prisma:migrate` (dev) · `npm run prisma:deploy` (`migrate deploy`, לפרודקשן) · `npm run prisma:generate` · `npm run prisma:seed` · `npm run prisma:studio`.
+
+⚠️ **npm מול pnpm:** השורש והבק עובדים עם **npm workspaces** (`package-lock.json` בשורש), אבל הפרונט נבנה ב-Vercel עם **pnpm** (`frontend/pnpm-lock.yaml`). כל שינוי ב-`frontend/package.json` מחייב עדכון `pnpm-lock.yaml` — אחרת build ב-Vercel נכשל (frozen-lockfile).
 
 ## כללי ברזל תרבותיים — חובה, לא לעבור עליהם
 

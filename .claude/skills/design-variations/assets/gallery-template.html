@@ -1,0 +1,143 @@
+<!doctype html>
+<!--
+  Design-variations gallery template.
+  Fill every {{PLACEHOLDER}} and inject one <article class="variation"> per variation.
+  Keep it self-contained: no local imports, only CDN. Open by double-click.
+-->
+<html dir="{{DIR}}" lang="{{LANG}}">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{REQUEST_TITLE}} — וריאציות עיצוב</title>
+
+    <!-- Tailwind Play CDN (no build step) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Project font (swap the family/URL to match the detected project font) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family={{FONT_QUERY}}&display=swap"
+      rel="stylesheet"
+    />
+
+    <script>
+      // Inject the project's detected design tokens here so the canvases feel native.
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["{{FONT_FAMILY}}", "system-ui", "sans-serif"],
+            },
+            colors: {
+              /* {{TOKENS_COLORS}} e.g. brand: { 600:'#4d5b3c', 700:'#3d4a2f' } */
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      :root {
+        color-scheme: light;
+      }
+      body {
+        font-family: "{{FONT_FAMILY}}", system-ui, sans-serif;
+      }
+      /* Gallery chrome only — NOT part of any variation. */
+      .canvas {
+        max-width: 100%;
+        margin-inline: auto;
+        transition: max-width 0.2s ease;
+      }
+      .canvas.mobile {
+        max-width: 390px;
+      }
+    </style>
+  </head>
+
+  <body class="bg-slate-100 text-slate-900 antialiased">
+    <!-- ===== Sticky toolbar ===== -->
+    <header
+      class="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur"
+    >
+      <div
+        class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-3"
+      >
+        <div>
+          <h1 class="text-lg font-bold">{{REQUEST_TITLE}}</h1>
+          <p class="text-sm text-slate-500">
+            {{VARIATION_COUNT}} וריאציות · לחץ על רוחב לתצוגה · נוצר
+            {{TIMESTAMP}}
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-slate-500">תצוגה:</span>
+          <button
+            onclick="setWidth('desktop')"
+            id="btn-desktop"
+            class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium hover:bg-slate-50"
+          >
+            דסקטופ
+          </button>
+          <button
+            onclick="setWidth('mobile')"
+            id="btn-mobile"
+            class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium hover:bg-slate-50"
+          >
+            מובייל
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-6xl space-y-10 px-5 py-8">
+      <!-- ===== Repeat one <article> per variation ===== -->
+      <!-- {{VARIATIONS}} -->
+
+      <article
+        class="variation overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+      >
+        <div
+          class="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-slate-100 bg-slate-50 px-5 py-3"
+        >
+          <span
+            class="rounded-full bg-slate-900 px-2.5 py-0.5 text-xs font-bold text-white"
+            >וריאציה 1</span
+          >
+          <h2 class="text-base font-bold">{{CONCEPT_NAME}}</h2>
+          <span class="text-xs font-medium text-slate-500">ציר: {{AXIS}}</span>
+          <p class="w-full text-sm text-slate-500">{{RATIONALE}}</p>
+        </div>
+        <div class="bg-white p-6">
+          <div class="canvas">
+            <!-- INJECT THE ACTUAL VARIATION MARKUP HERE -->
+          </div>
+        </div>
+      </article>
+      <!-- ===== end repeat ===== -->
+    </main>
+
+    <footer
+      class="mx-auto max-w-6xl px-5 pb-10 text-center text-xs text-slate-400"
+    >
+      design-lab · תצוגה מקומית · לא חלק מקוד האפליקציה
+    </footer>
+
+    <script>
+      function setWidth(mode) {
+        var mobile = mode === "mobile";
+        document.querySelectorAll(".canvas").forEach(function (c) {
+          c.classList.toggle("mobile", mobile);
+        });
+        document
+          .getElementById("btn-mobile")
+          .classList.toggle("ring-2", mobile);
+        document
+          .getElementById("btn-desktop")
+          .classList.toggle("ring-2", !mobile);
+      }
+      setWidth("desktop");
+    </script>
+  </body>
+</html>

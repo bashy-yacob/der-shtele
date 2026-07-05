@@ -4,5 +4,8 @@
       "Bash(npx tsc -p tsconfig.build.json --noEmit)",
       "Bash(npx tsc -p tsconfig.build.json --noEmit *)"
     ]
+  },
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   }
 }

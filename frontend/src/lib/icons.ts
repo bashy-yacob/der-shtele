@@ -40,6 +40,7 @@ export {
   // משרות
   MapPin,
   ChartLineUp,
+  Check,
   // מצבי מערכת (טעינה/ריק/שגיאה/הצלחה)
   CircleNotch,
   Tray,

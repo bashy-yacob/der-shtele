@@ -1,12 +1,17 @@
 /**
- * מאמת נתיב יעד שהגיע מ-?redirect ומחזיר אותו רק אם הוא נתיב יחסי בטוח
- * (מתחיל ב-"/" אך לא ב-"//") — אחרת את ברירת המחדל. מונע open-redirect לאתר חיצוני.
+ * מאמת נתיב יעד שהגיע מ-?redirect ומעדיף אותו כשהוא קיים ובטוח — נתיב יחסי
+ * (מתחיל ב-"/" אך לא ב-"//"), ולא עמוד הרשמה/כניסה (מונע לולאת חזרה). רק אם
+ * ה-raw חסר/לא בטוח נופלים ל-fallback. מונע open-redirect לאתר חיצוני.
  */
 export function safeRedirect(
   raw: string | null | undefined,
   fallback: string,
 ): string {
-  return raw && raw.startsWith("/") && !raw.startsWith("//") ? raw : fallback;
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return fallback;
+  // לא לחזור אל עמוד ההרשמה/כניסה עצמו — היה יוצר לולאת ניתוב.
+  const path = raw.split(/[?#]/)[0];
+  if (path === "/login" || path === "/register") return fallback;
+  return raw;
 }
 
 /**

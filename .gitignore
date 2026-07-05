@@ -38,6 +38,11 @@ yarn-error.log*
 # editor
 .idea/
 
+# design-lab (local design-variation preview galleries — not part of the app)
+design-lab/
+# playwright-mcp scratch output (snapshots/console/screenshots)
+.playwright-mcp/
+
 # design-sync (staged scripts, build output, machine state, build inputs)
 .ds-sync/
 ds-bundle/

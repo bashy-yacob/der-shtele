@@ -6,6 +6,7 @@ import { Button, Input, Select, CityCombobox } from "@/components/ui";
 import { useAuth } from "@/hooks/useAuth";
 import { FIELD_LABELS, buildCityOptions } from "@/lib/constants";
 import { EmailVerificationBanner } from "@/components/account/EmailVerificationBanner";
+import { ProfileCompletionBanner } from "@/components/account/ProfileCompletionBanner";
 import { MyCvCard } from "@/components/account/MyCvCard";
 import type { JobField } from "@/types";
 
@@ -75,6 +76,7 @@ export default function AccountProfilePage() {
     <div className="space-y-6">
       <h1 className="font-display text-2xl text-ink-900">הפרופיל שלי</h1>
 
+      <ProfileCompletionBanner />
       <EmailVerificationBanner />
 
       {/* פרטי חשבון — לקריאה בלבד */}

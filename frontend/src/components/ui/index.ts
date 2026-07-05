@@ -1,4 +1,5 @@
 export { Button, buttonClass } from "./Button";
+export { StartCtaLink } from "./StartCtaLink";
 export { BackLink } from "./BackLink";
 export { PhoneLink, EmailLink } from "./ContactLinks";
 export { Input } from "./Input";

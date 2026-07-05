@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import type { Icon } from "@/lib/icons";
 import {
   Lock,
@@ -10,7 +9,7 @@ import {
   ArrowLeft,
 } from "@/lib/icons";
 import { SITE_CONTENT } from "@/lib/constants";
-import { Card, SectionHeading, Reveal } from "@/components/ui";
+import { Card, SectionHeading, Reveal, StartCtaLink } from "@/components/ui";
 import { buttonClass } from "@/components/ui/Button";
 
 export const metadata: Metadata = {
@@ -89,10 +88,13 @@ export default function AboutPage() {
             className="mt-8 animate-fade-up"
             style={{ animationDelay: "200ms" }}
           >
-            <Link href="/register" className={buttonClass("secondary", "lg")}>
+            <StartCtaLink
+              dest="/contact"
+              className={buttonClass("secondary", "lg")}
+            >
               הרשמה ושליחת קורות חיים
               <ArrowLeft className="w-5 h-5 shrink-0" weight="bold" />
-            </Link>
+            </StartCtaLink>
           </div>
         </div>
       </section>
@@ -205,10 +207,13 @@ export default function AboutPage() {
               הרשמה לוקחת דקה, והשירות חינמי לחלוטין. מכאן — אנחנו כבר דואגים
               לכל השאר.
             </p>
-            <Link href="/register" className={buttonClass("secondary", "lg")}>
+            <StartCtaLink
+              dest="/contact"
+              className={buttonClass("secondary", "lg")}
+            >
               הרשמה ושליחת קורות חיים
               <ArrowLeft className="w-5 h-5 shrink-0" weight="bold" />
-            </Link>
+            </StartCtaLink>
           </div>
         </Reveal>
       </section>

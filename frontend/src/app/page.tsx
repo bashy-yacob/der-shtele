@@ -13,6 +13,7 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Reveal } from "@/components/ui/Reveal";
 import { CountUp } from "@/components/ui/CountUp";
 import { buttonClass } from "@/components/ui/Button";
+import { StartCtaLink } from "@/components/ui/StartCtaLink";
 import {
   ShieldCheck,
   Handshake,
@@ -205,13 +206,13 @@ export default async function HomePage() {
             className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-up"
             style={{ animationDelay: "240ms" }}
           >
-            <Link
-              href="/register"
+            <StartCtaLink
+              dest="/jobs"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-olive-500 hover:bg-olive-600 text-white font-bold text-lg px-8 py-3.5 rounded-xl transition-colors duration-150 text-center shadow-lift"
             >
               {CONTENT.hero.primary}
               <ArrowLeft className="w-5 h-5 shrink-0" weight="bold" />
-            </Link>
+            </StartCtaLink>
             <Link
               href="/jobs"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-white/70 text-white hover:bg-white/10 font-bold text-lg px-8 py-3.5 rounded-xl transition-colors duration-150 text-center"
@@ -432,10 +433,13 @@ export default async function HomePage() {
             <p className="text-sand-200 mb-8 max-w-md mx-auto leading-relaxed">
               הרשמה לוקחת דקה. מכאן — אנחנו כבר דואגים לכל השאר.
             </p>
-            <Link href="/register" className={buttonClass("secondary", "lg")}>
+            <StartCtaLink
+              dest="/jobs"
+              className={buttonClass("secondary", "lg")}
+            >
               הרשמה וחיפוש משרות
               <ArrowLeft className="w-5 h-5 shrink-0" weight="bold" />
-            </Link>
+            </StartCtaLink>
           </div>
         </Reveal>
       </section>
