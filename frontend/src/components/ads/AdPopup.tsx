@@ -70,6 +70,7 @@ export function AdPopup() {
           </span>
 
           {showImage && (
+            // מודעה מונפשת: GIF / WebP מונפש מתנגן אוטומטית בתוך <img> — בלי נגן וידאו.
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={ad.imageUrl as string}

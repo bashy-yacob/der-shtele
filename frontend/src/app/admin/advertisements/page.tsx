@@ -157,7 +157,8 @@ export default function AdvertisementsPage() {
       a.imagePath &&
       !(await confirm({
         title: "הפעלת מודעה עם תמונה",
-        message: "אני מאשר שהתמונה אינה כוללת תמונות אנשים (כלל ברזל). להפעיל?",
+        message:
+          "אני מאשר: אין בתמונה אנשים או פנים, ואם היא מונפשת (GIF/WebP) — האנימציה עדינה, בלי הבהוב או תזוזה מהירה. להפעיל?",
         confirmLabel: "הפעל",
       }))
     )
@@ -221,7 +222,8 @@ export default function AdvertisementsPage() {
 
       <p className="mb-4 rounded-lg border border-olive-300 bg-olive-50 p-3 text-sm text-ink-700">
         מודעה מוצגת באתר רק לאחר סימון תשלום <strong>וגם</strong> הפעלה, ובתוך
-        חלון התאריכים. כלל ברזל: ללא תמונות אנשים — כל מודעה מאושרת ידנית.
+        חלון התאריכים. כלל ברזל: ללא תמונות אנשים — כל מודעה מאושרת ידנית. מותרת
+        מודעה מונפשת (GIF/WebP), אך רק באנימציה עדינה — בלי הבהוב או ריצוד.
       </p>
 
       {msg && (
@@ -522,11 +524,11 @@ function AdForm({
         />
         <div>
           <label className="mb-1 block text-sm font-semibold text-ink-700">
-            תמונת באנר (ללא תמונות אנשים)
+            תמונת באנר (ללא תמונות אנשים · מותר GIF/WebP מונפש, אנימציה עדינה)
           </label>
           <input
             type="file"
-            accept="image/png,image/jpeg,image/webp"
+            accept="image/png,image/jpeg,image/gif,image/webp"
             disabled={uploading}
             onChange={(e) => onFile(e.target.files?.[0])}
             className="block w-full text-sm text-ink-500 file:me-3 file:rounded-lg file:border-0 file:bg-navy-50 file:px-3 file:py-1.5 file:text-navy-700"
