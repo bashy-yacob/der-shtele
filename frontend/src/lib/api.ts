@@ -60,8 +60,9 @@ function toPublicJob(raw: RawPublicJob): PublicJob {
 }
 
 export interface JobsFilter {
-  field?: JobField;
-  region?: Region;
+  // רב-בחירה כ-CSV: "logistics,sales". גם ערך יחיד תקף.
+  field?: string;
+  region?: string;
   experience?: string;
 }
 

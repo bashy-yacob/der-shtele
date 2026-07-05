@@ -2,11 +2,9 @@ import { getPublicJobs, getRegions } from "@/lib/api";
 import { JobFilters } from "@/components/jobs/JobFilters";
 import { JobList } from "@/components/jobs/JobList";
 import { Pagination } from "@/components/jobs/Pagination";
+import { SendCvCta } from "@/components/jobs/SendCvCta";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { buttonClass } from "@/components/ui/Button";
-import type { JobField, Region } from "@/types";
 import type { Metadata } from "next";
-import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "לוח משרות",
@@ -34,10 +32,16 @@ const JOBS_CONTENT = {
 const PAGE_SIZE = 12;
 
 interface SearchParams {
-  field?: string;
-  region?: string;
-  experience?: string;
+  field?: string | string[];
+  region?: string | string[];
+  experience?: string | string[];
   page?: string;
+}
+
+/** מנרמל פרמטר query לערך רב-בחירה אחיד ("a,b,c"). תומך גם ב-field=a&field=b. */
+function csvParam(value: string | string[] | undefined): string | undefined {
+  if (Array.isArray(value)) return value.join(",") || undefined;
+  return value || undefined;
 }
 
 export default async function JobsPage({
@@ -45,12 +49,12 @@ export default async function JobsPage({
 }: {
   searchParams: SearchParams;
 }) {
+  const field = csvParam(searchParams.field);
+  const region = csvParam(searchParams.region);
+  const experience = csvParam(searchParams.experience);
+
   const [filtered, regions] = await Promise.all([
-    getPublicJobs({
-      field: searchParams.field as JobField | undefined,
-      region: searchParams.region as Region | undefined,
-      experience: searchParams.experience,
-    }),
+    getPublicJobs({ field, region, experience }),
     getRegions(),
   ]);
 
@@ -85,7 +89,10 @@ export default async function JobsPage({
           <h2 className="font-display text-ink-900 text-lg font-bold mb-6">
             חיפוש משרה מתאימה
           </h2>
-          <JobFilters current={searchParams} regions={regions} />
+          <JobFilters
+            current={{ field, region, experience }}
+            regions={regions}
+          />
         </div>
 
         {/* תוצאות */}
@@ -97,9 +104,7 @@ export default async function JobsPage({
             <p className="text-ink-700 mb-8 max-w-md mx-auto leading-relaxed">
               {JOBS_CONTENT.empty.desc}
             </p>
-            <Link href="/register" className={buttonClass("primary", "lg")}>
-              {JOBS_CONTENT.empty.button}
-            </Link>
+            <SendCvCta label={JOBS_CONTENT.empty.button} />
           </div>
         ) : (
           <>
@@ -113,11 +118,7 @@ export default async function JobsPage({
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
-              params={{
-                field: searchParams.field,
-                region: searchParams.region,
-                experience: searchParams.experience,
-              }}
+              params={{ field, region, experience }}
             />
           </>
         )}

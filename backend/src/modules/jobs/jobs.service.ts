@@ -56,8 +56,9 @@ export class JobsService {
     const jobs = await this.prisma.job.findMany({
       where: {
         status: "active",
-        ...(query.field && { field: query.field }),
-        ...(query.region && { region: query.region }),
+        // רב-בחירה: תחום/אזור מסוננים כ-OR פנימי (`{ in: [...] }`).
+        ...(query.field?.length && { field: { in: query.field } }),
+        ...(query.region?.length && { region: { in: query.region } }),
         ...(query.experience && { experience: query.experience }),
       },
       select: PUBLIC_SELECT_WITH_FEATURED,
