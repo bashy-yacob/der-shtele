@@ -8,6 +8,7 @@ import {
 } from "@/lib/api";
 import { JobCard } from "@/components/jobs/JobCard";
 import { TestimonialsCarousel } from "@/components/marketing/TestimonialsCarousel";
+import { PartnersStrip } from "@/components/partners/PartnersStrip";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Reveal } from "@/components/ui/Reveal";
 import { CountUp } from "@/components/ui/CountUp";
@@ -417,6 +418,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ======== עם מי אנחנו עובדים ======== */}
+      <PartnersStrip />
 
       {/* ======== CTA סוגר ======== */}
       <section className="bg-sand-100 py-20 px-4">
