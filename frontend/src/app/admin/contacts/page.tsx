@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-  listContacts,
+  listContactsPaged,
   setContactHandled,
   getContactResume,
 } from "@/lib/admin-api";
@@ -72,36 +72,62 @@ function Detail({
 
 export default function ContactsPage() {
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [total, setTotal] = useState(0);
+  const [openCount, setOpenCount] = useState(0);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<InquiryType | "">("");
   const [handledFilter, setHandledFilter] = useState<HandledFilter>("all");
   const [page, setPage] = useState(1);
+  const [refreshKey, setRefreshKey] = useState(0);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [resumeBusyId, setResumeBusyId] = useState<string | null>(null);
   // שגיאת פעולה (סימון/פתיחת קו"ח) — נפרדת משגיאת הטעינה כדי לא להעלים את הרשימה.
   const [actionError, setActionError] = useState("");
 
+  // debounce לחיפוש.
   useEffect(() => {
-    listContacts()
-      .then(setContacts)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
-  }, []);
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
 
-  // סימון/ביטול "טופל" — עדכון אופטימי של ה-state המקומי לאחר אישור השרת.
+  useEffect(() => setPage(1), [debouncedSearch, typeFilter, handledFilter]);
+
+  // טעינת עמוד מהשרת — כולל openCount (ממתינות לטיפול בכל המערכת).
+  useEffect(() => {
+    let alive = true;
+    setLoading(true);
+    listContactsPaged({
+      page,
+      pageSize: PAGE_SIZE,
+      search: debouncedSearch || undefined,
+      type: typeFilter || undefined,
+      handled: handledFilter === "all" ? undefined : handledFilter,
+    })
+      .then((res) => {
+        if (!alive) return;
+        setContacts(res.items);
+        setTotal(res.total);
+        setOpenCount(res.openCount);
+        setError("");
+      })
+      .catch((e) => alive && setError(e.message))
+      .finally(() => alive && setLoading(false));
+    return () => {
+      alive = false;
+    };
+  }, [page, debouncedSearch, typeFilter, handledFilter, refreshKey]);
+
+  // סימון/ביטול "טופל" — טוען מחדש את העמוד (כדי שהסינון וה-openCount יתעדכנו).
   async function toggleHandled(c: Contact) {
     setBusyId(c.id);
     setActionError("");
     try {
-      const updated = await setContactHandled(c.id, !c.handledAt);
-      setContacts((prev) =>
-        prev.map((x) =>
-          x.id === c.id ? { ...x, handledAt: updated.handledAt } : x,
-        ),
-      );
+      await setContactHandled(c.id, !c.handledAt);
+      setRefreshKey((k) => k + 1);
     } catch (e) {
       setActionError((e as Error).message);
     } finally {
@@ -130,35 +156,18 @@ export default function ContactsPage() {
     }
   }
 
-  const openCount = useMemo(
-    () => contacts.filter((c) => !c.handledAt).length,
-    [contacts],
-  );
-
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return contacts.filter((c) => {
-      if (typeFilter && c.inquiry_type !== typeFilter) return false;
-      if (handledFilter === "handled" && !c.handledAt) return false;
-      if (handledFilter === "open" && c.handledAt) return false;
-      if (q) {
-        const hay =
-          `${c.name} ${c.phone} ${c.companyName ?? ""} ${c.email ?? ""}`.toLowerCase();
-        if (!hay.includes(q)) return false;
-      }
-      return true;
-    });
-  }, [contacts, search, typeFilter, handledFilter]);
-
-  useEffect(() => setPage(1), [search, typeFilter, handledFilter]);
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const hasFilter = !!(debouncedSearch || typeFilter || handledFilter !== "all");
 
   return (
     <div>
       <PageHeader
         title="פניות נכנסות"
-        subtitle={`${contacts.length} פניות מטופס "צור קשר" ומטופס המעסיקים · ${openCount} ממתינות לטיפול`}
+        subtitle={
+          hasFilter
+            ? `נמצאו ${total} פניות · ${openCount} ממתינות לטיפול`
+            : `${total} פניות מטופס "צור קשר" ומטופס המעסיקים · ${openCount} ממתינות לטיפול`
+        }
       />
 
       <Card className="mb-6">
@@ -199,17 +208,19 @@ export default function ContactsPage() {
         </div>
       )}
 
-      {loading ? (
+      {loading && contacts.length === 0 ? (
         <Loading />
       ) : error ? (
         <ErrorNote message={error} />
-      ) : contacts.length === 0 ? (
-        <EmptyState message="עדיין אין פניות." />
-      ) : filtered.length === 0 ? (
-        <EmptyState message="לא נמצאו פניות התואמות לסינון." />
+      ) : total === 0 ? (
+        <EmptyState
+          message={
+            hasFilter ? "לא נמצאו פניות התואמות לסינון." : "עדיין אין פניות."
+          }
+        />
       ) : (
-        <div className="space-y-3">
-          {pageItems.map((c) => (
+        <div className="space-y-3" aria-busy={loading}>
+          {contacts.map((c) => (
             <Card
               key={c.id}
               className={`space-y-3 ${c.handledAt ? "opacity-70" : ""}`}

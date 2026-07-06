@@ -6,13 +6,16 @@ import {
 import { PrismaService } from "../../prisma/prisma.service";
 import { EmailService } from "../email/email.service";
 import { StorageService } from "../../common/storage/storage.service";
+import { Prisma } from "@prisma/client";
 import { CreateCandidateDto } from "./dto/create-candidate.dto";
 import { UpdateCandidateDto } from "./dto/update-candidate.dto";
 import { CreateCallLogDto } from "./dto/create-call-log.dto";
 import { HireCandidateDto } from "./dto/hire-candidate.dto";
+import { QueryCandidatesDto } from "./dto/query-candidates.dto";
 import { assertCandidateTransition } from "../../common/status-machine/status-machine";
 import { calcGuaranteeEnd } from "../../common/commission/commission";
 import { escapeHtml } from "../../common/util/escape-html";
+import { pageArgs } from "../../common/pagination/pagination";
 
 @Injectable()
 export class CandidatesService {
@@ -121,20 +124,55 @@ export class CandidatesService {
 
   // ---- CRM (צוות) ----
 
+  // include אחיד לפריט ברשימה — המשרות שהמועמד הוגש אליהן (לאיזו משרה הגיע).
+  private readonly listInclude = {
+    presentations: {
+      orderBy: { presentedAt: "desc" as const },
+      select: {
+        jobId: true,
+        job: { select: { id: true, title: true } },
+      },
+    },
+  };
+
+  /** רשימה מלאה — לבוררי-בחירה (בחירת מועמד למשרה). לא לרשימת ה-CRM הגדולה. */
   findAll() {
     return this.prisma.candidate.findMany({
       orderBy: { createdAt: "desc" },
-      include: {
-        // המשרות שהמועמד הוגש אליהן — כדי שהצוות יראה ברשימה לאיזו משרה הגיע
-        presentations: {
-          orderBy: { presentedAt: "desc" },
-          select: {
-            jobId: true,
-            job: { select: { id: true, title: true } },
-          },
-        },
-      },
+      include: this.listInclude,
     });
+  }
+
+  /**
+   * רשימת ה-CRM עם עימוד וסינון בצד שרת — לעמידה באלפי מועמדים.
+   * חיפוש (שם/טלפון/מייל) + סינון תחום/אזור/סטטוס נעשים ב-DB, ומוחזר רק העמוד המבוקש.
+   */
+  async findAllPaged(query: QueryCandidatesDto) {
+    const { skip, take, page, pageSize } = pageArgs(query);
+    const where: Prisma.CandidateWhereInput = {};
+    if (query.field) where.field = query.field;
+    if (query.region) where.region = query.region;
+    if (query.status) where.status = query.status;
+    const search = query.search?.trim();
+    if (search) {
+      where.OR = [
+        { fullName: { contains: search, mode: "insensitive" } },
+        { phone: { contains: search, mode: "insensitive" } },
+        { email: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.candidate.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        include: this.listInclude,
+        skip,
+        take,
+      }),
+      this.prisma.candidate.count({ where }),
+    ]);
+    return { items, total, page, pageSize };
   }
 
   async findOne(id: string) {

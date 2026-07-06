@@ -1,7 +1,10 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
 import { PrismaService } from "../../prisma/prisma.service";
 import { EmailService } from "../email/email.service";
 import { CreateContactDto, InquiryType } from "./dto/create-contact.dto";
+import { QueryContactsDto } from "./dto/query-contacts.dto";
+import { pageArgs } from "../../common/pagination/pagination";
 import { escapeHtml } from "../../common/util/escape-html";
 
 // תוויות עברית לתחום — מקור אמת לתצוגת המייל לצוות.
@@ -109,6 +112,39 @@ export class ContactService {
 
   findAll() {
     return this.prisma.contact.findMany({ orderBy: { createdAt: "desc" } });
+  }
+
+  /**
+   * רשימת הפניות עם עימוד/סינון בצד שרת.
+   * openCount = כמה פניות טרם טופלו (בכל המערכת, ללא תלות בסינון) — לתג בכותרת.
+   */
+  async findAllPaged(query: QueryContactsDto) {
+    const { skip, take, page, pageSize } = pageArgs(query);
+    const where: Prisma.ContactWhereInput = {};
+    if (query.type) where.inquiry_type = query.type;
+    if (query.handled === "open") where.handledAt = null;
+    if (query.handled === "handled") where.handledAt = { not: null };
+    const search = query.search?.trim();
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { phone: { contains: search, mode: "insensitive" } },
+        { companyName: { contains: search, mode: "insensitive" } },
+        { email: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    const [items, total, openCount] = await this.prisma.$transaction([
+      this.prisma.contact.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip,
+        take,
+      }),
+      this.prisma.contact.count({ where }),
+      this.prisma.contact.count({ where: { handledAt: null } }),
+    ]);
+    return { items, total, page, pageSize, openCount };
   }
 
   /** סימון פנייה כטופלה (חותמת זמן) או ביטול הסימון. מחזיר את הפנייה המעודכנת. */
