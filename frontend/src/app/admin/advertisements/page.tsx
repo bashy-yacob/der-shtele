@@ -34,12 +34,13 @@ import { formatDate } from "@/lib/utils";
 const PLACEMENT_LABELS: Record<AdPlacement, string> = {
   homepage: "באנר צד",
   jobs_list: "פופאפ במרכז",
-  footer: "כותרת תחתונה",
+  footer: "רצועה תחתונה",
 };
 
 const FORMAT_OPTIONS: { value: AdPlacement; label: string }[] = [
   { value: "homepage", label: "באנר צד (קבוע בצד שמאל, בכל האתר)" },
   { value: "jobs_list", label: "פופאפ במרכז המסך (פעם בכמה עמודים)" },
+  { value: "footer", label: "רצועה תחתונה (מעל תחתית האתר, בכל האתר)" },
 ];
 
 const STATUS_LABELS: Record<AdStatus, string> = {
